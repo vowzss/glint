@@ -23,7 +23,9 @@ uint32_t helpers::findMemoryType(VkPhysicalDevice device, uint32_t filter, VkMem
 
 image_buffer_data helpers::createDepthImage(const device_context& devices, VkExtent2D extent) {
     VkFormat depthImageFormat = findDepthFormat(devices.physical);
-    image_buffer_data_info info{depthImageFormat, extent, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT};
+    image_buffer_data_info info = {};
+    info.format = depthImageFormat;
+    info.extent = extent;
 
     return image_buffer_data{devices, info};
 }

@@ -11,12 +11,11 @@ using namespace glint;
 
 buffer_data::buffer_data(const device_context& devices, const buffer_data_info& info)
     : device(devices.logical), size(info.size) {
-    VkBufferCreateInfo bufferInfo{
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .size = size,
-        .usage = info.usage,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-    };
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = info.usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     if (vkCreateBuffer(device, &bufferInfo, nullptr, &value) != VK_SUCCESS) {
         throw std::runtime_error("Vulkan | failed to create buffer!");
@@ -25,11 +24,10 @@ buffer_data::buffer_data(const device_context& devices, const buffer_data_info& 
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements(device, value, &memRequirements);
 
-    VkMemoryAllocateInfo allocInfo{
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .allocationSize = memRequirements.size,
-        .memoryTypeIndex = helpers::findMemoryType(devices.physical, memRequirements.memoryTypeBits, info.properties),
-    };
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = helpers::findMemoryType(devices.physical, memRequirements.memoryTypeBits, info.properties);
 
     if (vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS) {
         throw std::runtime_error("Vulkan | failed to allocate buffer memory!");

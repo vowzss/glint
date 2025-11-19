@@ -42,8 +42,8 @@ namespace glint {
         buffer_data* vertexBuffer_;
         std::unique_ptr<image_buffer_data> depthData_;
 
-        VkViewport viewport{.x = 0.0f, .y = 0.0f, .minDepth = 0.0f, .maxDepth = 1.0f};
-        VkRect2D scissor{.offset = {0, 0}};
+        VkViewport viewport_{};
+        VkRect2D scissor_{};
 
         VkPipelineLayout pipelineLayout_; // layout for shaders (uniforms, descriptors)
         VkPipeline graphicsPipeline_;     // encapsulates all GPU states and shaders

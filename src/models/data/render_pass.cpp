@@ -35,15 +35,14 @@ void renderpass_data::initFramebuffers(const swapchain_data& swapchain, VkImageV
     for (int i = 0; i < swapchain.views.size(); i++) {
         std::array<VkImageView, 2> attachments = {swapchain.views[i], depthImageView};
 
-        VkFramebufferCreateInfo fbInfo{
-            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-            .renderPass = value,
-            .attachmentCount = attachments.size(),
-            .pAttachments = attachments.data(),
-            .width = swapchain.extent.width,
-            .height = swapchain.extent.height,
-            .layers = 1,
-        };
+        VkFramebufferCreateInfo fbInfo = {};
+        fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        fbInfo.renderPass = value;
+        fbInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        fbInfo.pAttachments = attachments.data();
+        fbInfo.width = swapchain.extent.width;
+        fbInfo.height = swapchain.extent.height;
+        fbInfo.layers = 1;
 
         if (vkCreateFramebuffer(device, &fbInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create framebuffer");

@@ -11,11 +11,10 @@
 commands_pool_data::commands_pool_data(const VkDevice& device, const queue_family_support_details& family, size_t size)
     : device(device) {
 
-    VkCommandPoolCreateInfo poolInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        .queueFamilyIndex = family.index,
-    };
+    VkCommandPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    poolInfo.queueFamilyIndex = family.index;
 
     if (vkCreateCommandPool(device, &poolInfo, nullptr, &value) != VK_SUCCESS) {
         throw std::runtime_error("Vulkan | failed to create command pool!");
@@ -23,12 +22,11 @@ commands_pool_data::commands_pool_data(const VkDevice& device, const queue_famil
 
     buffers.resize(size);
 
-    VkCommandBufferAllocateInfo allocInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .commandPool = value,
-        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = static_cast<uint32_t>(buffers.size()),
-    };
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = value;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = static_cast<uint32_t>(buffers.size());
 
     if (vkAllocateCommandBuffers(device, &allocInfo, buffers.data()) != VK_SUCCESS) {
         throw std::runtime_error("Vulkan | failed to allocate command buffers!");
@@ -50,11 +48,10 @@ commands_pool_data::~commands_pool_data() {
 void commands_pool_data::begin(size_t idx) {
     vkResetCommandBuffer(buffers.at(idx), 0);
 
-    VkCommandBufferBeginInfo beginInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .flags = 0,
-        .pInheritanceInfo = nullptr,
-    };
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = 0;
+    beginInfo.pInheritanceInfo = nullptr;
 
     if (vkBeginCommandBuffer(buffers.at(idx), &beginInfo) != VK_SUCCESS) {
         throw std::runtime_error("Vulkan | failed to begin recording command buffer!");

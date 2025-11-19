@@ -8,6 +8,4 @@ struct buffer_data_info {
 
     VkBufferUsageFlags usage;
     VkMemoryPropertyFlags properties;
-
-    buffer_data_info() = delete;
 };
