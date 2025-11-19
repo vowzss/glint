@@ -34,14 +34,14 @@ target("glint")
     add_headerfiles("include/(**.h)")
     add_headerfiles("third_party/(**.h)")
 
+    --
+    add_includedirs("include", {public = true})
+    add_includedirs("third_party/imgui/include", {public = true})
+
     -- Source files
     add_files("src/*.cpp")
     add_files("src/**/*.cpp")
     add_files("third_party/imgui/src/*.cpp")
-
-    --
-    add_includedirs("include", {public = true})
-    add_includedirs("third_party/imgui/include", {public = true})
 
     -- Build modes
     if is_mode("debug") then
@@ -52,5 +52,5 @@ target("glint")
         set_optimize("fastest")
     end
 
-    add_defines("PROJECT_ROOT=\"$(projectdir)\"")
+    -- add_defines("PROJECT_ROOT=\"$(projectdir)\"")
 target_end()
