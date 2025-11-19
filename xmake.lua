@@ -13,7 +13,10 @@ add_requires("conan::imgui/1.92.4", {alias = "imgui" })
 add_requires("conan::glfw/3.4", {alias = "glfw" })
 add_requires("conan::glm/1.0.1", {alias = "glm" })
 --add_requires("tinyobjloader", {alias = "tinyobjloader"})
-add_requires("vulkan-hpp")
+
+add_requires(is_plat("macosx") and "conan::moltenvk/1.3.0" or "conan::vulkan-loader/1.4.313.0", {alias = "vulkan-loader"})
+add_requires("conan::vulkan-headers/1.4.313.0", {alias = "vulkan-headers"})
+add_requires("vulkan-hpp", {alias = "vulkan-hpp"})
 
 -- Target
 target("glint")
@@ -24,12 +27,8 @@ target("glint")
     add_packages("spdlog")
     add_packages("imgui")
     add_packages("glfw", "glm")
-    add_packages("vulkan-hpp")
+    add_packages("vulkan-headers", "vulkan-loader", "vulkan-hpp")
     -- add_packages("tinyobjloader")
-
-    add_includedirs("/usr/include/vulkan", {public = true})
-    add_linkdirs("/usr/lib")
-    add_links("vulkan")
 
     -- Headers files
     add_headerfiles("include/(**.h)")
