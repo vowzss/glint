@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
 #include "glint/misc/vk_helpers.h"
@@ -22,8 +21,10 @@ const int MAX_FRAMES_IN_FLIGHT = 2;
 
 using namespace glint;
 
-renderer::renderer(const resolution_info& res, const renderer_info& info)
-    : res_(res), info_(info) {}
+renderer::renderer(int w, int h, const renderer_info& info)
+    : width_(w), height_(h), info_(info) {
+    createInstance();
+}
 
 renderer::~renderer() {
     vkDeviceWaitIdle(devices_.logical);
@@ -69,11 +70,10 @@ renderer::~renderer() {
     vkDestroyInstance(instance_, nullptr);
 }
 
-void renderer::init(GLFWwindow* window) {
-    createInstance();
-    createSurface(window);
-
+void renderer::init(VkSurfaceKHR surface) {
+    surface_ = surface;
     devices_.physical = utils::selectPhysicalDevice(instance_, surface_);
+
     createLogicalDevice();
 
     createSwapchain();
@@ -186,12 +186,6 @@ void renderer::createInstance() {
     }
 }
 
-void renderer::createSurface(GLFWwindow* window) {
-    if (glfwCreateWindowSurface(instance_, window, nullptr, &surface_) != VK_SUCCESS) {
-        throw std::runtime_error("Vulkan | failed to create surface!");
-    }
-}
-
 void renderer::createLogicalDevice() {
     queue_families_support_details families = utils::queryQueueFamiliesSupport(devices_.physical, surface_);
 
@@ -246,7 +240,7 @@ void renderer::createSwapchain() {
     swapchainInfo.minImageCount = utils::selectSurfaceImageCount(details.capabilities);
     swapchainInfo.imageFormat = surfaceFormat.format;
     swapchainInfo.imageColorSpace = surfaceFormat.colorSpace;
-    swapchainInfo.imageExtent = utils::selectSurfaceExtent(res_, details.capabilities);
+    swapchainInfo.imageExtent = utils::selectSurfaceExtent(width_, height_, details.capabilities);
     swapchainInfo.imageArrayLayers = 1;
     swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     swapchainInfo.preTransform = details.capabilities.currentTransform;

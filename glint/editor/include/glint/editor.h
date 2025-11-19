@@ -1,13 +1,13 @@
 #pragma once
 
-#include "models/config/resolution_info.h"
+#include "glint/models/config/resolution_info.h"
 
 struct GLFWwindow;
 
 namespace glint {
     class renderer;
 
-    class engine {
+    class editor {
       private:
         resolution_info res_;
 
@@ -15,13 +15,13 @@ namespace glint {
         renderer* renderer_ = nullptr;
 
       public:
-        engine(const resolution_info& res);
-        ~engine();
+        editor(const resolution_info& res);
+        ~editor();
 
         void run();
 
       private:
-        GLFWwindow* createWindow();
-        renderer* createRenderer();
+        void createWindow();
+        void createRenderer();
     };
 }

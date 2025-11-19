@@ -4,7 +4,7 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "glint/models/config/resolution_info.h"
+#include <sys/types.h>
 
 using namespace glint;
 
@@ -61,14 +61,14 @@ uint32_t utils::selectSurfaceImageCount(const VkSurfaceCapabilitiesKHR& capabili
     return count;
 }
 
-VkExtent2D utils::selectSurfaceExtent(const resolution_info& res, const VkSurfaceCapabilitiesKHR& capabilities) {
+VkExtent2D utils::selectSurfaceExtent(int width, int height, const VkSurfaceCapabilitiesKHR& capabilities) {
     if (capabilities.currentExtent.width != UINT32_MAX) {
         return capabilities.currentExtent;
     }
 
     VkExtent2D extent;
-    extent.width = std::clamp(res.width, (int)capabilities.minImageExtent.width, (int)capabilities.maxImageExtent.width);
-    extent.height = std::clamp(res.height, (int)capabilities.minImageExtent.height, (int)capabilities.maxImageExtent.height);
+    extent.width = std::clamp(width, (int)capabilities.minImageExtent.width, (int)capabilities.maxImageExtent.width);
+    extent.height = std::clamp(height, (int)capabilities.minImageExtent.height, (int)capabilities.maxImageExtent.height);
     return extent;
 }
 

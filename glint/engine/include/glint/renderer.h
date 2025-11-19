@@ -5,14 +5,13 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include "glint/models/config/device_context.h"
-#include "glint/models/config/renderer_info.h"
-#include "glint/models/config/resolution_info.h"
-#include "glint/models/data/commands_pool_data.h"
-#include "glint/models/data/image_buffer_data.h"
-#include "glint/models/data/queue_data.h"
-#include "glint/models/data/renderpass_data.h"
-#include "glint/models/data/swapchain_data.h"
+#include "models/config/device_context.h"
+#include "models/config/renderer_info.h"
+#include "models/data/commands_pool_data.h"
+#include "models/data/image_buffer_data.h"
+#include "models/data/queue_data.h"
+#include "models/data/renderpass_data.h"
+#include "models/data/swapchain_data.h"
 
 #ifdef NDEBUG
 const bool validationLayersEnabled = false;
@@ -26,7 +25,8 @@ struct buffer_data;
 namespace glint {
     class renderer {
       private:
-        const resolution_info res_;
+        int width_;
+        int height_;
         const renderer_info info_;
 
         VkInstance instance_;
@@ -55,19 +55,20 @@ namespace glint {
 
       public:
         renderer() = delete;
-        renderer(const resolution_info& res, const renderer_info& info);
+        renderer(int w, int h, const renderer_info& info);
 
         ~renderer();
 
-        void init(GLFWwindow* window);
+        void init(VkSurfaceKHR surface);
         void draw();
+
+        inline const VkInstance& getInstance() const { return instance_; }
 
       private:
         void record(const buffer_data& buffer, uint32_t index);
 
         // --- setup ---
         void createInstance();
-        void createSurface(GLFWwindow* window);
         void createLogicalDevice();
 
         void createSwapchain();
