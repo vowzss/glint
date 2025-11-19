@@ -1,0 +1,44 @@
+# --- Build artifacts ---
+build/
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.exe
+*.pdb
+
+# --- Xmake-specific files ---
+.xmake/
+
+xmake.lua.bak
+xmake.lua.user
+xmake.lock
+xmake.cache
+xmake.d
+
+# --- IDEs / editors ---
+# Visual Studio Code
+.vscode/
+
+# Visual Studio
+*.vcxproj*
+*.sln
+*.user
+*.opensdf
+*.sdf
+
+# Jetbrains
+.idea/
+
+# --- OS-specific files ---
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+# --- Temporary files ---
+*.log
+*.tmp
+*.bak
