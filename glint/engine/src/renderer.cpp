@@ -476,7 +476,6 @@ void renderer::createCommandPool() {
 void renderer::createSyncObjects() {
     imageAvailableSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores_.resize(swapchain_->images.size());
-
     inFlightFences_.resize(MAX_FRAMES_IN_FLIGHT);
 
     VkSemaphoreCreateInfo semaphoreInfo = {};

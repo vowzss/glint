@@ -39,6 +39,7 @@ PackConstructorInitializers: NextLineOnly
 # Short constructs
 # =========================
 AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
 
 # Namespaces
 # =========================
