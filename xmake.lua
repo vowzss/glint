@@ -19,12 +19,17 @@ end
 
 -- dependencies
 add_requires("spdlog")
-add_requires("xxhash")
-
 add_requires("imgui", {configs = {glfw_vulkan=true}})
-add_requires("glfw")
---add_requires("tinyobjloader", {alias = "tinyobjloader"})
 
+add_requires("xxhash")
+add_requires("zstd")
+
+add_requires("fastgltf")
+add_requires("stb")
+
+add_requires("joltphysics")
+
+add_requires("glfw")
 add_requires("vulkan-loader")
 add_requires("vulkan-headers")
 add_requires("shaderc")
