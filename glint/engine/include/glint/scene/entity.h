@@ -12,8 +12,7 @@ namespace glint::engine::scene {
         mesh* mesh = nullptr;
         components::transform transform{};
 
-        mat4 get_model_matrix() const {
-            return mat4::translate(transform.position) * mat4::rotate(transform.rotation) * mat4::scale(transform.scale);
-        }
+      public:
+        mat4 getModelMatrix() const;
     };
 }

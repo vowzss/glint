@@ -21,7 +21,7 @@ namespace glint::engine::scene::components {
             float near = 0.1f, float far = 100.0f)
             : position(pos), front(front), up(up), fov(fov), aspect(aspect), near(near), far(far) {}
 
-        mat4 getViewMatrix() const { return lookAt(position, position + front, up); }
+        mat4 getViewMatrix() const;
 
       private:
         mat4 lookAt(const vec3& eye, const vec3& center, const vec3& up) const;

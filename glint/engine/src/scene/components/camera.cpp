@@ -34,4 +34,8 @@ namespace glint::engine::scene::components {
         // clang-format on
         return result;
     }
+
+    mat4 camera::getViewMatrix() const {
+        return lookAt(position, position + front, up);
+    }
 }
