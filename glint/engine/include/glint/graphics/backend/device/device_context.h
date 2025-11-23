@@ -2,9 +2,11 @@
 
 #include <vulkan/vulkan_core.h>
 
-struct device_context {
-    VkDevice logical;
-    VkPhysicalDevice physical;
+namespace glint::engine::graphics::backend {
+    struct device_context {
+        VkDevice logical;
+        VkPhysicalDevice physical;
 
-    device_context() = default;
-};
+        device_context() = default;
+    };
+}

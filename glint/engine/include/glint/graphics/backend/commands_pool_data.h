@@ -4,24 +4,25 @@
 
 #include <vulkan/vulkan_core.h>
 
-struct queue_family_support_details;
-struct queue_families_support_details;
+namespace glint::engine::graphics::backend {
+    struct queue_family_support_details;
+    struct queue_families_support_details;
 
-struct commands_pool_data {
-    VkDevice device = VK_NULL_HANDLE;
+    struct commands_pool_data {
+        VkDevice device = VK_NULL_HANDLE;
 
-    VkCommandPool value = VK_NULL_HANDLE;
-    std::vector<VkCommandBuffer> buffers;
+        VkCommandPool value = VK_NULL_HANDLE;
+        std::vector<VkCommandBuffer> buffers;
 
-  public:
-    commands_pool_data() = delete;
-    commands_pool_data(const VkDevice& device, const queue_family_support_details& family, size_t size);
+      public:
+        commands_pool_data() = delete;
+        commands_pool_data(const VkDevice& device, const queue_family_support_details& family, size_t size);
 
-    ~commands_pool_data();
+        ~commands_pool_data();
 
-    void begin(size_t idx);
-    void end(size_t idx);
-};
+        void begin(size_t idx);
+        void end(size_t idx);
+    };
 
 /*
 struct commands_pools_data {
@@ -36,4 +37,4 @@ struct commands_pools_data {
 
     ~commands_pools_data();
 };
-*/
+*/}

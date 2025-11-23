@@ -12,14 +12,17 @@
 #include "glint/graphics/backend/renderpass/renderpass_attachment_info.h"
 #include "glint/graphics/backend/renderpass/renderpass_data.h"
 #include "glint/graphics/backend/swapchain/swapchain_data.h"
+#include "glint/graphics/backend/vk_helpers.h"
 #include "glint/graphics/models/vertex.h"
-#include "glint/misc/vk_helpers.h"
 #include "glint/utils/file_utils.h"
 #include "glint/utils/vk_utils.h"
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace glint::engine::graphics {
+    using namespace glint::engine::graphics::models;
+    using namespace glint::engine::graphics::backend;
+
     renderer::renderer(int w, int h, const renderer_info& info) : width_(w), height_(h), info_(info) {
         createInstance();
     }
@@ -264,7 +267,7 @@ namespace glint::engine::graphics {
 
     void renderer::createRenderPass() {
         depthData_ = std::make_unique<image_buffer_data>(devices_, image_buffer_data_info{
-                                                                       helpers::findDepthFormat(devices_.physical),
+                                                                       findDepthFormat(devices_.physical),
                                                                        swapchain_->extent,
                                                                        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                                                                    });

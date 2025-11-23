@@ -1,6 +1,6 @@
 #pragma once
 
-namespace glint::core {
+namespace glint::engine::core {
     constexpr double EPSILON = 1e-8;
 
     constexpr double PI = 3.14159265358979323846;

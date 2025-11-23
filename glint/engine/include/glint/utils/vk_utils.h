@@ -5,6 +5,9 @@
 #include "glint/graphics/backend/device/queue_family_support_details.h"
 #include "glint/graphics/backend/swapchain/swapchain_support_details.h"
 
+// todo: cleanup this bullshit
+using namespace glint::engine::graphics::backend;
+
 namespace glint::engine::utils {
     const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};

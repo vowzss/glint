@@ -1,6 +1,6 @@
-#include "glint/graphics/camera.h"
+#include "glint/scene/components/camera.h"
 
-namespace glint::engine::graphics {
+namespace glint::engine::scene::components {
     namespace {
         mat4 perspective(float fov, float aspect, float near, float far) {
             float fovRad = fov * 3.14159265f / 180.0f;

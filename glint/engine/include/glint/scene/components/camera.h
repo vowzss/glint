@@ -1,9 +1,12 @@
 #pragma once
 
 #include "glint/core/math/matrix/mat4.h"
-#include "glint/core/math/vectors/vec3.h"
+#include "glint/core/math/vector/vec3.h"
 
-namespace glint::engine::graphics {
+namespace glint::engine::scene::components {
+    using vec3 = glint::engine::core::math::vector::vec3;
+    using mat4 = glint::engine::core::math::matrix::mat4;
+
     struct camera {
         vec3 position;
         vec3 front;
@@ -23,5 +26,4 @@ namespace glint::engine::graphics {
       private:
         mat4 lookAt(const vec3& eye, const vec3& center, const vec3& up) const;
     };
-
 }

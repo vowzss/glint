@@ -2,10 +2,12 @@
 
 #include "vulkan/vulkan_core.h"
 
-struct buffer_data_info {
-    const void* data;
-    VkDeviceSize size;
+namespace glint::engine::graphics::backend {
+    struct buffer_data_info {
+        const void* data;
+        VkDeviceSize size;
 
-    VkBufferUsageFlags usage;
-    VkMemoryPropertyFlags properties;
-};
+        VkBufferUsageFlags usage;
+        VkMemoryPropertyFlags properties;
+    };
+}

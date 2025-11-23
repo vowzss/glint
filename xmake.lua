@@ -44,7 +44,6 @@ target("glint_engine")
     add_includedirs("glint/engine/include", {public = true})
 
     -- sources
-    add_files("glint/engine/src/*.cpp")
     add_files("glint/engine/src/**/*.cpp")
 target_end()
 

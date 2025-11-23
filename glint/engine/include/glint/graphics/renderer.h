@@ -18,7 +18,10 @@ const bool validationLayersEnabled = true;
 #endif
 
 struct GLFWwindow;
-struct buffer_data;
+
+namespace glint::engine::graphics::backend {
+    struct buffer_data;
+}
 
 namespace glint::engine::graphics {
     class renderer {
@@ -30,15 +33,15 @@ namespace glint::engine::graphics {
         VkInstance instance_;
         VkSurfaceKHR surface_;
 
-        device_context devices_;
+        backend::device_context devices_;
 
-        std::unique_ptr<queues_data> queues_;
-        std::unique_ptr<swapchain_data> swapchain_;
-        std::unique_ptr<renderpass_data> renderpass_;
-        std::unique_ptr<commands_pool_data> commands_;
+        std::unique_ptr<backend::queues_data> queues_;
+        std::unique_ptr<backend::swapchain_data> swapchain_;
+        std::unique_ptr<backend::renderpass_data> renderpass_;
+        std::unique_ptr<backend::commands_pool_data> commands_;
 
-        buffer_data* vertexBuffer_;
-        std::unique_ptr<image_buffer_data> depthData_;
+        backend::buffer_data* vertexBuffer_;
+        std::unique_ptr<backend::image_buffer_data> depthData_;
 
         VkViewport viewport_{};
         VkRect2D scissor_{};
@@ -63,7 +66,7 @@ namespace glint::engine::graphics {
         inline const VkInstance& getInstance() const { return instance_; }
 
       private:
-        void record(const buffer_data& buffer, uint32_t index);
+        void record(const backend::buffer_data& buffer, uint32_t index);
 
         // --- setup ---
         void createInstance();
