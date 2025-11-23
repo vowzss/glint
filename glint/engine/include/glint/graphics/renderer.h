@@ -3,16 +3,13 @@
 #include <memory>
 #include <vector>
 
-#include <vulkan/vulkan_core.h>
-
+#include "glint/graphics/backend/buffer/image_buffer_data.h"
 #include "glint/graphics/backend/commands_pool_data.h"
-#include "glint/graphics/backend/device_context.h"
-#include "glint/graphics/backend/image_buffer_data.h"
-#include "glint/graphics/backend/queue_data.h"
-#include "glint/graphics/backend/renderpass_data.h"
-#include "glint/graphics/backend/swapchain_data.h"
+#include "glint/graphics/backend/device/device_context.h"
+#include "glint/graphics/backend/device/queue_data.h"
+#include "glint/graphics/backend/renderpass/renderpass_data.h"
+#include "glint/graphics/backend/swapchain/swapchain_data.h"
 #include "glint/graphics/renderer_info.h"
-
 
 #ifdef NDEBUG
 const bool validationLayersEnabled = false;

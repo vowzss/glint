@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <vulkan/vulkan_core.h>
 
-#include "glint/graphics/backend/queue_family_support_details.h"
+#include "glint/graphics/backend/device/queue_family_support_details.h"
 
 commands_pool_data::commands_pool_data(const VkDevice& device, const queue_family_support_details& family, size_t size) : device(device) {
 

@@ -1,7 +1,5 @@
-#include <vulkan/vulkan_core.h>
-
-#include "glint/graphics/backend/queue_data.h"
-#include "glint/graphics/backend/queue_family_support_details.h"
+#include "glint/graphics/backend/device/queue_data.h"
+#include "glint/graphics/backend/device/queue_family_support_details.h"
 
 queue_data::queue_data(const VkDevice& device, const queue_family_support_details& family) : values({}) {
     values.resize(family.count);

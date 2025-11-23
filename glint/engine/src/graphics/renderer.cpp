@@ -4,19 +4,18 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "glint/graphics/backend/buffer_data.h"
-#include "glint/graphics/backend/buffer_data_info.h"
-#include "glint/graphics/backend/image_buffer_data_info.h"
-#include "glint/graphics/backend/queue_data.h"
-#include "glint/graphics/backend/queue_family_support_details.h"
-#include "glint/graphics/backend/renderpass_attachment_info.h"
-#include "glint/graphics/backend/renderpass_data.h"
-#include "glint/graphics/backend/swapchain_data.h"
-#include "glint/graphics/vertex.h"
+#include "glint/graphics/backend/buffer/buffer_data.h"
+#include "glint/graphics/backend/buffer/buffer_data_info.h"
+#include "glint/graphics/backend/buffer/image_buffer_data_info.h"
+#include "glint/graphics/backend/device/queue_data.h"
+#include "glint/graphics/backend/device/queue_family_support_details.h"
+#include "glint/graphics/backend/renderpass/renderpass_attachment_info.h"
+#include "glint/graphics/backend/renderpass/renderpass_data.h"
+#include "glint/graphics/backend/swapchain/swapchain_data.h"
+#include "glint/graphics/models/vertex.h"
 #include "glint/misc/vk_helpers.h"
 #include "glint/utils/file_utils.h"
 #include "glint/utils/vk_utils.h"
-
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 

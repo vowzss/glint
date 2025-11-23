@@ -1,4 +1,4 @@
-#include "glint/graphics/backend/swapchain_data.h"
+#include "glint/graphics/backend/swapchain/swapchain_data.h"
 
 #include <stdexcept>
 

@@ -1,9 +1,9 @@
-#include "glint/graphics/backend/image_buffer_data.h"
+#include "glint/graphics/backend/buffer/image_buffer_data.h"
 
 #include <stdexcept>
 
-#include "glint/graphics/backend/device_context.h"
-#include "glint/graphics/backend/image_buffer_data_info.h"
+#include "glint/graphics/backend/buffer/image_buffer_data_info.h"
+#include "glint/graphics/backend/device/device_context.h"
 #include "glint/misc/vk_helpers.h"
 
 using namespace glint;

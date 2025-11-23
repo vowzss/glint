@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "glint/graphics/backend/image_buffer_data.h"
+#include "glint/graphics/backend/buffer/image_buffer_data.h"
 
 namespace glint::helpers {
     uint32_t findMemoryType(VkPhysicalDevice device, uint32_t filter, VkMemoryPropertyFlags properties);
