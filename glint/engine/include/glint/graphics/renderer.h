@@ -5,13 +5,13 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include "models/config/device_context.h"
-#include "models/config/renderer_info.h"
-#include "models/data/commands_pool_data.h"
-#include "models/data/image_buffer_data.h"
-#include "models/data/queue_data.h"
-#include "models/data/renderpass_data.h"
-#include "models/data/swapchain_data.h"
+#include "glint/models/config/device_context.h"
+#include "glint/models/config/renderer_info.h"
+#include "glint/models/data/commands_pool_data.h"
+#include "glint/models/data/image_buffer_data.h"
+#include "glint/models/data/queue_data.h"
+#include "glint/models/data/renderpass_data.h"
+#include "glint/models/data/swapchain_data.h"
 
 #ifdef NDEBUG
 const bool validationLayersEnabled = false;
@@ -22,7 +22,7 @@ const bool validationLayersEnabled = true;
 struct GLFWwindow;
 struct buffer_data;
 
-namespace glint {
+namespace glint::engine::graphics {
     class renderer {
       private:
         int width_;

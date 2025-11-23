@@ -1,6 +1,6 @@
 #include <string>
 #include <vector>
 
-namespace glint::utils {
+namespace glint::engine::utils {
     std::vector<char> read_file(const std::string& filename);
 }

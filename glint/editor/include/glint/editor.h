@@ -4,15 +4,17 @@
 
 struct GLFWwindow;
 
-namespace glint {
+namespace glint::engine::graphics {
     class renderer;
+}
 
+namespace glint {
     class editor {
       private:
         resolution_info res_;
 
         GLFWwindow* window_ = nullptr;
-        renderer* renderer_ = nullptr;
+        glint::engine::graphics::renderer* renderer_ = nullptr;
 
       public:
         editor(const resolution_info& res);

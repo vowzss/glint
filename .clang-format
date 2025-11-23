@@ -1,47 +1,59 @@
 BasedOnStyle: LLVM
 
-# Indentation
+# indentation
 # =========================
+IndentPPDirectives: BeforeHash
 IndentWidth: 4
 ContinuationIndentWidth: 4
 IndentCaseLabels: true
 UseTab: Never
-ColumnLimit: 165
 
-# Pointers & references
+ColumnLimit: 150
+
+# pointers & references
 # =========================
 DerivePointerAlignment: false
 PointerAlignment: Left
 
-# Includes
+# includes
 # =========================
 SortIncludes: true
 IncludeBlocks: Regroup
 IncludeCategories:
-  # 1️⃣ Standard library
-  - Regex: '^<([a-zA-Z0-9_\/]+)>$'
+  # standard library
+  - Regex: '^<[a-zA-Z0-9_\/]+>$'
     Priority: 1
 
-  # 2️⃣ Third-party headers
-  - Regex: '^<.*.(h|hpp)>$'
+  # third-party headers
+  - Regex: "^<.*.(h|hpp)>$"
     Priority: 2
 
-  # 3️⃣ Project headers
-  - Regex: '^glint\/.*$'
+  # project headers
+  - Regex: '^"serris/.*"$'
     Priority: 3
 
-# Alignment
+# alignment
 # =========================
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: DontAlign
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowAllArgumentsOnNextLine: false
 
-PackConstructorInitializers: NextLineOnly
+AlignArrayOfStructures: Left
 
-# Short constructs
+AlwaysBreakTemplateDeclarations: Yes
+AlwaysBreakBeforeMultilineStrings: false
+
+# braces
+BreakBeforeBraces: Attach
+BraceWrapping:
+  AfterControlStatement: true
+
+# short constructs
 # =========================
-AllowShortIfStatementsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: true
 
-# Namespaces
+# namespaces
 # =========================
 NamespaceIndentation: All
 FixNamespaceComments: false
