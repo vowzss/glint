@@ -1,10 +1,10 @@
-#include "glint/models/data/image_buffer_data.h"
+#include "glint/graphics/backend/image_buffer_data.h"
 
 #include <stdexcept>
 
+#include "glint/graphics/backend/device_context.h"
+#include "glint/graphics/backend/image_buffer_data_info.h"
 #include "glint/misc/vk_helpers.h"
-#include "glint/models/config/device_context.h"
-#include "glint/models/misc/image_buffer_data_info.h"
 
 using namespace glint;
 
@@ -47,8 +47,8 @@ image_buffer_data::image_buffer_data(const device_context& devices, const image_
     viewInfo.image = image;
     viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
     viewInfo.format = format;
-    viewInfo.subresourceRange.aspectMask =
-        static_cast<VkImageAspectFlags>((usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT);
+    viewInfo.subresourceRange.aspectMask = static_cast<VkImageAspectFlags>(
+        (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT);
     viewInfo.subresourceRange.baseMipLevel = 0;
     viewInfo.subresourceRange.levelCount = 1;
     viewInfo.subresourceRange.baseArrayLayer = 0;

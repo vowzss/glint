@@ -4,8 +4,8 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include "glint/models/misc/queue_family_support_details.h"
-#include "glint/models/misc/swapchain_support_details.h"
+#include "glint/graphics/backend/queue_family_support_details.h"
+#include "glint/graphics/backend/swapchain_support_details.h"
 
 namespace glint::engine::utils {
     const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};

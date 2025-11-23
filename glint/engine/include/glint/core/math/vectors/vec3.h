@@ -10,6 +10,10 @@ struct vec3 : public vec<float, 3, vec3> {
     constexpr vec3(float x, float y, float z) : vec<float, 3, vec3>({x, y, z}) {}
     constexpr vec3(vec2 v, float z = 1.0f) : vec<float, 3, vec3>({v.x(), v.y(), z}) {}
 
+    // --- factories ---
+    static constexpr vec3 zero() { return vec3(0.0f, 0.0f, 0.0f); }
+    static constexpr vec3 one() { return vec3(1.0f, 1.0f, 1.0f); }
+
     // --- methods ---
     constexpr vec3 cross(const vec3& v) const;
     inline float angle(const vec3& v) const;

@@ -1,10 +1,8 @@
-
-#include "glint/models/data/swapchain_data.h"
+#include "glint/graphics/backend/swapchain_data.h"
 
 #include <stdexcept>
 
-swapchain_data::swapchain_data(VkDevice& dev, VkSwapchainCreateInfoKHR info)
-    : device(dev), format(info.imageFormat), extent(info.imageExtent) {
+swapchain_data::swapchain_data(VkDevice& dev, VkSwapchainCreateInfoKHR info) : device(dev), format(info.imageFormat), extent(info.imageExtent) {
     if (vkCreateSwapchainKHR(device, &info, nullptr, &value) != VK_SUCCESS) {
         throw std::runtime_error("Vulkan | failed to create swapchain!");
     }

@@ -1,4 +1,4 @@
-#include "glint/models/data/commands_pool_data.h"
+#include "glint/graphics/backend/commands_pool_data.h"
 
 #include <cstdint>
 #include <stdexcept>
@@ -6,10 +6,9 @@
 #include <sys/types.h>
 #include <vulkan/vulkan_core.h>
 
-#include "glint/models/misc/queue_family_support_details.h"
+#include "glint/graphics/backend/queue_family_support_details.h"
 
-commands_pool_data::commands_pool_data(const VkDevice& device, const queue_family_support_details& family, size_t size)
-    : device(device) {
+commands_pool_data::commands_pool_data(const VkDevice& device, const queue_family_support_details& family, size_t size) : device(device) {
 
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;

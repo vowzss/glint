@@ -24,10 +24,6 @@ struct vec {
     }
 
   public:
-    // --- factories ---
-    static constexpr vec<T, D, I> zero();
-    static constexpr vec one();
-
     // --- methods ---
     inline mag_t lengthSquared() const;
     inline mag_t length() const;

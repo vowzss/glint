@@ -5,13 +5,14 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include "glint/models/config/device_context.h"
-#include "glint/models/config/renderer_info.h"
-#include "glint/models/data/commands_pool_data.h"
-#include "glint/models/data/image_buffer_data.h"
-#include "glint/models/data/queue_data.h"
-#include "glint/models/data/renderpass_data.h"
-#include "glint/models/data/swapchain_data.h"
+#include "glint/graphics/backend/commands_pool_data.h"
+#include "glint/graphics/backend/device_context.h"
+#include "glint/graphics/backend/image_buffer_data.h"
+#include "glint/graphics/backend/queue_data.h"
+#include "glint/graphics/backend/renderpass_data.h"
+#include "glint/graphics/backend/swapchain_data.h"
+#include "glint/graphics/renderer_info.h"
+
 
 #ifdef NDEBUG
 const bool validationLayersEnabled = false;

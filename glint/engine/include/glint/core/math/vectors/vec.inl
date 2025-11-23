@@ -1,16 +1,5 @@
 #pragma once
 
-// --- utility constructors ---
-template <typename T, std::size_t D, typename I>
-constexpr vec<T, D, I> vec<T, D, I>::zero() {
-    return vec<T, D, I>(static_cast<T>(0));
-}
-
-template <typename T, std::size_t D, typename I>
-constexpr vec<T, D, I> vec<T, D, I>::one() {
-    return vec<T, D, I>(static_cast<T>(1));
-}
-
 // --- methods ---
 template <typename T, std::size_t D, typename I>
 inline typename vec<T, D, I>::mag_t vec<T, D, I>::lengthSquared() const {

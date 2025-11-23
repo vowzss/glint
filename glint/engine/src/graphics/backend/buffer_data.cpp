@@ -1,16 +1,15 @@
-#include "glint/models/data/buffer_data.h"
+#include "glint/graphics/backend/buffer_data.h"
 
 #include <cstring>
 #include <stdexcept>
 
+#include "glint/graphics/backend/buffer_data_info.h"
+#include "glint/graphics/backend/device_context.h"
 #include "glint/misc/vk_helpers.h"
-#include "glint/models/config/device_context.h"
-#include "glint/models/misc/buffer_data_info.h"
 
 using namespace glint;
 
-buffer_data::buffer_data(const device_context& devices, const buffer_data_info& info)
-    : device(devices.logical), size(info.size) {
+buffer_data::buffer_data(const device_context& devices, const buffer_data_info& info) : device(devices.logical), size(info.size) {
     VkBufferCreateInfo bufferInfo = {};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = size;

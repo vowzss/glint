@@ -3,8 +3,8 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include "glint/models/data/renderpass_data.h"
-#include "glint/models/data/swapchain_data.h"
+#include "glint/graphics/backend/renderpass_data.h"
+#include "glint/graphics/backend/swapchain_data.h"
 
 renderpass_data::renderpass_data(const swapchain_data& swapchain, VkRenderPassCreateInfo info, const VkImageView& depthImageView)
     : device(swapchain.device) {

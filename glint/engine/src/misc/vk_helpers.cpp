@@ -2,9 +2,10 @@
 
 #include <stdexcept>
 
-#include "glint/models/config/device_context.h"
-#include "glint/models/data/image_buffer_data.h"
-#include "glint/models/misc/image_buffer_data_info.h"
+#include "glint/graphics/backend/device_context.h"
+#include "glint/graphics/backend/image_buffer_data.h"
+#include "glint/graphics/backend/image_buffer_data_info.h"
+
 
 using namespace glint;
 
@@ -31,7 +32,7 @@ image_buffer_data helpers::createDepthImage(const device_context& devices, VkExt
 }
 
 VkFormat helpers::findSupportedImageFormat(const VkPhysicalDevice& device, const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-                                           VkFormatFeatureFlags features) {
+    VkFormatFeatureFlags features) {
     for (VkFormat format : candidates) {
         VkFormatProperties props;
         vkGetPhysicalDeviceFormatProperties(device, format, &props);
@@ -52,6 +53,6 @@ VkFormat helpers::findSupportedImageFormat(const VkPhysicalDevice& device, const
 }
 
 VkFormat helpers::findDepthFormat(const VkPhysicalDevice& device) {
-    return helpers::findSupportedImageFormat(device, {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT}, VK_IMAGE_TILING_OPTIMAL,
-                                             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    return helpers::findSupportedImageFormat(device, {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+        VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
