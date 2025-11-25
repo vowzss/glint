@@ -7,6 +7,7 @@
 #include "glint/graphics/backend/commands_pool_data.h"
 #include "glint/graphics/backend/device/device_context.h"
 #include "glint/graphics/backend/device/queue_data.h"
+#include "glint/graphics/backend/frame_data.h"
 #include "glint/graphics/backend/renderpass/renderpass_data.h"
 #include "glint/graphics/backend/swapchain/swapchain_data.h"
 #include "glint/graphics/renderer_info.h"
@@ -23,6 +24,10 @@ namespace glint::engine::graphics::backend {
     struct buffer_data;
 }
 
+namespace glint::engine::scene::components {
+    struct camera;
+}
+
 namespace glint::engine::graphics {
     class renderer {
       private:
@@ -33,12 +38,17 @@ namespace glint::engine::graphics {
         VkInstance instance_;
         VkSurfaceKHR surface_;
 
+        VkDescriptorPool descriptorPool_{};
+
         backend::device_context devices_;
 
         std::unique_ptr<backend::queues_data> queues_;
         std::unique_ptr<backend::swapchain_data> swapchain_;
         std::unique_ptr<backend::renderpass_data> renderpass_;
         std::unique_ptr<backend::commands_pool_data> commands_;
+
+        VkDescriptorSetLayout cameraLayout_{};
+        std::unique_ptr<scene::components::camera> camera_;
 
         backend::buffer_data* vertexBuffer_;
         std::unique_ptr<backend::image_buffer_data> depthData_;
@@ -49,10 +59,9 @@ namespace glint::engine::graphics {
         VkPipelineLayout pipelineLayout_; // layout for shaders (uniforms, descriptors)
         VkPipeline graphicsPipeline_;     // encapsulates all GPU states and shaders
 
-        int frame_ = 0;
-        std::vector<VkSemaphore> imageAvailableSemaphores_; // signals when a swapchain image is ready to render
-        std::vector<VkSemaphore> renderFinishedSemaphores_; // signals when rendering is finished and ready to present
-        std::vector<VkFence> inFlightFences_;               // fences to ensure CPU waits until GPU has finished work
+        int frameIndex_ = 0;
+        uint32_t imageIndex_ = 0;
+        std::vector<std::unique_ptr<backend::frame_data>> frames;
 
       public:
         renderer() = delete;
@@ -61,13 +70,14 @@ namespace glint::engine::graphics {
         ~renderer();
 
         void init(VkSurfaceKHR surface);
-        void draw();
+
+        void beginFrame();
+        void recordFrame();
+        void endFrame();
 
         inline const VkInstance& getInstance() const { return instance_; }
 
       private:
-        void record(const backend::buffer_data& buffer, uint32_t index);
-
         // --- setup ---
         void createInstance();
         void createLogicalDevice();
@@ -78,5 +88,9 @@ namespace glint::engine::graphics {
 
         void createCommandPool();
         void createSyncObjects();
+
+        void createCamera();
+
+        void draw(const backend::buffer_data& buffer);
     };
 }

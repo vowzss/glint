@@ -48,7 +48,6 @@ namespace glint::engine::graphics::backend {
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = 0;
-        beginInfo.pInheritanceInfo = nullptr;
 
         if (vkBeginCommandBuffer(buffers.at(idx), &beginInfo) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to begin recording command buffer!");

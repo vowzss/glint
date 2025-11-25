@@ -13,7 +13,7 @@ if is_mode("debug") then
     set_symbols("debug")
     set_optimize("none")
 else
-    --set_symbols("hidden")
+    set_symbols("hidden")
     set_optimize("fastest")
 end
 
@@ -44,7 +44,7 @@ target("glint_engine")
     add_packages("vulkan-loader", "vulkan-headers", "shaderc")
 
     -- headers
-    set_pcheader("glint/engine/include/glint/pch.h")
+    --set_pcheader("glint/engine/include/glint/pch.h")
     add_headerfiles("glint/engine/include/(**.h)")
     add_includedirs("glint/engine/include", {public = true})
 
@@ -67,7 +67,7 @@ target("glint_editor")
     add_includedirs("glint/editor/include")
 
     -- headers
-    set_pcheader("glint/editor/include/glint/pch.h")
+    --set_pcheader("glint/editor/include/glint/pch.h")
     add_headerfiles("glint/editor/include/(**.h)")
 
     -- sources

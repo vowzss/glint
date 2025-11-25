@@ -50,7 +50,7 @@ namespace glint::engine::utils {
     }
 
     uint32_t selectSurfaceImageCount(const VkSurfaceCapabilitiesKHR& capabilities) {
-        uint32_t count = capabilities.minImageCount + 1;
+        uint32_t count = capabilities.minImageCount;
 
         // clamp to maximum if defined (0 means no limit)
         if (capabilities.maxImageCount > 0 && count > capabilities.maxImageCount) {

@@ -9,10 +9,29 @@ namespace glint::engine::scene::components {
             mat4 result{};
             result[0][0] = 1.0f / (aspect * tanHalfFov);
             result[1][1] = 1.0f / tanHalfFov;
+
             result[2][2] = far / (far - near);
             result[2][3] = 1.0f;
+
             result[3][2] = -(far * near) / (far - near);
             result[3][3] = 0.0f;
+
+            return result;
+        }
+
+        mat4 orthographic(float left, float right, float bottom, float top, float near, float far) {
+            mat4 result{};
+            result[0][0] = 2.0f / (right - left);
+
+            result[1][1] = 2.0f / (top - bottom);
+
+            result[2][2] = 2.0f / (far - near);
+
+            result[3][0] = -(right + left) / (right - left);
+            result[3][1] = -(top + bottom) / (top - bottom);
+            result[3][2] = -(far + near) / (far - near);
+            result[3][3] = 1.0f;
+
             return result;
         }
     }
@@ -37,5 +56,12 @@ namespace glint::engine::scene::components {
 
     mat4 camera::getViewMatrix() const {
         return lookAt(position, position + front, up);
+    }
+
+    mat4 camera::getProjectionMatrix() const {
+        mat4 proj = perspective(fov, aspect, near, far);
+        proj[1][1] *= -1.0f;
+
+        return proj;
     }
 }

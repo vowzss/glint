@@ -10,7 +10,7 @@ namespace glint::engine::core::math::matrix {
         return result;
     }
 
-    mat4 mat4::translate(const vector::vec3& val) {
+    inline mat4 mat4::translate(const vector::vec3& val) {
         mat4 result = identity();
         result[3][0] = val.x();
         result[3][1] = val.y();
@@ -18,7 +18,7 @@ namespace glint::engine::core::math::matrix {
         return result;
     }
 
-    mat4 mat4::rotate(const quaternion& val) {
+    inline mat4 mat4::rotate(const quaternion& val) {
         float xx = val.x * val.x;
         float yy = val.y * val.y;
         float zz = val.z * val.z;
@@ -54,7 +54,7 @@ namespace glint::engine::core::math::matrix {
         return result;
     }
 
-    mat4 mat4::scale(const vector::vec3& val) {
+    inline mat4 mat4::scale(const vector::vec3& val) {
         mat4 result = identity();
         result[0][0] = val.x();
         result[1][1] = val.y();

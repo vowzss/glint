@@ -1,8 +1,10 @@
 #pragma once
 
 #include "../quaternion.h"
+#include "../vector/vec3.h"
 #include "../vector/vec4.h"
 #include "mat.h"
+
 
 namespace glint::engine::core::math::matrix {
     struct mat4 : public mat<float, 4, 4, mat4> {

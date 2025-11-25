@@ -37,7 +37,9 @@ namespace glint {
                 exit(0);
             }
 
-            renderer_->draw();
+            renderer_->beginFrame();
+            renderer_->recordFrame();
+            renderer_->endFrame();
         }
     }
 
