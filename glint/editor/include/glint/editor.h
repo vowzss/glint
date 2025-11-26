@@ -1,6 +1,9 @@
 #pragma once
 
+#include <memory>
+
 #include "glint/models/config/resolution_info.h"
+#include "glint/window.h"
 
 struct GLFWwindow;
 
@@ -13,8 +16,8 @@ namespace glint {
       private:
         resolution_info res_;
 
-        GLFWwindow* window_ = nullptr;
-        glint::engine::graphics::renderer* renderer_ = nullptr;
+        std::unique_ptr<Window> window = nullptr;
+        glint::engine::graphics::renderer* renderer = nullptr;
 
       public:
         editor(const resolution_info& res);

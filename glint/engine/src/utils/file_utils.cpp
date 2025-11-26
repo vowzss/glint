@@ -12,7 +12,6 @@ namespace glint::engine::utils {
     std::vector<char> read_file(const std::string& filename) {
         fs::path rssPath = fs::absolute("resources");
         fs::path fullPath = rssPath / filename;
-        std::cout << fullPath << "\n";
 
         std::ifstream file(fullPath, std::ios::ate | std::ios::binary);
 

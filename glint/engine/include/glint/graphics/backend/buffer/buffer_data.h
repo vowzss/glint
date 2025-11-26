@@ -7,10 +7,11 @@ namespace glint::engine::graphics::backend {
     struct buffer_data_info;
 
     struct buffer_data {
-        VkDevice device = VK_NULL_HANDLE;
+        VkDevice device{};
 
-        VkBuffer value = VK_NULL_HANDLE;
-        VkDeviceMemory memory = VK_NULL_HANDLE;
+        VkBuffer value{};
+        VkDeviceMemory memory{};
+
         VkDeviceSize size;
 
       public:

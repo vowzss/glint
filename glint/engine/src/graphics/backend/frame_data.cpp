@@ -1,14 +1,14 @@
 #include "glint/graphics/backend/frame_data.h"
 
-#include "glint/core/math/matrix/mat4.h"
+#include <Jolt/Jolt.h>
+#include <Jolt/Math/Mat44.h>
+
 #include "glint/graphics/backend/buffer/buffer_data_info.h"
 #include "glint/graphics/backend/device/device_context.h"
 #include "glint/scene/components/camera.h"
 
 namespace glint::engine::graphics::backend {
     frame_data::frame_data(const device_context& devices, const frame_data_info& info) : device(devices.logical) {
-        using namespace glint::engine::core::math;
-
         VkSemaphoreCreateInfo semInfo{};
         semInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         vkCreateSemaphore(device, &semInfo, nullptr, &imageAvailable);
@@ -19,14 +19,14 @@ namespace glint::engine::graphics::backend {
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
         vkCreateFence(device, &fenceInfo, nullptr, &inFlight);
 
-        matrix::mat4 viewMatrix = info.camera->getViewMatrix();
-        matrix::mat4 projMatrix = info.camera->getProjectionMatrix();
-        matrix::mat4 viewProjMatrix = viewMatrix * projMatrix;
-        matrix::mat4 cameraMatrices[3] = {viewMatrix, projMatrix, viewProjMatrix};
+        JPH::Mat44 projMatrix = info.camera->getProjectionMatrix();
+        JPH::Mat44 viewMatrix = info.camera->getViewMatrix();
+        JPH::Mat44 projViewMatrix = projMatrix * viewMatrix;
+        JPH::Mat44 cameraMatrices[3] = {viewMatrix, projMatrix, projViewMatrix};
 
         buffer_data_info dataInfo{};
         dataInfo.data = cameraMatrices;
-        dataInfo.size = sizeof(matrix::mat4) * 3;
+        dataInfo.size = sizeof(JPH::Mat44) * 3;
         dataInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
         dataInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         cameraBuffer = std::make_unique<buffer_data>(devices, dataInfo);
@@ -44,7 +44,7 @@ namespace glint::engine::graphics::backend {
         VkDescriptorBufferInfo bufferInfo{};
         bufferInfo.buffer = cameraBuffer->value;
         bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(matrix::mat4) * 3;
+        bufferInfo.range = sizeof(JPH::Mat44) * 3;
 
         VkWriteDescriptorSet writeInfo{};
         writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

@@ -41,6 +41,7 @@ target("glint_engine")
 
     -- dependencies
     add_packages("spdlog", "xxhash")
+    add_packages("joltphysics")
     add_packages("vulkan-loader", "vulkan-headers", "shaderc")
 
     -- headers

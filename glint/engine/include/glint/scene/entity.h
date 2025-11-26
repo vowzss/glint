@@ -1,11 +1,11 @@
+#include <Jolt/Jolt.h>
+#include <Jolt/Math/Mat44.h>
+
 #include "components/transform.h"
-#include "glint/core/math/matrix/mat4.h"
 
 struct mesh;
 
 namespace glint::engine::scene {
-    using mat4 = glint::engine::core::math::matrix::mat4;
-
     struct entity {
         uint32_t id;
 
@@ -13,6 +13,6 @@ namespace glint::engine::scene {
         components::transform transform{};
 
       public:
-        mat4 getModelMatrix() const;
+        JPH::Mat44 getModelMatrix() const;
     };
 }

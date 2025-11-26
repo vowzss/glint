@@ -181,13 +181,12 @@ namespace glint::engine::graphics {
         const VkCommandBuffer cmdBuffer = commands_->buffers[frameIndex_];
 
         vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_);
-        // vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout_, 0, 1, &frame->cameraSet, 0, nullptr);
+        vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout_, 0, 1, &frame->cameraSet, 0, nullptr);
 
-        VkBuffer vertexBuffers[] = {buffer.value};
         VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(cmdBuffer, 0, 1, vertexBuffers, offsets);
+        vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &buffer.value, offsets);
 
-        vkCmdDraw(cmdBuffer, static_cast<uint32_t>(buffer.size), 1, 0, 0);
+        vkCmdDraw(cmdBuffer, buffer.size, 1, 0, 0);
     }
 
     void renderer::createInstance() {
@@ -231,7 +230,6 @@ namespace glint::engine::graphics {
 
         // todo: specify device features (enable compute, tessellation, etc.)
         VkPhysicalDeviceFeatures deviceFeatures{};
-        // deviceFeatures.c = VK_TRUE;
 
         // create logical device
         VkDeviceCreateInfo deviceInfo = {};
@@ -426,7 +424,7 @@ namespace glint::engine::graphics {
         rasterizerStateInfo.depthClampEnable = VK_FALSE;
         rasterizerStateInfo.rasterizerDiscardEnable = VK_FALSE;
         rasterizerStateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-        rasterizerStateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterizerStateInfo.cullMode = VK_CULL_MODE_NONE;
         rasterizerStateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
         rasterizerStateInfo.depthBiasEnable = VK_FALSE;
         rasterizerStateInfo.lineWidth = 1.0f;
@@ -458,9 +456,9 @@ namespace glint::engine::graphics {
         // pipeline layout
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = /*1;*/ 0;
+        pipelineLayoutInfo.setLayoutCount = 1;
         pipelineLayoutInfo.pushConstantRangeCount = 0;
-        // pipelineLayoutInfo.pSetLayouts = &cameraLayout_;
+        pipelineLayoutInfo.pSetLayouts = &cameraLayout_;
 
         if (vkCreatePipelineLayout(devices_.logical, &pipelineLayoutInfo, nullptr, &pipelineLayout_) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create pipeline layout!");

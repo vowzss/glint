@@ -1,31 +1,29 @@
 #pragma once
 
-#include "glint/core/math/matrix/mat4.h"
-#include "glint/core/math/vector/vec3.h"
+#include <Jolt/Jolt.h>
+#include <Jolt/Math/Mat44.h>
+#include <Jolt/Math/Vec3.h>
 
 namespace glint::engine::scene::components {
-    using vec3 = glint::engine::core::math::vector::vec3;
-    using mat4 = glint::engine::core::math::matrix::mat4;
-
     struct camera {
-        vec3 position;
-        vec3 front;
-        vec3 up;
+        JPH::Vec3 position{0.0f, 0.0f, 2.0f};
+        JPH::Vec3 front{0.0f, 0.0f, -1.0f};
+        JPH::Vec3 up{0.0f, 1.0f, 0.0f};
 
-        float fov;
-        float aspect;
-        float near;
-        float far;
+        float fov = 45.0f;
+        float aspect = 16.0f / 9.0f;
+        float nearPlane = 0.1f;
+        float farPlane = 100.0f;
 
       public:
-        camera(vec3 pos = vec3(0, 0, 0), vec3 front = vec3(0, 0, -1), vec3 up = vec3(0, 1, 0), float fov = 45.0f, float aspect = 16.0f / 9.0f,
-            float near = 0.1f, float far = 100.0f)
-            : position(pos), front(front), up(up), fov(fov), aspect(aspect), near(near), far(far) {}
+        camera() = default;
+        camera(JPH::Vec3 pos, JPH::Vec3 front, JPH::Vec3 up, float fov = 45.0f, float aspect = 16.0f / 9.0f, float near = 0.1f, float far = 100.0f)
+            : position(pos), front(front), up(up), fov(fov), aspect(aspect), nearPlane(near), farPlane(far) {}
 
-        mat4 getViewMatrix() const;
-        mat4 getProjectionMatrix() const;
+        JPH::Mat44 getViewMatrix() const;
+        JPH::Mat44 getProjectionMatrix() const;
 
       private:
-        mat4 lookAt(const vec3& eye, const vec3& center, const vec3& up) const;
+        JPH::Mat44 lookAt(const JPH::Vec3& eye, const JPH::Vec3& center, const JPH::Vec3& up) const;
     };
 }

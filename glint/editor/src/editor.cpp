@@ -1,6 +1,5 @@
 #include "glint/editor.h"
 
-#include <cstdlib>
 #include <stdexcept>
 
 #define GLFW_INCLUDE_VULKAN
@@ -10,50 +9,34 @@
 
 namespace glint {
     editor::editor(const resolution_info& res) : res_(res) {
-        createWindow();
+        window = std::make_unique<Window>(res.width, res.height, "Vulkan");
+
         createRenderer();
 
         VkSurfaceKHR surface;
-        if (glfwCreateWindowSurface(renderer_->getInstance(), window_, nullptr, &surface) != VK_SUCCESS) {
+        if (glfwCreateWindowSurface(renderer->getInstance(), window->raw(), nullptr, &surface) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create surface!");
         }
 
-        renderer_->init(surface);
+        renderer->init(surface);
     }
 
     editor::~editor() {
-        delete renderer_;
-        renderer_ = nullptr;
+        delete renderer;
+        renderer = nullptr;
 
-        glfwDestroyWindow(window_);
+        window.reset();
         glfwTerminate();
     }
 
     void editor::run() {
-        while (!glfwWindowShouldClose(window_)) {
-            glfwPollEvents();
+        while (!window->shouldClose()) {
+            renderer->beginFrame();
+            renderer->recordFrame();
+            renderer->endFrame();
 
-            if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-                exit(0);
-            }
-
-            renderer_->beginFrame();
-            renderer_->recordFrame();
-            renderer_->endFrame();
-        }
-    }
-
-    void editor::createWindow() {
-        if (!glfwInit()) {
-            throw std::runtime_error("GLFW | failed to initialize!");
-        }
-
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-        window_ = glfwCreateWindow(res_.width, res_.height, "Vulkan Window", nullptr, nullptr);
-
-        if (window_ == nullptr) {
-            throw std::runtime_error("GLFW | failed to create window!");
+            window->swapBuffers();
+            window->pollEvents();
         }
     }
 
@@ -67,6 +50,6 @@ namespace glint {
             extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
 
-        renderer_ = new glint::engine::graphics::renderer(res_.width, res_.height, extensions);
+        renderer = new glint::engine::graphics::renderer(res_.width, res_.height, extensions);
     }
 }

@@ -1,16 +1,19 @@
 #pragma once
 
-#include "glint/core/math/quaternion.h"
-#include "glint/core/math/vector/vec3.h"
+#include <Jolt/Jolt.h>
+#include <Jolt/Math/Mat44.h>
+#include <Jolt/Math/Quat.h>
+#include <Jolt/Math/Vec3.h>
 
 namespace glint::engine::scene::components {
-    using vec3 = glint::engine::core::math::vector::vec3;
-    using quaternion = glint::engine::core::math::quaternion;
-
     struct transform {
-        vec3 position{};
-        quaternion rotation{};
-        vec3 scale = vec3::one();
-    };
+        JPH::Vec3 position{};
+        JPH::Quat rotation{};
+        JPH::Vec3 scale = JPH::Vec3(1.0f, 1.0f, 1.0f);
 
+      public:
+        transform() = default;
+        transform(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::Vec3& scl = JPH::Vec3(1.0f, 1.0f, 1.0f))
+            : position(pos), rotation(rot), scale(scl) {}
+    };
 }

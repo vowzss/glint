@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 
 #include <sys/types.h>
@@ -206,6 +207,10 @@ namespace glint::engine::utils {
 
         std::vector<VkExtensionProperties> props(count);
         vkEnumerateDeviceExtensionProperties(device, nullptr, &count, props.data());
+
+        for (const auto& ext : props) {
+            std::cout << "  " << ext.extensionName << " (spec version " << ext.specVersion << ")\n";
+        }
 
         for (const char* ext : deviceExtensions) {
             bool found = false;
