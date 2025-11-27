@@ -2,31 +2,24 @@
 
 #include <memory>
 
-#include "glint/models/config/resolution_info.h"
+#include "glint/graphics/Renderer.h"
 #include "glint/window.h"
 
-struct GLFWwindow;
-
-namespace glint::engine::graphics {
-    class renderer;
-}
-
 namespace glint {
-    class editor {
+    struct Editor {
       private:
-        resolution_info res_;
-
         std::unique_ptr<Window> window = nullptr;
-        glint::engine::graphics::renderer* renderer = nullptr;
+        std::unique_ptr<engine::graphics::Renderer> renderer = nullptr;
 
       public:
-        editor(const resolution_info& res);
-        ~editor();
+        Editor() = delete;
+        Editor(int width, int height);
+
+        ~Editor();
 
         void run();
 
       private:
-        void createWindow();
-        void createRenderer();
+        std::vector<const char*> getRequiredExtensions() const;
     };
 }

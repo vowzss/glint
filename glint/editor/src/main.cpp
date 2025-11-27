@@ -1,11 +1,11 @@
 #include <iostream>
 
-#include "glint/editor.h"
+#include "glint/Editor.h"
 
 using namespace glint;
 
 int main() {
-    editor e(resolution_info{});
+    Editor e(1200, 700);
 
     try {
         e.run();

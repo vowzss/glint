@@ -1,14 +1,13 @@
-#include "glint/graphics/backend/buffer/buffer_data.h"
+#include "glint/graphics/backend/buffer/BufferData.h"
 
 #include <cstring>
 #include <stdexcept>
 
-#include "glint/graphics/backend/buffer/buffer_data_info.h"
-#include "glint/graphics/backend/device/device_context.h"
-#include "glint/graphics/backend/vk_helpers.h"
+#include "glint/graphics/backend/VkHelpers.h"
+#include "glint/graphics/backend/device/DeviceContext.h"
 
 namespace glint::engine::graphics::backend {
-    buffer_data::buffer_data(const device_context& devices, const buffer_data_info& info) : device(devices.logical), size(info.size) {
+    BufferData::BufferData(const DeviceContext& devices, const BufferDataInfo& info) : device(devices.logical), size(info.size) {
         VkBufferCreateInfo bufferInfo = {};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = size;
@@ -44,7 +43,7 @@ namespace glint::engine::graphics::backend {
         vkUnmapMemory(device, memory);
     }
 
-    buffer_data::~buffer_data() {
+    BufferData::~BufferData() {
         if (value != VK_NULL_HANDLE) {
             vkDestroyBuffer(device, value, nullptr);
         }

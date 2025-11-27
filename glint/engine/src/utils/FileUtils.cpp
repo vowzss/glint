@@ -1,4 +1,4 @@
-#include "glint/utils/file_utils.h"
+#include "glint/utils/FileUtils.h"
 
 #include <filesystem>
 #include <fstream>
@@ -9,7 +9,7 @@
 namespace fs = std::filesystem;
 
 namespace glint::engine::utils {
-    std::vector<char> read_file(const std::string& filename) {
+    std::vector<char> readFile(const std::string& filename) {
         fs::path rssPath = fs::absolute("resources");
         fs::path fullPath = rssPath / filename;
 

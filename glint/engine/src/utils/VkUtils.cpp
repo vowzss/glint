@@ -1,4 +1,4 @@
-#include "glint/utils/vk_utils.h"
+#include "glint/utils/VkUtils.h"
 
 #include <algorithm>
 #include <cstring>
@@ -7,7 +7,12 @@
 
 #include <sys/types.h>
 
+#include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
+#include "glint/graphics/backend/swapchain/SwapchainSupportDetails.h"
+
 namespace glint::engine::utils {
+    using namespace graphics::backend;
+
     VkPhysicalDevice selectPhysicalDevice(const VkInstance& instance, const VkSurfaceKHR& surface) {
         // get number of GPUs available
         uint32_t count = 0;
@@ -72,8 +77,8 @@ namespace glint::engine::utils {
         return extent;
     }
 
-    queue_families_support_details queryQueueFamiliesSupport(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
-        queue_families_support_details families;
+    QueueFamiliesSupportDetails queryQueueFamiliesSupport(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
+        QueueFamiliesSupportDetails families;
 
         uint32_t count = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
@@ -147,8 +152,8 @@ namespace glint::engine::utils {
         return families;
     }
 
-    swapchain_support_details querySwapchainSupport(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
-        swapchain_support_details details;
+    SwapchainSupportDetails querySwapchainSupport(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
+        SwapchainSupportDetails details;
 
         // surface capabilities
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
@@ -184,7 +189,7 @@ namespace glint::engine::utils {
         }
 
         // check swap chain support
-        swapchain_support_details swapchainSupport = querySwapchainSupport(device, surface);
+        SwapchainSupportDetails swapchainSupport = querySwapchainSupport(device, surface);
         if (swapchainSupport.formats.empty() || swapchainSupport.modes.empty()) {
             return false;
         }

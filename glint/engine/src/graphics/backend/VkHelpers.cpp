@@ -1,10 +1,9 @@
-#include "glint/graphics/backend/vk_helpers.h"
+#include "glint/graphics/backend/VkHelpers.h"
 
 #include <stdexcept>
 
-#include "glint/graphics/backend/buffer/image_buffer_data.h"
-#include "glint/graphics/backend/buffer/image_buffer_data_info.h"
-#include "glint/graphics/backend/device/device_context.h"
+#include "glint/graphics/backend/buffer/ImageBufferData.h"
+#include "glint/graphics/backend/device/DeviceContext.h"
 
 namespace glint::engine::graphics::backend {
     uint32_t findMemoryType(VkPhysicalDevice device, uint32_t filter, VkMemoryPropertyFlags properties) {
@@ -46,12 +45,12 @@ namespace glint::engine::graphics::backend {
             VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
     }
 
-    image_buffer_data createDepthImage(const device_context& devices, VkExtent2D extent) {
+    ImageBufferData createDepthImage(const DeviceContext& devices, VkExtent2D extent) {
         VkFormat depthImageFormat = findDepthFormat(devices.physical);
-        image_buffer_data_info info = {};
-        info.format = depthImageFormat;
-        info.extent = extent;
+        ImageBufferDataInfo bufferInfo = {};
+        bufferInfo.format = depthImageFormat;
+        bufferInfo.extent = extent;
 
-        return image_buffer_data{devices, info};
+        return ImageBufferData{devices, bufferInfo};
     }
 }

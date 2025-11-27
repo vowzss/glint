@@ -1,29 +1,51 @@
 #pragma once
 
-#include <Jolt/Jolt.h>
-#include <Jolt/Math/Mat44.h>
-#include <Jolt/Math/Vec3.h>
+#include "Transform.h"
 
-namespace glint::engine::scene::components {
-    struct camera {
-        JPH::Vec3 position{0.0f, 0.0f, 2.0f};
-        JPH::Vec3 front{0.0f, 0.0f, -1.0f};
-        JPH::Vec3 up{0.0f, 1.0f, 0.0f};
+namespace glint::engine::scene {
 
-        float fov = 45.0f;
-        float aspect = 16.0f / 9.0f;
-        float nearPlane = 0.1f;
-        float farPlane = 100.0f;
+    namespace components {
+        struct Camera {
+          private:
+            float fov = 45.0f;
+            float aspectRatio = 16.0f / 9.0f;
+            float near = 0.1f;
+            float far = 100.0f;
 
-      public:
-        camera() = default;
-        camera(JPH::Vec3 pos, JPH::Vec3 front, JPH::Vec3 up, float fov = 45.0f, float aspect = 16.0f / 9.0f, float near = 0.1f, float far = 100.0f)
-            : position(pos), front(front), up(up), fov(fov), aspect(aspect), nearPlane(near), farPlane(far) {}
+            Transform transform = {};
 
-        JPH::Mat44 getViewMatrix() const;
-        JPH::Mat44 getProjectionMatrix() const;
+            mutable JPH::Mat44 view;
+            mutable bool isViewDirty = true;
 
-      private:
-        JPH::Mat44 lookAt(const JPH::Vec3& eye, const JPH::Vec3& center, const JPH::Vec3& up) const;
-    };
+            mutable JPH::Mat44 projection;
+            mutable bool isProjectionDirty = true;
+
+          public:
+            Camera() { transform.position = JPH::Vec3{0.0f, 0.0f, 2.0f}; }
+
+            inline void setFov(float value) {
+                fov = value;
+                isProjectionDirty = true;
+            }
+
+            inline void setAspectRatio(float value) {
+                aspectRatio = value;
+                isProjectionDirty = true;
+            }
+
+            inline const JPH::Mat44& getViewMatrix() const {
+                if (isViewDirty) {
+                    JPH::Vec3 forward = transform.rotation * JPH::Vec3(0.0f, 0.0f, -1.0f);
+                    JPH::Vec3 up = transform.rotation * JPH::Vec3(0.0f, 1.0f, 0.0f);
+                    view = JPH::Mat44::sLookAt(transform.position, transform.position + forward, up);
+                    isViewDirty = false;
+                }
+
+                return view;
+            }
+
+            // todo: move impl here (find computing alternative)
+            const JPH::Mat44& getProjectionMatrix() const;
+        };
+    }
 }

@@ -1,11 +1,12 @@
+#include "glint/graphics/backend/renderpass/RenderpassData.h"
+
 #include <array>
 #include <stdexcept>
 
-#include "glint/graphics/backend/renderpass/renderpass_data.h"
-#include "glint/graphics/backend/swapchain/swapchain_data.h"
+#include "glint/graphics/backend/swapchain/SwapchainData.h"
 
 namespace glint::engine::graphics::backend {
-    renderpass_data::renderpass_data(const swapchain_data& swapchain, VkRenderPassCreateInfo info, const VkImageView& depthImageView)
+    RenderpassData::RenderpassData(const SwapchainData& swapchain, VkRenderPassCreateInfo info, const VkImageView& depthImageView)
         : device(swapchain.device) {
         if (vkCreateRenderPass(device, &info, nullptr, &value) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create render pass!");
@@ -14,7 +15,7 @@ namespace glint::engine::graphics::backend {
         initFramebuffers(swapchain, depthImageView);
     }
 
-    renderpass_data::~renderpass_data() {
+    RenderpassData::~RenderpassData() {
         if (!framebuffers.empty()) {
             for (VkFramebuffer framebuffer : framebuffers) {
                 vkDestroyFramebuffer(device, framebuffer, nullptr);
@@ -28,7 +29,7 @@ namespace glint::engine::graphics::backend {
         }
     }
 
-    void renderpass_data::initFramebuffers(const swapchain_data& swapchain, VkImageView depthImageView) {
+    void RenderpassData::initFramebuffers(const SwapchainData& swapchain, VkImageView depthImageView) {
         framebuffers.resize(swapchain.views.size());
 
         for (int i = 0; i < swapchain.views.size(); i++) {

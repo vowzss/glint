@@ -1,12 +1,12 @@
-#include "glint/graphics/backend/commands_pool_data.h"
+#include "glint/graphics/backend/CommandsPoolData.h"
 
 #include <cstdint>
 #include <stdexcept>
 
-#include "glint/graphics/backend/device/queue_family_support_details.h"
+#include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
 
 namespace glint::engine::graphics::backend {
-    commands_pool_data::commands_pool_data(const VkDevice& device, const queue_family_support_details& family, size_t size) : device(device) {
+    CommandsPoolData::CommandsPoolData(const VkDevice& device, const QueueFamilySupportDetails& family, size_t size) : device(device) {
 
         VkCommandPoolCreateInfo poolInfo = {};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -30,7 +30,7 @@ namespace glint::engine::graphics::backend {
         }
     }
 
-    commands_pool_data::~commands_pool_data() {
+    CommandsPoolData::~CommandsPoolData() {
         if (!buffers.empty()) {
             vkFreeCommandBuffers(device, value, buffers.size(), buffers.data());
             buffers.clear();
@@ -42,7 +42,7 @@ namespace glint::engine::graphics::backend {
         }
     }
 
-    void commands_pool_data::begin(size_t idx) {
+    void CommandsPoolData::begin(size_t idx) {
         vkResetCommandBuffer(buffers.at(idx), 0);
 
         VkCommandBufferBeginInfo beginInfo = {};
@@ -54,7 +54,7 @@ namespace glint::engine::graphics::backend {
         }
     }
 
-    void commands_pool_data::end(size_t idx) {
+    void CommandsPoolData::end(size_t idx) {
         if (vkEndCommandBuffer(buffers.at(idx)) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to end recording command buffer!");
         }

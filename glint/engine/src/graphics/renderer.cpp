@@ -1,34 +1,36 @@
-#include "glint/graphics/renderer.h"
+#include "glint/graphics/Renderer.h"
 
 #include <cstdint>
 
 #include <vulkan/vulkan.hpp>
 
-#include "glint/graphics/backend/buffer/buffer_data.h"
-#include "glint/graphics/backend/buffer/buffer_data_info.h"
-#include "glint/graphics/backend/buffer/image_buffer_data_info.h"
-#include "glint/graphics/backend/device/queue_data.h"
-#include "glint/graphics/backend/device/queue_family_support_details.h"
-#include "glint/graphics/backend/renderpass/renderpass_attachment_info.h"
-#include "glint/graphics/backend/renderpass/renderpass_data.h"
-#include "glint/graphics/backend/swapchain/swapchain_data.h"
-#include "glint/graphics/backend/vk_helpers.h"
+#include "glint/graphics/backend/VkHelpers.h"
+#include "glint/graphics/backend/buffer/BufferData.h"
+#include "glint/graphics/backend/buffer/ImageBufferData.h"
+#include "glint/graphics/backend/device/QueueData.h"
+#include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
+#include "glint/graphics/backend/renderpass/RenderpassAttachmentInfo.h"
+#include "glint/graphics/backend/renderpass/RenderpassData.h"
+#include "glint/graphics/backend/swapchain/SwapchainData.h"
+#include "glint/graphics/backend/swapchain/SwapchainSupportDetails.h"
 #include "glint/graphics/models/vertex.h"
-#include "glint/scene/components/camera.h"
-#include "glint/utils/file_utils.h"
-#include "glint/utils/vk_utils.h"
+#include "glint/scene/components/Camera.h"
+#include "glint/utils/FileUtils.h"
+#include "glint/utils/VkUtils.h"
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace glint::engine::graphics {
+    using namespace glint::engine::utils;
     using namespace glint::engine::graphics::models;
     using namespace glint::engine::graphics::backend;
+    using namespace glint::engine::scene;
 
-    renderer::renderer(int w, int h, const renderer_info& info) : width_(w), height_(h), info_(info) {
+    Renderer::Renderer(int width_, int height_, const std::vector<const char*>& extensions_) : width(width_), height(height_), context(extensions_) {
         createInstance();
     }
 
-    renderer::~renderer() {
+    Renderer::~Renderer() {
         vkDeviceWaitIdle(devices_.logical);
 
         for (auto& frame : frames)
@@ -63,7 +65,7 @@ namespace glint::engine::graphics {
         vkDestroyInstance(instance_, nullptr);
     }
 
-    void renderer::init(VkSurfaceKHR surface) {
+    void Renderer::init(VkSurfaceKHR&& surface) {
         surface_ = surface;
         devices_.physical = utils::selectPhysicalDevice(instance_, surface_);
 
@@ -95,30 +97,30 @@ namespace glint::engine::graphics {
         createSyncObjects();
 
         {
-            std::vector<vertex> vertices = {
+            std::vector<Vertex> vertices = {
                 {{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.5f, 1.0f}},
                 {{0.5f, 0.5f, 0.0f},  {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
                 {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
             };
 
-            buffer_data_info vertexBufferInfo = {};
+            BufferDataInfo vertexBufferInfo = {};
             vertexBufferInfo.data = vertices.data();
             vertexBufferInfo.size = sizeof(vertices[0]) * vertices.size();
             vertexBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
             vertexBufferInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-            vertexBuffer_ = new buffer_data(devices_, vertexBufferInfo);
+            vertexBuffer_ = new BufferData(devices_, vertexBufferInfo);
         }
     }
 
-    void renderer::beginFrame() {
+    void Renderer::beginFrame() {
         vkWaitForFences(devices_.logical, 1, &frames[frameIndex_]->inFlight, VK_TRUE, UINT64_MAX);
         vkResetFences(devices_.logical, 1, &frames[frameIndex_]->inFlight);
 
         vkAcquireNextImageKHR(devices_.logical, swapchain_->value, UINT64_MAX, frames[frameIndex_]->imageAvailable, VK_NULL_HANDLE, &imageIndex_);
     }
 
-    void renderer::recordFrame() {
+    void Renderer::recordFrame() {
         std::array<VkClearValue, 2> clearValues;
         clearValues[0].color = {
             {0.0f, 0.0f, 0.0f, 1.0f}
@@ -146,8 +148,8 @@ namespace glint::engine::graphics {
         commands_->end(frameIndex_);
     }
 
-    void renderer::endFrame() {
-        const frame_data* frame = frames[frameIndex_].get();
+    void Renderer::endFrame() {
+        const FrameData* frame = frames[frameIndex_].get();
 
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         VkSemaphore waitSemaphores[] = {frame->imageAvailable};
@@ -176,8 +178,8 @@ namespace glint::engine::graphics {
         frameIndex_ = (frameIndex_ + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
-    void renderer::draw(const buffer_data& buffer) {
-        const frame_data* frame = frames[frameIndex_].get();
+    void Renderer::draw(const BufferData& buffer) {
+        const FrameData* frame = frames[frameIndex_].get();
         const VkCommandBuffer cmdBuffer = commands_->buffers[frameIndex_];
 
         vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_);
@@ -189,13 +191,13 @@ namespace glint::engine::graphics {
         vkCmdDraw(cmdBuffer, buffer.size, 1, 0, 0);
     }
 
-    void renderer::createInstance() {
+    void Renderer::createInstance() {
         VkInstanceCreateInfo instanceInfo = {};
         instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-        instanceInfo.enabledExtensionCount = static_cast<uint32_t>(info_.extensions.size());
-        instanceInfo.ppEnabledExtensionNames = info_.extensions.data();
+        instanceInfo.enabledExtensionCount = context.getExtensionCount();
+        instanceInfo.ppEnabledExtensionNames = context.getExtensionValues();
 
-        if (validationLayersEnabled) {
+        if (BUILD_DEBUG) {
             if (!utils::isValidationLayersSupported()) {
                 throw std::runtime_error("Vulkan | validation layers requested, but not available!");
             }
@@ -209,8 +211,8 @@ namespace glint::engine::graphics {
         }
     }
 
-    void renderer::createLogicalDevice() {
-        queue_families_support_details families = utils::queryQueueFamiliesSupport(devices_.physical, surface_);
+    void Renderer::createLogicalDevice() {
+        QueueFamiliesSupportDetails families = utils::queryQueueFamiliesSupport(devices_.physical, surface_);
 
         // prepare queue creation info for each unique family
         std::vector<VkDeviceQueueCreateInfo> queueInfos;
@@ -244,11 +246,11 @@ namespace glint::engine::graphics {
             throw std::runtime_error("Vulkan | failed to create logical device!");
         }
 
-        queues_ = std::make_unique<queues_data>(devices_.logical, families);
+        queues_ = std::make_unique<QueuesData>(devices_.logical, families);
     }
 
-    void renderer::createSwapchain() {
-        swapchain_support_details details = utils::querySwapchainSupport(devices_.physical, surface_);
+    void Renderer::createSwapchain() {
+        SwapchainSupportDetails details = utils::querySwapchainSupport(devices_.physical, surface_);
         if (details.formats.empty() || details.modes.empty()) {
             throw std::runtime_error("Vulkan | swapchain not supported!");
         }
@@ -262,7 +264,7 @@ namespace glint::engine::graphics {
         swapchainInfo.minImageCount = utils::selectSurfaceImageCount(details.capabilities);
         swapchainInfo.imageFormat = surfaceFormat.format;
         swapchainInfo.imageColorSpace = surfaceFormat.colorSpace;
-        swapchainInfo.imageExtent = utils::selectSurfaceExtent(width_, height_, details.capabilities);
+        swapchainInfo.imageExtent = utils::selectSurfaceExtent(width, height, details.capabilities);
         swapchainInfo.imageArrayLayers = 1;
         swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         swapchainInfo.preTransform = details.capabilities.currentTransform;
@@ -271,7 +273,7 @@ namespace glint::engine::graphics {
         swapchainInfo.clipped = VK_TRUE;
         swapchainInfo.oldSwapchain = VK_NULL_HANDLE;
 
-        swapchain_ = std::make_unique<swapchain_data>(devices_.logical, swapchainInfo);
+        swapchain_ = std::make_unique<SwapchainData>(devices_.logical, swapchainInfo);
 
         viewport_.x = 0.0f;
         viewport_.y = 0.0f;
@@ -284,15 +286,15 @@ namespace glint::engine::graphics {
         scissor_.extent = swapchain_->extent;
     }
 
-    void renderer::createRenderPass() {
-        depthData_ = std::make_unique<image_buffer_data>(devices_, image_buffer_data_info{
-                                                                       findDepthFormat(devices_.physical),
-                                                                       swapchain_->extent,
-                                                                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                                                                   });
+    void Renderer::createRenderPass() {
+        depthData_ = std::make_unique<ImageBufferData>(devices_, ImageBufferDataInfo{
+                                                                     findDepthFormat(devices_.physical),
+                                                                     swapchain_->extent,
+                                                                     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                                                                 });
 
-        color_attachment_info color(swapchain_->format, 0);
-        depth_attachment_info depth(depthData_->format, 1);
+        ColorAttachmentInfo color(swapchain_->format, 0);
+        DepthAttachmentInfo depth(depthData_->format, 1);
 
         // subpass
         VkSubpassDescription subpass = {};
@@ -322,13 +324,13 @@ namespace glint::engine::graphics {
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies = &subpassDependency;
 
-        renderpass_ = std::make_unique<renderpass_data>(*swapchain_, renderPassInfo, depthData_->view);
+        renderpass_ = std::make_unique<RenderpassData>(*swapchain_, renderPassInfo, depthData_->view);
     }
 
-    void renderer::createGraphicsPipeline() {
+    void Renderer::createGraphicsPipeline() {
         // load shaders
-        auto vertShaderCode = utils::read_file("shaders/vert.spv");
-        auto fragShaderCode = utils::read_file("shaders/frag.spv");
+        auto vertShaderCode = utils::readFile("shaders/vert.spv");
+        auto fragShaderCode = utils::readFile("shaders/frag.spv");
 
         VkShaderModule vertShaderModule;
         VkShaderModuleCreateInfo vertShaderInfo = {};
@@ -371,7 +373,7 @@ namespace glint::engine::graphics {
         // fixed-function stages
         VkVertexInputBindingDescription bindingDescription = {};
         bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(vertex);
+        bindingDescription.stride = sizeof(Vertex);
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
         std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions{};
@@ -380,25 +382,25 @@ namespace glint::engine::graphics {
         attributeDescriptions[0].location = 0;
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(vertex, pos);
+        attributeDescriptions[0].offset = offsetof(Vertex, pos);
 
         // location 1: color
         attributeDescriptions[1].location = 1;
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(vertex, color);
+        attributeDescriptions[1].offset = offsetof(Vertex, color);
 
         // location 2: normal
         attributeDescriptions[2].location = 2;
         attributeDescriptions[2].binding = 0;
         attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[2].offset = offsetof(vertex, normal);
+        attributeDescriptions[2].offset = offsetof(Vertex, normal);
 
         // location 3: uv
         attributeDescriptions[3].location = 3;
         attributeDescriptions[3].binding = 0;
         attributeDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[3].offset = offsetof(vertex, uv);
+        attributeDescriptions[3].offset = offsetof(Vertex, uv);
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -490,23 +492,23 @@ namespace glint::engine::graphics {
         vkDestroyShaderModule(devices_.logical, vertShaderModule, nullptr);
     }
 
-    void renderer::createCommandPool() {
+    void Renderer::createCommandPool() {
         // todo: support other family queues
-        queue_families_support_details families = utils::queryQueueFamiliesSupport(devices_.physical, surface_);
+        QueueFamiliesSupportDetails families = utils::queryQueueFamiliesSupport(devices_.physical, surface_);
 
-        commands_ = std::make_unique<commands_pool_data>(devices_.logical, families.graphics, MAX_FRAMES_IN_FLIGHT);
+        commands_ = std::make_unique<CommandsPoolData>(devices_.logical, families.graphics, MAX_FRAMES_IN_FLIGHT);
     }
 
-    void renderer::createSyncObjects() {
+    void Renderer::createSyncObjects() {
         frames.resize(MAX_FRAMES_IN_FLIGHT);
 
-        frame_data_info frameInfo{camera_, descriptorPool_, cameraLayout_};
+        FrameDataInfo frameInfo{camera_.get(), descriptorPool_, cameraLayout_};
         for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-            frames[i] = std::make_unique<frame_data>(devices_, frameInfo);
+            frames[i] = std::make_unique<FrameData>(devices_, frameInfo);
         }
     }
 
-    void renderer::createCamera() {
+    void Renderer::createCamera() {
         VkDescriptorSetLayoutBinding layoutBinding{};
         layoutBinding.binding = 0;
         layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -522,6 +524,6 @@ namespace glint::engine::graphics {
             throw std::runtime_error("Vulkan | failed to create camera layout!");
         }
 
-        camera_ = std::make_unique<scene::components::camera>();
+        camera_ = std::make_unique<scene::components::Camera>();
     }
 }

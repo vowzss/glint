@@ -1,55 +1,54 @@
-#include "glint/editor.h"
+#include "glint/Editor.h"
 
+#include <iostream>
 #include <stdexcept>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include "glint/graphics/renderer.h"
-
 namespace glint {
-    editor::editor(const resolution_info& res) : res_(res) {
-        window = std::make_unique<Window>(res.width, res.height, "Vulkan");
+    using namespace engine::graphics;
 
-        createRenderer();
+    Editor::Editor(int width, int height) {
+        window = std::make_unique<Window>(width, height, "Vulkan");
+
+        renderer = std::make_unique<Renderer>(width, height, getRequiredExtensions());
 
         VkSurfaceKHR surface;
         if (glfwCreateWindowSurface(renderer->getInstance(), window->raw(), nullptr, &surface) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create surface!");
         }
 
-        renderer->init(surface);
+        renderer->init(std::move(surface));
     }
 
-    editor::~editor() {
-        delete renderer;
-        renderer = nullptr;
-
+    Editor::~Editor() {
+        renderer.reset();
         window.reset();
-        glfwTerminate();
     }
 
-    void editor::run() {
-        while (!window->shouldClose()) {
+    void Editor::run() {
+        while (window->isRunning()) {
             renderer->beginFrame();
             renderer->recordFrame();
             renderer->endFrame();
 
-            window->swapBuffers();
-            window->pollEvents();
+            window->present();
+            window->processEvents();
         }
     }
 
-    void editor::createRenderer() {
-        uint32_t extensionCount = 0;
-        const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&extensionCount);
+    std::vector<const char*> Editor::getRequiredExtensions() const {
+        uint32_t count;
+        const char** ext = glfwGetRequiredInstanceExtensions(&count);
 
-        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + extensionCount);
+        std::vector<const char*> extensions(ext, ext + count);
 
-        if (validationLayersEnabled) {
-            extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        for (uint32_t i = 0; i < count; ++i) {
+            std::cout << extensions[i] << "\n";
         }
 
-        renderer = new glint::engine::graphics::renderer(res_.width, res_.height, extensions);
+        return extensions;
     }
+
 }

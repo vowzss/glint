@@ -2,5 +2,5 @@
 #include <vector>
 
 namespace glint::engine::utils {
-    std::vector<char> read_file(const std::string& filename);
+    std::vector<char> readFile(const std::string& filename);
 }

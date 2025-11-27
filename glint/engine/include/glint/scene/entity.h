@@ -1,18 +1,39 @@
-#include <Jolt/Jolt.h>
-#include <Jolt/Math/Mat44.h>
+#pragma once
 
-#include "components/transform.h"
+#include "components/Transform.h"
 
-struct mesh;
+namespace glint::engine {
+    namespace graphics::models {
+        struct Mesh;
+    }
 
-namespace glint::engine::scene {
-    struct entity {
-        uint32_t id;
+    namespace scene {
+        struct Entity {
+          private:
+            uint32_t id;
 
-        mesh* mesh = nullptr;
-        components::transform transform{};
+            components::Transform transform;
 
-      public:
-        JPH::Mat44 getModelMatrix() const;
-    };
+            mutable JPH::Mat44 model;
+            mutable bool isModelDirty = true;
+
+            graphics::models::Mesh* mesh;
+
+          private:
+            Entity(uint32_t id_) : id(id_), mesh(nullptr) {}
+
+          public:
+            inline uint32_t getId() const { return id; }
+
+            inline components::Transform& getTransform() { return transform; }
+            inline const JPH::Mat44& getModelMatrix() const {
+                if (isModelDirty) {
+                    model = transform.toMatrix();
+                    isModelDirty = false;
+                }
+
+                return model;
+            }
+        };
+    }
 }

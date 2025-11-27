@@ -1,13 +1,12 @@
-#include "glint/graphics/backend/buffer/image_buffer_data.h"
+#include "glint/graphics/backend/buffer/ImageBufferData.h"
 
 #include <stdexcept>
 
-#include "glint/graphics/backend/buffer/image_buffer_data_info.h"
-#include "glint/graphics/backend/device/device_context.h"
-#include "glint/graphics/backend/vk_helpers.h"
+#include "glint/graphics/backend/VkHelpers.h"
+#include "glint/graphics/backend/device/DeviceContext.h"
 
 namespace glint::engine::graphics::backend {
-    image_buffer_data::image_buffer_data(const device_context& devices, const image_buffer_data_info& info)
+    ImageBufferData::ImageBufferData(const DeviceContext& devices, const ImageBufferDataInfo& info)
         : device(devices.logical), format(info.format), extent(info.extent), usage(info.usage) {
         VkImageCreateInfo imageInfo = {};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -58,7 +57,7 @@ namespace glint::engine::graphics::backend {
         }
     }
 
-    image_buffer_data::~image_buffer_data() {
+    ImageBufferData::~ImageBufferData() {
         if (view != VK_NULL_HANDLE) {
             vkDestroyImageView(device, view, nullptr);
         }

@@ -1,14 +1,15 @@
-#include "glint/graphics/backend/frame_data.h"
+#include "glint/graphics/backend/FrameData.h"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Math/Mat44.h>
 
-#include "glint/graphics/backend/buffer/buffer_data_info.h"
-#include "glint/graphics/backend/device/device_context.h"
-#include "glint/scene/components/camera.h"
+#include "glint/graphics/backend/device/DeviceContext.h"
+#include "glint/scene/components/Camera.h"
+
+using namespace glint::engine::scene::components;
 
 namespace glint::engine::graphics::backend {
-    frame_data::frame_data(const device_context& devices, const frame_data_info& info) : device(devices.logical) {
+    FrameData::FrameData(const DeviceContext& devices, const FrameDataInfo& info) : device(devices.logical) {
         VkSemaphoreCreateInfo semInfo{};
         semInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         vkCreateSemaphore(device, &semInfo, nullptr, &imageAvailable);
@@ -24,12 +25,12 @@ namespace glint::engine::graphics::backend {
         JPH::Mat44 projViewMatrix = projMatrix * viewMatrix;
         JPH::Mat44 cameraMatrices[3] = {viewMatrix, projMatrix, projViewMatrix};
 
-        buffer_data_info dataInfo{};
+        BufferDataInfo dataInfo{};
         dataInfo.data = cameraMatrices;
         dataInfo.size = sizeof(JPH::Mat44) * 3;
         dataInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
         dataInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        cameraBuffer = std::make_unique<buffer_data>(devices, dataInfo);
+        cameraBuffer = std::make_unique<BufferData>(devices, dataInfo);
 
         VkDescriptorSetAllocateInfo cameraAllocInfo{};
         cameraAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -58,7 +59,7 @@ namespace glint::engine::graphics::backend {
         vkUpdateDescriptorSets(device, 1, &writeInfo, 0, nullptr);
     }
 
-    frame_data::~frame_data() {
+    FrameData::~FrameData() {
         if (inFlight != VK_NULL_HANDLE) {
             vkDestroyFence(device, inFlight, nullptr);
         }

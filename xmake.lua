@@ -63,6 +63,7 @@ target("glint_editor")
 
     -- dependencies
     add_packages("imgui", "glfw")
+    add_packages("joltphysics")
     add_packages("vulkan-headers")
 
     add_includedirs("glint/editor/include")

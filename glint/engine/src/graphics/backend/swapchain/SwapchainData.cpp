@@ -1,9 +1,9 @@
-#include "glint/graphics/backend/swapchain/swapchain_data.h"
+#include "glint/graphics/backend/swapchain/SwapchainData.h"
 
 #include <stdexcept>
 
 namespace glint::engine::graphics::backend {
-    swapchain_data::swapchain_data(VkDevice& dev, VkSwapchainCreateInfoKHR info) : device(dev), format(info.imageFormat), extent(info.imageExtent) {
+    SwapchainData::SwapchainData(VkDevice& dev, VkSwapchainCreateInfoKHR info) : device(dev), format(info.imageFormat), extent(info.imageExtent) {
         if (vkCreateSwapchainKHR(device, &info, nullptr, &value) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create swapchain!");
         }
@@ -12,7 +12,7 @@ namespace glint::engine::graphics::backend {
         initViews();
     }
 
-    swapchain_data::~swapchain_data() {
+    SwapchainData::~SwapchainData() {
         if (!views.empty()) {
             for (VkImageView view : views) {
                 vkDestroyImageView(device, view, nullptr);
@@ -30,7 +30,7 @@ namespace glint::engine::graphics::backend {
         }
     }
 
-    void swapchain_data::initImages() {
+    void SwapchainData::initImages() {
         // query the number of images in the swapchain
         uint32_t count;
         vkGetSwapchainImagesKHR(device, value, &count, nullptr);
@@ -47,7 +47,7 @@ namespace glint::engine::graphics::backend {
         vkGetSwapchainImagesKHR(device, value, &count, images.data());
     }
 
-    void swapchain_data::initViews() {
+    void SwapchainData::initViews() {
         views.resize(images.size());
 
         for (size_t i = 0; i < images.size(); i++) {
