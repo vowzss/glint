@@ -1,5 +1,3 @@
-#include "glint/utils/VkUtils.h"
-
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -9,6 +7,7 @@
 
 #include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
 #include "glint/graphics/backend/swapchain/SwapchainSupportDetails.h"
+#include "glint/utils/VkUtils.h"
 
 namespace glint::engine::utils {
     using namespace graphics::backend;

@@ -1,8 +1,7 @@
-#include "glint/graphics/backend/CommandsPoolData.h"
-
 #include <cstdint>
 #include <stdexcept>
 
+#include "glint/graphics/backend/CommandsPoolData.h"
 #include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
 
 namespace glint::engine::graphics::backend {

@@ -1,5 +1,4 @@
 #include "glint/graphics/backend/device/QueueData.h"
-
 #include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
 
 namespace glint::engine::graphics::backend {

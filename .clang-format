@@ -19,17 +19,16 @@ PointerAlignment: Left
 # =========================
 SortIncludes: true
 IncludeBlocks: Regroup
+IncludeIsMainRegex: '^$'
 IncludeCategories:
   # standard library
-  - Regex: '^<[a-zA-Z0-9_\/]+>$'
+  - Regex: '<([^/>]+)>'
     Priority: 1
-
   # third-party headers
-  - Regex: "^<.*.(h|hpp)>$"
+  - Regex: '<([^>]+\.(h|hpp))>'
     Priority: 2
-
   # project headers
-  - Regex: '^"serris/.*"$'
+  - Regex: '"glint/.*"'
     Priority: 3
 
 # alignment

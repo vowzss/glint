@@ -2,14 +2,12 @@
 
 #include <memory>
 
-#include "glint/graphics/Renderer.h"
-#include "glint/window.h"
+#include "glint/Engine.h"
 
 namespace glint {
     struct Editor {
       private:
-        std::unique_ptr<Window> window = nullptr;
-        std::unique_ptr<engine::graphics::Renderer> renderer = nullptr;
+        std::unique_ptr<Engine> engine = nullptr;
 
       public:
         Editor() = delete;
@@ -18,8 +16,5 @@ namespace glint {
         ~Editor();
 
         void run();
-
-      private:
-        std::vector<const char*> getRequiredExtensions() const;
     };
 }

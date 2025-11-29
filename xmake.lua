@@ -41,7 +41,7 @@ target("glint_engine")
 
     -- dependencies
     add_packages("spdlog", "xxhash")
-    add_packages("joltphysics")
+    add_packages("glfw", "joltphysics")
     add_packages("vulkan-loader", "vulkan-headers", "shaderc")
 
     -- headers
@@ -50,6 +50,7 @@ target("glint_engine")
     add_includedirs("glint/engine/include", {public = true})
 
     -- sources
+    add_files("glint/engine/src/*.cpp")
     add_files("glint/engine/src/**/*.cpp")
 target_end()
 
@@ -62,18 +63,18 @@ target("glint_editor")
     add_deps("glint_engine")
 
     -- dependencies
-    add_packages("imgui", "glfw")
+    add_packages("imgui")
     add_packages("joltphysics")
     add_packages("vulkan-headers")
-
-    add_includedirs("glint/editor/include")
 
     -- headers
     --set_pcheader("glint/editor/include/glint/pch.h")
     add_headerfiles("glint/editor/include/(**.h)")
+    add_includedirs("glint/editor/include")
 
     -- sources
     add_files("glint/editor/src/*.cpp")
+    add_files("glint/editor/src/**/*.cpp")
 
     -- package
     after_build(function (target)

@@ -1,8 +1,7 @@
-#include "glint/graphics/backend/FrameData.h"
-
 #include <Jolt/Jolt.h>
 #include <Jolt/Math/Mat44.h>
 
+#include "glint/graphics/backend/FrameData.h"
 #include "glint/graphics/backend/device/DeviceContext.h"
 #include "glint/scene/components/Camera.h"
 

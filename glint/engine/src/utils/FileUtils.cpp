@@ -1,10 +1,10 @@
-#include "glint/utils/FileUtils.h"
-
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include "glint/utils/FileUtils.h"
 
 namespace fs = std::filesystem;
 

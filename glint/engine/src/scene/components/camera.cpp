@@ -1,6 +1,7 @@
-#include "glint/scene/components/Camera.h"
-
+#include <Jolt/Jolt.h>
 #include <Jolt/Math/Vec4.h>
+
+#include "glint/scene/components/Camera.h"
 
 namespace glint::engine::scene::components {
     namespace {

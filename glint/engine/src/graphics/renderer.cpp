@@ -1,9 +1,8 @@
-#include "glint/graphics/Renderer.h"
-
 #include <cstdint>
 
 #include <vulkan/vulkan.hpp>
 
+#include "glint/graphics/Renderer.h"
 #include "glint/graphics/backend/VkHelpers.h"
 #include "glint/graphics/backend/buffer/BufferData.h"
 #include "glint/graphics/backend/buffer/ImageBufferData.h"
