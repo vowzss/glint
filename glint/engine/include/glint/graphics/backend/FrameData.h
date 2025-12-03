@@ -16,8 +16,9 @@ namespace glint::engine {
 
         struct FrameDataInfo {
             scene::components::Camera* camera;
-            VkDescriptorPool pool;
-            VkDescriptorSetLayout layout;
+
+            VkDescriptorPool descriptorPool;
+            VkDescriptorSetLayout cameraDescriptorLayout;
 
           public:
             FrameDataInfo() = default;
@@ -25,9 +26,9 @@ namespace glint::engine {
 
         struct FrameData {
             VkDevice device = {};
+            VkDescriptorSet cameraDescriptorSet = {};
 
-            VkDescriptorSet cameraSet = {};
-            std::unique_ptr<BufferData> cameraBuffer;
+            std::unique_ptr<BufferData> buffer;
 
             VkSemaphore imageAvailable = {};
             VkSemaphore renderFinished = {};
@@ -38,6 +39,8 @@ namespace glint::engine {
             FrameData(const DeviceContext& devices, const FrameDataInfo& info);
 
             ~FrameData();
+
+            void update(const scene::components::Camera& camera) const;
         };
     }
 }

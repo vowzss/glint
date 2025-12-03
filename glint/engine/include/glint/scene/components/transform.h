@@ -5,7 +5,6 @@
 #include <Jolt/Math/Vec3.h>
 
 namespace glint::engine::scene {
-
     namespace components {
         struct Transform {
           public:

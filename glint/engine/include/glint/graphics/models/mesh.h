@@ -2,16 +2,19 @@
 
 #include <vector>
 
-namespace glint::engine::graphics::models {
-    struct Vertex;
+#include "Vertex.h"
 
-    struct Mesh {
-        std::vector<Vertex> vertices;
-        std::vector<uint32_t> indices;
+namespace glint::engine::graphics {
+    namespace models {
+        struct Mesh {
+            std::vector<Vertex> vertices;
+            std::vector<uint32_t> indices;
 
-        Mesh() = default;
-        Mesh(const std::vector<Vertex>& verts, const std::vector<uint32_t>& inds) : vertices(verts), indices(inds) {}
+            Mesh() = delete;
 
-        Mesh(std::vector<Vertex>&& verts, std::vector<uint32_t>&& inds) noexcept : vertices(std::move(verts)), indices(std::move(inds)) {}
-    };
+            Mesh(const std::vector<Vertex>& vertices_, const std::vector<uint32_t>& indices_) : vertices(vertices_), indices(indices_) {}
+            Mesh(std::vector<Vertex>&& vertices_, std::vector<uint32_t>&& indices_) noexcept
+                : vertices(std::move(vertices_)), indices(std::move(indices_)) {}
+        };
+    }
 }

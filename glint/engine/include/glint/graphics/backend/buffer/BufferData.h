@@ -3,13 +3,13 @@
 #include <vulkan/vulkan_core.h>
 
 namespace glint::engine::graphics {
-
     namespace backend {
         struct DeviceContext;
 
         struct BufferDataInfo {
             const void* data;
             VkDeviceSize size;
+            VkDeviceSize offset;
 
             VkBufferUsageFlags usage;
             VkMemoryPropertyFlags properties;
@@ -22,15 +22,18 @@ namespace glint::engine::graphics {
             VkDevice device = {};
 
             VkBuffer value = {};
+            VkDeviceSize size;
             VkDeviceMemory memory = {};
 
-            VkDeviceSize size = 0;
+            void* data = {};
 
           public:
             BufferData() = delete;
             BufferData(const DeviceContext& devices, const BufferDataInfo& info);
 
             ~BufferData();
+
+            void copy(const void* srcData, VkDeviceSize srcSize, VkDeviceSize srcOffset);
         };
     }
 }

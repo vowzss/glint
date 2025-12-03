@@ -5,7 +5,6 @@
 #include <vector>
 
 namespace glint::engine::graphics {
-
     namespace backend {
         struct QueueFamilySupportDetails {
           public:

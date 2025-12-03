@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "RendererContext.h"
+#include "glint/graphics/RendererContext.h"
 #include "glint/graphics/backend/CommandsPoolData.h"
 #include "glint/graphics/backend/FrameData.h"
 #include "glint/graphics/backend/buffer/ImageBufferData.h"
@@ -11,8 +11,7 @@
 #include "glint/graphics/backend/device/QueueData.h"
 #include "glint/graphics/backend/renderpass/RenderpassData.h"
 #include "glint/graphics/backend/swapchain/SwapchainData.h"
-
-struct GLFWwindow;
+#include "glint/graphics/layers/RenderLayer.h"
 
 namespace glint::engine {
     namespace scene::components {
@@ -33,19 +32,19 @@ namespace glint::engine {
             VkInstance instance_;
             VkSurfaceKHR surface_;
 
-            VkDescriptorPool descriptorPool_{};
-
             backend::DeviceContext devices_;
+            VkDescriptorPool descriptorPool_{};
 
             std::unique_ptr<backend::QueuesData> queues_;
             std::unique_ptr<backend::SwapchainData> swapchain_;
             std::unique_ptr<backend::RenderpassData> renderpass_;
             std::unique_ptr<backend::CommandsPoolData> commands_;
 
-            VkDescriptorSetLayout cameraLayout_{};
+            VkDescriptorSetLayout cameraDescriptorLayout_{};
             std::unique_ptr<scene::components::Camera> camera_;
 
-            backend::BufferData* vertexBuffer_;
+            std::vector<layers::RenderLayer*> renderLayers;
+
             std::unique_ptr<backend::ImageBufferData> depthData_;
 
             VkViewport viewport_{};
@@ -71,6 +70,7 @@ namespace glint::engine {
             void endFrame();
 
             inline const VkInstance& getInstance() const { return instance_; }
+            inline scene::components::Camera& getCamera() const { return *camera_; }
 
           private:
             // --- setup ---
@@ -85,8 +85,6 @@ namespace glint::engine {
             void createSyncObjects();
 
             void createCamera();
-
-            void draw(const backend::BufferData& buffer);
         };
     }
 }

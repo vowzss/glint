@@ -5,6 +5,7 @@
 
 namespace glint {
     namespace engine::core {
+        struct TimeManager;
         struct InputManager;
     }
 
@@ -16,7 +17,9 @@ namespace glint {
     struct Engine {
       private:
         std::unique_ptr<engine::graphics::Window> window = nullptr;
+
         std::unique_ptr<engine::core::InputManager> inputManager = nullptr;
+        std::unique_ptr<engine::core::TimeManager> timeManager = nullptr;
 
         std::unique_ptr<engine::graphics::Renderer> renderer = nullptr;
 

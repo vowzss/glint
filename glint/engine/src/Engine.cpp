@@ -1,23 +1,27 @@
-#include <iostream>
 #include <stdexcept>
-
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 
 #include "glint/Engine.h"
 #include "glint/core/InputManager.h"
 #include "glint/core/Logger.h"
+#include "glint/core/TimeManager.h"
 #include "glint/graphics/Renderer.h"
 #include "glint/graphics/Window.h"
+#include "glint/scene/components/Camera.h"
+#include "glint/utils/StringUtils.h"
+
+// todo: cleanup
+#include <GLFW/glfw3.h>
 
 namespace glint {
-    using namespace engine::graphics;
-    using namespace engine::core;
-
     Engine::Engine(int width, int height) {
+        using namespace engine::graphics;
+        using namespace engine::core;
+
         Logger::init();
 
+        timeManager = std::make_unique<TimeManager>();
         inputManager = std::make_unique<InputManager>();
+
         window = std::make_unique<Window>(width, height, "Vulkan", inputManager.get());
 
         renderer = std::make_unique<Renderer>(width, height, getRequiredExtensions());
@@ -28,6 +32,28 @@ namespace glint {
         }
 
         renderer->init(std::move(surface));
+
+        // clang-format off
+        inputManager->subscribe(InputType::Key, GLFW_KEY_W, InputAction::Held, [&](int code, InputAction action) { 
+            renderer->getCamera().forward(0.1f * timeManager->getDeltaTime()); 
+        });
+
+        inputManager->subscribe(InputType::Key, GLFW_KEY_A, InputAction::Held, [&](int code, InputAction action) { 
+            renderer->getCamera().left(0.1f * timeManager->getDeltaTime()); 
+        });
+
+        inputManager->subscribe(InputType::Key, GLFW_KEY_S, InputAction::Held, [&](int code, InputAction action) { 
+            renderer->getCamera().backward(0.1f * timeManager->getDeltaTime()); 
+        });
+        
+        inputManager->subscribe(InputType::Key, GLFW_KEY_D, InputAction::Held, [&](int code, InputAction action) { 
+            renderer->getCamera().right(0.1f * timeManager->getDeltaTime()); 
+        });
+
+        inputManager->subscribe([&](double x, double y, double deltaX, double deltaY) { 
+            renderer->getCamera().rotate(deltaX, deltaY);
+        });
+        // clang-format on
     }
 
     Engine::~Engine() {
@@ -37,18 +63,19 @@ namespace glint {
     }
 
     void Engine::run() {
-        LOG_INFO("starting main loop");
+        using namespace engine::core;
+
+        LOG_INFO("Starting main loop");
 
         using clock = std::chrono::high_resolution_clock;
         auto lastTime = clock::now();
 
         while (window->isRunning()) {
             auto now = clock::now();
-            float dt = std::chrono::duration<float>(now - lastTime).count();
+            timeManager->update(std::chrono::duration<float>(now - lastTime).count());
             lastTime = now;
 
-            window->pollEvents();
-            inputManager->poll();
+            window->poll();
 
             renderer->beginFrame();
             renderer->recordFrame();
@@ -57,18 +84,18 @@ namespace glint {
             window->present();
         }
 
-        LOG_INFO("exiting main loop");
+        LOG_INFO("Exiting main loop");
     }
 
     std::vector<const char*> Engine::getRequiredExtensions() const {
+        using namespace engine::core;
+        using namespace engine::utils;
+
         uint32_t count;
         const char** ext = glfwGetRequiredInstanceExtensions(&count);
 
         std::vector<const char*> extensions(ext, ext + count);
-
-        for (uint32_t i = 0; i < count; ++i) {
-            std::cout << extensions[i] << "\n";
-        }
+        LOG_TRACE("Found '{}' required instance extensions! {}", extensions.size(), string::join(extensions));
 
         return extensions;
     }

@@ -19,7 +19,7 @@ namespace glint::engine {
                 case GLFW_REPEAT:
                     return InputAction::Held;
                 default:
-                    return InputAction::Unknown;
+                    return InputAction::Undefined;
             }
         }
     }
@@ -27,6 +27,7 @@ namespace glint::engine {
     namespace graphics {
         Window::Window(int width_, int height_, const char* title_, core::InputManager* inputManager_)
             : width(width_), height(height_), inputManager(inputManager_) {
+
             if (!glfwInit()) {
                 throw std::runtime_error("GLFW | failed to initialize!");
             }
@@ -40,6 +41,8 @@ namespace glint::engine {
             }
 
             glfwSetWindowUserPointer(handle, this);
+            glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+            glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
             glfwSetFramebufferSizeCallback(handle, [](GLFWwindow* w, int width, int height) {
 
@@ -60,8 +63,8 @@ namespace glint::engine {
                 self->inputManager->dispatch(InputEvent::cursor(x, y));
             });
 
-            inputManager_->subscribe(GLFW_KEY_ESCAPE, InputAction::Pressed,
-                [&](int key, InputAction action) { glfwSetWindowShouldClose(handle, GLFW_TRUE); });
+            inputManager->subscribe(InputType::Key, GLFW_KEY_ESCAPE, InputAction::Pressed,
+                [&](int code, InputAction action) { glfwSetWindowShouldClose(handle, GLFW_TRUE); });
         }
 
         Window::~Window() {
@@ -76,7 +79,7 @@ namespace glint::engine {
             glfwSwapBuffers(handle);
         }
 
-        void Window::pollEvents() const {
+        void Window::poll() const {
             glfwPollEvents();
 
             inputManager->poll();

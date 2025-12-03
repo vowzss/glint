@@ -1,6 +1,14 @@
+#pragma once
+
+#include <filesystem>
 #include <string>
 #include <vector>
 
 namespace glint::engine::utils {
-    std::vector<char> readFile(const std::string& filename);
+    namespace files {
+        std::filesystem::path getResourcePath(const std::string& filename);
+        std::filesystem::path getModelPath(const std::string& filename);
+
+        std::vector<char> read(const std::string& filename);
+    }
 }

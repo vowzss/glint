@@ -20,7 +20,7 @@ namespace glint::engine {
             ~Window();
 
             void present() const;
-            void pollEvents() const;
+            void poll() const;
 
             int getWidth() const;
             int getHeight() const;

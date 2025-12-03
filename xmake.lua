@@ -24,7 +24,7 @@ add_requires("imgui", {configs = {glfw_vulkan=true}})
 add_requires("xxhash")
 add_requires("zstd")
 
-add_requires("fastgltf")
+add_requires("tinyobjloader")
 add_requires("stb")
 
 add_requires("joltphysics")
@@ -41,7 +41,7 @@ target("glint_engine")
 
     -- dependencies
     add_packages("spdlog", "xxhash")
-    add_packages("glfw", "joltphysics")
+    add_packages("glfw", "joltphysics", "tinyobjloader", "imgui")
     add_packages("vulkan-loader", "vulkan-headers", "shaderc")
 
     -- headers
@@ -63,7 +63,6 @@ target("glint_editor")
     add_deps("glint_engine")
 
     -- dependencies
-    add_packages("imgui")
     add_packages("joltphysics")
     add_packages("vulkan-headers")
 

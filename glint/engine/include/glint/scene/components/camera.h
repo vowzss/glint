@@ -3,16 +3,20 @@
 #include "Transform.h"
 
 namespace glint::engine::scene {
-
     namespace components {
         struct Camera {
           private:
             float fov = 45.0f;
             float aspectRatio = 16.0f / 9.0f;
-            float near = 0.1f;
-            float far = 100.0f;
+            float nearPlane = 0.1f;
+            float farPlane = 100.0f;
 
             Transform transform = {};
+            float speed = 5.0f;
+
+            float yaw = 0.0f;
+            float pitch = 0.0f;
+            float sensitivity = 0.002f;
 
             mutable JPH::Mat44 view;
             mutable bool isViewDirty = true;
@@ -33,19 +37,66 @@ namespace glint::engine::scene {
                 isProjectionDirty = true;
             }
 
-            inline const JPH::Mat44& getViewMatrix() const {
-                if (isViewDirty) {
-                    JPH::Vec3 forward = transform.rotation * JPH::Vec3(0.0f, 0.0f, -1.0f);
-                    JPH::Vec3 up = transform.rotation * JPH::Vec3(0.0f, 1.0f, 0.0f);
-                    view = JPH::Mat44::sLookAt(transform.position, transform.position + forward, up);
-                    isViewDirty = false;
-                }
-
-                return view;
+            inline void setNearPlane(float value) {
+                nearPlane = value;
+                isProjectionDirty = true;
             }
 
-            // todo: move impl here (find computing alternative)
+            inline void setFarPlane(float value) {
+                farPlane = value;
+                isProjectionDirty = true;
+            }
+
+            inline void setPosition(const JPH::Vec3& pos) {
+                transform.position = pos;
+                isViewDirty = true;
+            }
+
+            inline void setRotation(const JPH::Quat& rot) {
+                transform.rotation = rot;
+                isViewDirty = true;
+            }
+
+            const JPH::Mat44& getViewMatrix() const;
             const JPH::Mat44& getProjectionMatrix() const;
+
+            inline void forward(float amount) {
+                JPH::Vec3 forward = transform.rotation * JPH::Vec3(0.0f, 0.0f, -1.0f);
+                transform.position += forward * amount * speed;
+                isViewDirty = true;
+            }
+
+            inline void backward(float amount) {
+                JPH::Vec3 forward = transform.rotation * JPH::Vec3(0.0f, 0.0f, -1.0f);
+                transform.position -= forward * amount * speed;
+                isViewDirty = true;
+            }
+
+            inline void right(float amount) {
+                JPH::Vec3 right = transform.rotation * JPH::Vec3(1.0f, 0.0f, 0.0f);
+                transform.position += right * amount * speed;
+                isViewDirty = true;
+            }
+
+            inline void left(float amount) {
+                JPH::Vec3 right = transform.rotation * JPH::Vec3(1.0f, 0.0f, 0.0f);
+                transform.position -= right * amount * speed;
+                isViewDirty = true;
+            }
+
+            inline void up(float amount) {
+                JPH::Vec3 up = transform.rotation * JPH::Vec3(0.0f, 1.0f, 0.0f);
+                transform.position += up * amount * speed;
+                isViewDirty = true;
+            }
+
+            inline void down(float amount) {
+                JPH::Vec3 up = transform.rotation * JPH::Vec3(0.0f, 1.0f, 0.0f);
+                transform.position -= up * amount * speed;
+                isViewDirty = true;
+            }
+
+            void rotate(float x, float y);
         };
     }
 }
