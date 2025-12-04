@@ -9,13 +9,14 @@ layout(set = 0, binding = 0) uniform camera {
     mat4 viewProj;
 };
 
-layout(push_constant) uniform entity {
-    mat4 model;
+layout(set = 1, binding = 0) buffer entities {
+    mat4 models[];
 };
 
 layout(location = 0) out vec3 fragColor;
 
 void main() {
+    mat4 model = models[gl_InstanceIndex];
     gl_Position = viewProj * model * vec4(inPos, 1.0);
     fragColor = inColor;
 }

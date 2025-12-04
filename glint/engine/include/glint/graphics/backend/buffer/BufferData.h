@@ -7,25 +7,24 @@ namespace glint::engine::graphics {
         struct DeviceContext;
 
         struct BufferDataInfo {
-            const void* data;
             VkDeviceSize size;
-            VkDeviceSize offset;
-
             VkBufferUsageFlags usage;
             VkMemoryPropertyFlags properties;
+
+            const void* data;
 
           public:
             BufferDataInfo() = default;
         };
 
         struct BufferData {
-            VkDevice device = {};
+            VkDevice device = nullptr;
 
-            VkBuffer value = {};
+            VkBuffer value = nullptr;
             VkDeviceSize size;
-            VkDeviceMemory memory = {};
+            VkDeviceMemory memory = nullptr;
 
-            void* data = {};
+            void* data = nullptr;
 
           public:
             BufferData() = delete;

@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "glint/graphics/layers/RenderLayer.h"
 
 namespace glint::engine {
@@ -22,28 +24,29 @@ namespace glint::engine {
         }
 
         namespace layers {
-            struct SceneLayerInfo {
+            struct SceneLayerCreateInfo {
                 VkPipeline pipeline;
                 VkPipelineLayout pipelineLayout;
 
-                const scene::components::Camera* camera;
+                const scene::components::Camera& camera;
             };
 
             struct SceneLayer : public RenderLayer {
               private:
-                VkDevice device = {};
-                SceneLayerInfo info;
+                VkDevice device = nullptr;
+                SceneLayerCreateInfo info;
 
-                scene::Entity* triangleEntity;
+                std::vector<scene::Entity*> entities;
+                backend::BufferData* entityBuffer;
+
                 backend::BufferData* triangleVertexBuffer;
                 backend::BufferData* triangleIndexBuffer;
 
-                scene::Entity* cubeEntity;
                 backend::BufferData* cubeVertexBuffer;
                 backend::BufferData* cubeIndexBuffer;
 
               public:
-                SceneLayer(const backend::DeviceContext& devices, SceneLayerInfo info_);
+                SceneLayer(const backend::DeviceContext& devices, SceneLayerCreateInfo info_);
                 ~SceneLayer();
 
                 void renderFrame(const backend::FrameData& frame, VkCommandBuffer commands) override;

@@ -30,19 +30,24 @@ namespace glint::engine::graphics {
                 throw std::runtime_error("Vulkan | failed to allocate buffer memory!");
             }
 
-            if (vkBindBufferMemory(device, value, memory, info.offset) != VK_SUCCESS) {
+            if (vkBindBufferMemory(device, value, memory, 0) != VK_SUCCESS) {
                 throw std::runtime_error("Vulkan | failed to bind buffer memory!");
             }
 
-            if (vkMapMemory(device, memory, info.offset, size, 0, &data) != VK_SUCCESS) {
+            bool isHostVisible = info.properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+            if (isHostVisible && vkMapMemory(device, memory, 0, size, 0, &data) != VK_SUCCESS) {
                 throw std::runtime_error("Vulkan | failed to map buffer memory!");
             }
 
-            memcpy(data, info.data, size);
+            if (info.data && data) {
+                memcpy(data, info.data, size);
+            }
         }
 
         BufferData::~BufferData() {
-            vkUnmapMemory(device, memory);
+            if (data) {
+                vkUnmapMemory(device, memory);
+            }
 
             if (value != VK_NULL_HANDLE) {
                 vkDestroyBuffer(device, value, nullptr);

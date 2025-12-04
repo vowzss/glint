@@ -7,54 +7,69 @@
 
 namespace glint::engine::graphics {
     namespace backend {
-        FrameData::FrameData(const DeviceContext& devices, const FrameDataInfo& info) : device(devices.logical) {
-            VkSemaphoreCreateInfo semInfo{};
-            semInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-            vkCreateSemaphore(device, &semInfo, nullptr, &imageAvailable);
-            vkCreateSemaphore(device, &semInfo, nullptr, &renderFinished);
+        FrameData::FrameData(const DeviceContext& devices, const FrameDataCreateInfo& info) : device(devices.logical) {
+            VkSemaphoreCreateInfo semaphoreInfo{};
+            semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+            vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailable);
+            vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinished);
 
             VkFenceCreateInfo fenceInfo{};
             fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
             fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
             vkCreateFence(device, &fenceInfo, nullptr, &inFlight);
 
-            JPH::Mat44 projMatrix = info.camera->getProjectionMatrix();
-            JPH::Mat44 viewMatrix = info.camera->getViewMatrix();
-            JPH::Mat44 projViewMatrix = projMatrix * viewMatrix;
-            JPH::Mat44 cameraMatrices[3] = {viewMatrix, projMatrix, projViewMatrix};
+            // camera UBO
+            {
+                VkDescriptorSetAllocateInfo allocInfo{};
+                allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+                allocInfo.descriptorPool = info.descriptorPool;
+                allocInfo.descriptorSetCount = 1;
+                allocInfo.pSetLayouts = &info.cameraDescriptorLayout;
 
-            BufferDataInfo dataInfo{};
-            dataInfo.data = cameraMatrices;
-            dataInfo.size = sizeof(JPH::Mat44) * 3;
-            dataInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-            dataInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-            buffer = std::make_unique<BufferData>(devices, dataInfo);
+                if (vkAllocateDescriptorSets(device, &allocInfo, &cameraDescriptorSet) != VK_SUCCESS) {
+                    throw std::runtime_error("Vulkan | Failed to create camera descriptor!");
+                }
 
-            VkDescriptorSetAllocateInfo cameraAllocInfo{};
-            cameraAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            cameraAllocInfo.descriptorPool = info.descriptorPool;
-            cameraAllocInfo.descriptorSetCount = 1;
-            cameraAllocInfo.pSetLayouts = &info.cameraDescriptorLayout;
+                JPH::Mat44 projMatrix = info.camera.getProjectionMatrix();
+                JPH::Mat44 viewMatrix = info.camera.getViewMatrix();
+                JPH::Mat44 projViewMatrix = projMatrix * viewMatrix;
+                JPH::Mat44 cameraMatrices[3] = {viewMatrix, projMatrix, projViewMatrix};
 
-            if (vkAllocateDescriptorSets(device, &cameraAllocInfo, &cameraDescriptorSet) != VK_SUCCESS) {
-                throw std::runtime_error("Vulkan | failed to create camera descriptor!");
+                BufferDataInfo dataInfo{};
+                dataInfo.data = cameraMatrices;
+                dataInfo.size = sizeof(JPH::Mat44) * 3;
+                dataInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+                dataInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+                cameraBuffer = std::make_unique<BufferData>(devices, dataInfo);
+
+                VkDescriptorBufferInfo bufferInfo{};
+                bufferInfo.buffer = cameraBuffer->value;
+                bufferInfo.offset = 0;
+                bufferInfo.range = sizeof(JPH::Mat44) * 3;
+
+                VkWriteDescriptorSet writeInfo{};
+                writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                writeInfo.dstSet = cameraDescriptorSet;
+                writeInfo.dstBinding = 0;
+                writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                writeInfo.descriptorCount = 1;
+                writeInfo.pBufferInfo = &bufferInfo;
+
+                vkUpdateDescriptorSets(device, 1, &writeInfo, 0, nullptr);
             }
 
-            VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = buffer->value;
-            bufferInfo.offset = 0;
-            bufferInfo.range = sizeof(JPH::Mat44) * 3;
+            // entity SSBO
+            {
+                VkDescriptorSetAllocateInfo allocInfo{};
+                allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+                allocInfo.descriptorPool = info.descriptorPool;
+                allocInfo.descriptorSetCount = 1;
+                allocInfo.pSetLayouts = &info.entityDescriptorLayout;
 
-            VkWriteDescriptorSet writeInfo{};
-            writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            writeInfo.dstSet = cameraDescriptorSet;
-            writeInfo.dstBinding = 0;
-            writeInfo.dstArrayElement = 0;
-            writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            writeInfo.descriptorCount = 1;
-            writeInfo.pBufferInfo = &bufferInfo;
-
-            vkUpdateDescriptorSets(device, 1, &writeInfo, 0, nullptr);
+                if (vkAllocateDescriptorSets(device, &allocInfo, &entityDescriptorSet) != VK_SUCCESS) {
+                    throw std::runtime_error("Vulkan | Failed to create entity descriptor!");
+                }
+            }
         }
 
         FrameData::~FrameData() {
@@ -77,7 +92,7 @@ namespace glint::engine::graphics {
             JPH::Mat44 projViewMatrix = projMatrix * viewMatrix;
             JPH::Mat44 cameraMatrices[3] = {viewMatrix, projMatrix, projViewMatrix};
 
-            buffer->copy(cameraMatrices, sizeof(JPH::Mat44) * 3, 0);
+            cameraBuffer->copy(cameraMatrices, sizeof(JPH::Mat44) * 3, 0);
         }
     }
 }

@@ -14,31 +14,32 @@ namespace glint::engine {
     namespace graphics::backend {
         struct DeviceContext;
 
-        struct FrameDataInfo {
-            scene::components::Camera* camera;
-
+        struct FrameDataCreateInfo {
             VkDescriptorPool descriptorPool;
-            VkDescriptorSetLayout cameraDescriptorLayout;
 
-          public:
-            FrameDataInfo() = default;
+            VkDescriptorSetLayout cameraDescriptorLayout;
+            VkDescriptorSetLayout entityDescriptorLayout;
+
+            const scene::components::Camera& camera;
         };
 
         struct FrameData {
-            VkDevice device = {};
-            VkDescriptorSet cameraDescriptorSet = {};
+            VkDevice device = nullptr;
 
-            std::unique_ptr<BufferData> buffer;
+            VkDescriptorSet cameraDescriptorSet = nullptr;
+            std::unique_ptr<BufferData> cameraBuffer;
 
-            VkSemaphore imageAvailable = {};
-            VkSemaphore renderFinished = {};
-            VkFence inFlight = {};
+            VkDescriptorSet entityDescriptorSet = nullptr;
+
+            VkSemaphore imageAvailable = nullptr;
+            VkSemaphore renderFinished = nullptr;
+            VkFence inFlight = nullptr;
 
             float deltaTime;
 
           public:
             FrameData() = delete;
-            FrameData(const DeviceContext& devices, const FrameDataInfo& info);
+            FrameData(const DeviceContext& devices, const FrameDataCreateInfo& info);
 
             ~FrameData();
 

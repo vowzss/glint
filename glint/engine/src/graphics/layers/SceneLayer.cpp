@@ -22,7 +22,7 @@ namespace glint::engine::graphics {
     using namespace models;
 
     namespace layers {
-        SceneLayer::SceneLayer(const DeviceContext& devices, SceneLayerInfo info_) : device(devices.logical), info(info_) {
+        SceneLayer::SceneLayer(const DeviceContext& devices, SceneLayerCreateInfo info_) : device(devices.logical), info(info_) {
 
             {
                 std::vector<Vertex> vertices = {
@@ -32,21 +32,21 @@ namespace glint::engine::graphics {
                 };
                 std::vector<uint32_t> indices = {0, 1, 2};
 
-                triangleEntity = new Entity{
+                entities.emplace_back(new Entity{
                     0, new Mesh{vertices, indices}
-                };
+                });
             }
 
             BufferDataInfo triangleVertexBufferInfo = {};
-            triangleVertexBufferInfo.data = triangleEntity->getMesh().vertices.data();
-            triangleVertexBufferInfo.size = sizeof(triangleEntity->getMesh().vertices[0]) * triangleEntity->getMesh().vertices.size();
+            triangleVertexBufferInfo.data = entities[0]->getMesh().vertices.data();
+            triangleVertexBufferInfo.size = sizeof(entities[0]->getMesh().vertices[0]) * entities[0]->getMesh().vertices.size();
             triangleVertexBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
             triangleVertexBufferInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
             triangleVertexBuffer = new BufferData(devices, triangleVertexBufferInfo);
 
             BufferDataInfo triangleIndexBufferInfo = {};
-            triangleIndexBufferInfo.data = triangleEntity->getMesh().indices.data();
-            triangleIndexBufferInfo.size = sizeof(triangleEntity->getMesh().indices[0]) * triangleEntity->getMesh().indices.size();
+            triangleIndexBufferInfo.data = entities[0]->getMesh().indices.data();
+            triangleIndexBufferInfo.size = sizeof(entities[0]->getMesh().indices[0]) * entities[0]->getMesh().indices.size();
             triangleIndexBufferInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
             triangleIndexBufferInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
             triangleIndexBuffer = new BufferData(devices, triangleIndexBufferInfo);
@@ -72,27 +72,51 @@ namespace glint::engine::graphics {
                     0, 3, 5, 5, 4, 0  // Bottom
                 };
 
-                cubeEntity = new Entity{
+                entities.emplace_back(new Entity{
                     1, new Mesh{vertices, indices}
-                };
+                });
             }
 
             BufferDataInfo cubeVertexBufferInfo = {};
-            cubeVertexBufferInfo.data = cubeEntity->getMesh().vertices.data();
-            cubeVertexBufferInfo.size = sizeof(cubeEntity->getMesh().vertices[0]) * cubeEntity->getMesh().vertices.size();
+            cubeVertexBufferInfo.data = entities[1]->getMesh().vertices.data();
+            cubeVertexBufferInfo.size = sizeof(entities[1]->getMesh().vertices[0]) * entities[1]->getMesh().vertices.size();
             cubeVertexBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
             cubeVertexBufferInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
             cubeVertexBuffer = new BufferData(devices, cubeVertexBufferInfo);
 
             BufferDataInfo cubeIndexBufferInfo = {};
-            cubeIndexBufferInfo.data = cubeEntity->getMesh().indices.data();
-            cubeIndexBufferInfo.size = sizeof(cubeEntity->getMesh().indices[0]) * cubeEntity->getMesh().indices.size();
+            cubeIndexBufferInfo.data = entities[1]->getMesh().indices.data();
+            cubeIndexBufferInfo.size = sizeof(entities[1]->getMesh().indices[0]) * entities[1]->getMesh().indices.size();
             cubeIndexBufferInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
             cubeIndexBufferInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
             cubeIndexBuffer = new BufferData(devices, cubeIndexBufferInfo);
 
-            auto loader = new ModelLoader();
-            auto mesh = loader->load("suzanne.obj");
+            /*auto loader = new ModelLoader();
+            auto mesh = loader->load("suzanne.obj");*/
+
+            std::vector<JPH::Mat44> entityMatrices(entities.size());
+
+            BufferDataInfo entityBufferData = {};
+            entityBufferData.size = sizeof(JPH::Mat44) * entities.size();
+            entityBufferData.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+            entityBufferData.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            entityBufferData.data = nullptr;
+            entityBuffer = new BufferData(devices, entityBufferData);
+
+            VkDescriptorBufferInfo entityBufferInfo = {};
+            entityBufferInfo.buffer = entityBuffer->value;
+            entityBufferInfo.offset = 0;
+            entityBufferInfo.range = sizeof(JPH::Mat44) * 3;
+
+            VkWriteDescriptorSet writeInfo = {};
+            writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writeInfo.dstSet = entityDescriptorSet;
+            writeInfo.dstBinding = 0;
+            writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            writeInfo.descriptorCount = 1;
+            writeInfo.pBufferInfo = &entityBufferInfo;
+
+            vkUpdateDescriptorSets(device, 1, &writeInfo, 0, nullptr);
         }
 
         SceneLayer::~SceneLayer() {
@@ -108,31 +132,31 @@ namespace glint::engine::graphics {
         }
 
         void SceneLayer::renderFrame(const FrameData& frame, VkCommandBuffer commands) {
-            frame.update(*info.camera);
+            frame.update(info.camera);
+
+            JPH::Mat44* models = reinterpret_cast<JPH::Mat44*>(entityBuffer->data);
+
+            for (int i = 0; i < entities.size(); ++i) {
+                entities[i]->lifetime += frame.deltaTime;
+                models[i] = entities[i]->getModelMatrix();
+            }
+
+            entityBuffer->copy(models, sizeof(JPH::Mat44) * entityBuffer->size, 0);
 
             vkCmdBindPipeline(commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipeline);
+
             vkCmdBindDescriptorSets(commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 0, 1, &frame.cameraDescriptorSet, 0, nullptr);
+            vkCmdBindDescriptorSets(commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 1, 1, &frame.entityDescriptorSet, 0, nullptr);
 
             VkDeviceSize offsets[] = {0};
 
-            triangleEntity->elapsedTime += frame.deltaTime;
-            vkCmdPushConstants(commands, info.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(JPH::Mat44), &triangleEntity->getModelMatrix());
             vkCmdBindVertexBuffers(commands, 0, 1, &triangleVertexBuffer->value, offsets);
             vkCmdBindIndexBuffer(commands, triangleIndexBuffer->value, 0, VK_INDEX_TYPE_UINT32);
-            vkCmdDrawIndexed(commands, static_cast<uint32_t>(triangleEntity->getMesh().indices.size()), 1, 0, 0, 0);
+            vkCmdDrawIndexed(commands, static_cast<uint32_t>(entities[0]->getMesh().indices.size()), 1, 0, 0, 0);
 
-            cubeEntity->elapsedTime += frame.deltaTime;
-
-            JPH::Quat deltaRot = JPH::Quat::sRotation(JPH::Vec3(0.0f, 1.0f, 0.0f), 1.0f * frame.deltaTime);
-            cubeEntity->getTransform().rotateBy(deltaRot);
-
-            cubeEntity->getTransform().setPosition(JPH::Vec3(1.0f * cos(2.0f * cubeEntity->elapsedTime), 1.0f * sin(2.0f * cubeEntity->elapsedTime),
-                1.0f * cos(2.0f * cubeEntity->elapsedTime)));
-
-            vkCmdPushConstants(commands, info.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(JPH::Mat44), &cubeEntity->getModelMatrix());
             vkCmdBindVertexBuffers(commands, 0, 1, &cubeVertexBuffer->value, offsets);
             vkCmdBindIndexBuffer(commands, cubeIndexBuffer->value, 0, VK_INDEX_TYPE_UINT32);
-            vkCmdDrawIndexed(commands, static_cast<uint32_t>(cubeEntity->getMesh().indices.size()), 1, 0, 0, 0);
+            vkCmdDrawIndexed(commands, static_cast<uint32_t>(entities[1]->getMesh().indices.size()), 1, 0, 0, 0);
         }
     }
 }

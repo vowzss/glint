@@ -43,6 +43,8 @@ namespace glint::engine {
             VkDescriptorSetLayout cameraDescriptorLayout = {};
             std::unique_ptr<scene::components::Camera> camera;
 
+            VkDescriptorSetLayout entityDescriptorLayout = {};
+
             std::vector<layers::RenderLayer*> renderLayers;
 
             std::unique_ptr<backend::ImageBufferData> depthData;

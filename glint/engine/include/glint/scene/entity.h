@@ -9,7 +9,7 @@ namespace glint::engine {
 
     namespace scene {
         struct Entity {
-            float elapsedTime = 0.0f;
+            float lifetime = 0.0f;
 
           private:
             uint32_t id;

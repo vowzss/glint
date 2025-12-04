@@ -100,7 +100,7 @@ namespace glint::engine {
             createCommandPool();
             createSyncObjects();
 
-            layers::SceneLayerInfo sceneLayerInfo{pipeline, pipelineLayout, camera.get()};
+            layers::SceneLayerCreateInfo sceneLayerInfo{pipeline, pipelineLayout, getCamera()};
             renderLayers.emplace_back(new layers::SceneLayer(devices, sceneLayerInfo));
         }
 
@@ -498,7 +498,7 @@ namespace glint::engine {
         void Renderer::createSyncObjects() {
             frames.resize(MAX_FRAMES_IN_FLIGHT);
 
-            FrameDataInfo frameInfo{camera.get(), descriptorPool, cameraDescriptorLayout};
+            FrameDataCreateInfo frameInfo = {descriptorPool, cameraDescriptorLayout, entityDescriptorLayout, getCamera()};
             for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
                 frames[i] = std::make_unique<FrameData>(devices, frameInfo);
             }
