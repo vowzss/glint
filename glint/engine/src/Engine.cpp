@@ -31,23 +31,35 @@ namespace glint {
             throw std::runtime_error("Vulkan | failed to create surface!");
         }
 
-        renderer->init(std::move(surface));
+        renderer->init(surface);
 
         // clang-format off
         inputManager->subscribe(InputType::Key, GLFW_KEY_W, InputAction::Held, [&](int code, InputAction action) { 
-            renderer->getCamera().forward(0.1f * timeManager->getDeltaTime()); 
+            renderer->getCamera().getInput().forward = -1.0f;
+        });
+        inputManager->subscribe(InputType::Key, GLFW_KEY_W, InputAction::Released, [&](int code, InputAction action) { 
+            renderer->getCamera().getInput().forward = 0.0f;
         });
 
         inputManager->subscribe(InputType::Key, GLFW_KEY_A, InputAction::Held, [&](int code, InputAction action) { 
-            renderer->getCamera().left(0.1f * timeManager->getDeltaTime()); 
+            renderer->getCamera().getInput().right = -1.0f;
+        });
+         inputManager->subscribe(InputType::Key, GLFW_KEY_A, InputAction::Released, [&](int code, InputAction action) { 
+            renderer->getCamera().getInput().right = 0.0f;
         });
 
         inputManager->subscribe(InputType::Key, GLFW_KEY_S, InputAction::Held, [&](int code, InputAction action) { 
-            renderer->getCamera().backward(0.1f * timeManager->getDeltaTime()); 
+            renderer->getCamera().getInput().forward = 1.0f;
+        });
+        inputManager->subscribe(InputType::Key, GLFW_KEY_S, InputAction::Released, [&](int code, InputAction action) { 
+            renderer->getCamera().getInput().forward = 0.0f;
         });
         
         inputManager->subscribe(InputType::Key, GLFW_KEY_D, InputAction::Held, [&](int code, InputAction action) { 
-            renderer->getCamera().right(0.1f * timeManager->getDeltaTime()); 
+            renderer->getCamera().getInput().right = 1.0f;
+        });
+        inputManager->subscribe(InputType::Key, GLFW_KEY_D, InputAction::Released, [&](int code, InputAction action) { 
+            renderer->getCamera().getInput().right = 0.0f;
         });
 
         inputManager->subscribe([&](double x, double y, double deltaX, double deltaY) { 
@@ -78,7 +90,7 @@ namespace glint {
             window->poll();
 
             renderer->beginFrame();
-            renderer->recordFrame();
+            renderer->recordFrame(timeManager->getDeltaTime());
             renderer->endFrame();
 
             window->present();

@@ -1,19 +1,18 @@
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_vulkan.h>
 #include <stdexcept>
 
 #include "glint/graphics/backend/device/DeviceContext.h"
 #include "glint/graphics/layers/InterfaceLayer.h"
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_vulkan.h"
+
 namespace glint::engine::graphics {
 
     namespace layers {
-        InterfaceLayer::InterfaceLayer(const backend::DeviceContext& devices, InterfaceLayerInfo info) {
+        InterfaceLayer::InterfaceLayer(const backend::DeviceContext& devices, InterfaceLayerInfo info) : device(devices.logical) {
             IMGUI_CHECKVERSION();
             ImGui::CreateContext();
-            ImGuiIO& io = ImGui::GetIO();
-            (void)io;
-            io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
             ImGui_ImplGlfw_InitForVulkan(info.window, true);
 
@@ -48,18 +47,44 @@ namespace glint::engine::graphics {
             initInfo.Device = device;
             initInfo.QueueFamily = info.queueFamily;
             initInfo.Queue = info.queue;
-            initInfo.PipelineCache = VK_NULL_HANDLE;
             initInfo.DescriptorPool = descriptorPool;
             initInfo.MinImageCount = 2;
             initInfo.ImageCount = info.imageCount;
             initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-            initInfo.Allocator = nullptr;
             initInfo.RenderPass = info.renderPass;
-            initInfo.CheckVkResultFn = [](VkResult err) {
-                if (err != VK_SUCCESS) throw std::runtime_error("Vulkan error in ImGui");
-            };
-
             ImGui_ImplVulkan_Init(&initInfo);
+
+            /*VkCommandBufferAllocateInfo allocInfo{};
+            allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            allocInfo.commandPool = info.pool;
+            allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            allocInfo.commandBufferCount = 1;
+
+            VkCommandBuffer commandBuffer;
+            vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+
+            VkCommandBufferBeginInfo beginInfo{};
+            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+            if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+                throw std::runtime_error("Vulkan | failed to begin recording command buffer!");
+            }
+
+            //ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
+
+            if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+                throw std::runtime_error("Vulkan | failed to end recording command buffer!");
+            }
+
+            VkSubmitInfo endInfo = {};
+            endInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            endInfo.commandBufferCount = 1;
+            endInfo.pCommandBuffers = &commandBuffer;
+            vkQueueSubmit(info.queue, 1, &endInfo, VK_NULL_HANDLE);
+
+            vkDeviceWaitIdle(device);
+            //ImGui_ImplVulkan_DestroyFontUploadObjects();*/
         }
 
         InterfaceLayer::~InterfaceLayer() {
@@ -80,7 +105,6 @@ namespace glint::engine::graphics {
 
             ImGui::NewFrame();
             ImGui::ShowDemoWindow();
-            ImGui::Render();
         }
 
         void InterfaceLayer::renderFrame(const backend::FrameData& frame, VkCommandBuffer commands) {

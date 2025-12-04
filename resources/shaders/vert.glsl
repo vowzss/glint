@@ -9,9 +9,13 @@ layout(set = 0, binding = 0) uniform camera {
     mat4 viewProj;
 };
 
+layout(push_constant) uniform entity {
+    mat4 model;
+};
+
 layout(location = 0) out vec3 fragColor;
 
 void main() {
-    gl_Position = viewProj * vec4(inPos, 1.0);
+    gl_Position = viewProj * model * vec4(inPos, 1.0);
     fragColor = inColor;
 }

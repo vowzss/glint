@@ -29,32 +29,32 @@ namespace glint::engine {
             int height;
             RendererContext context;
 
-            VkInstance instance_;
-            VkSurfaceKHR surface_;
+            VkInstance instance;
+            VkSurfaceKHR surface;
 
-            backend::DeviceContext devices_;
-            VkDescriptorPool descriptorPool_{};
+            backend::DeviceContext devices;
+            VkDescriptorPool descriptorPool = {};
 
-            std::unique_ptr<backend::QueuesData> queues_;
-            std::unique_ptr<backend::SwapchainData> swapchain_;
-            std::unique_ptr<backend::RenderpassData> renderpass_;
-            std::unique_ptr<backend::CommandsPoolData> commands_;
+            std::unique_ptr<backend::QueuesData> queues;
+            std::unique_ptr<backend::SwapchainData> swapchain;
+            std::unique_ptr<backend::RenderpassData> renderpass;
+            std::unique_ptr<backend::CommandsPoolData> commands;
 
-            VkDescriptorSetLayout cameraDescriptorLayout_{};
-            std::unique_ptr<scene::components::Camera> camera_;
+            VkDescriptorSetLayout cameraDescriptorLayout = {};
+            std::unique_ptr<scene::components::Camera> camera;
 
             std::vector<layers::RenderLayer*> renderLayers;
 
-            std::unique_ptr<backend::ImageBufferData> depthData_;
+            std::unique_ptr<backend::ImageBufferData> depthData;
 
-            VkViewport viewport_{};
-            VkRect2D scissor_{};
+            VkViewport viewport = {};
+            VkRect2D scissor = {};
 
-            VkPipelineLayout pipelineLayout_; // layout for shaders (uniforms, descriptors)
-            VkPipeline graphicsPipeline_;     // encapsulates all GPU states and shaders
+            VkPipelineLayout pipelineLayout; // layout for shaders (uniforms, descriptors)
+            VkPipeline pipeline;             // encapsulates all GPU states and shaders
 
-            int frameIndex_ = 0;
-            uint32_t imageIndex_ = 0;
+            int frameIndex = 0;
+            uint32_t imageIndex = 0;
             std::vector<std::unique_ptr<backend::FrameData>> frames;
 
           public:
@@ -63,14 +63,14 @@ namespace glint::engine {
 
             ~Renderer();
 
-            void init(VkSurfaceKHR&& surface);
+            void init(const VkSurfaceKHR& surface_);
 
             void beginFrame();
-            void recordFrame();
+            void recordFrame(float deltaTime);
             void endFrame();
 
-            inline const VkInstance& getInstance() const { return instance_; }
-            inline scene::components::Camera& getCamera() const { return *camera_; }
+            inline const VkInstance& getInstance() const { return instance; }
+            inline scene::components::Camera& getCamera() const { return *camera; }
 
           private:
             // --- setup ---

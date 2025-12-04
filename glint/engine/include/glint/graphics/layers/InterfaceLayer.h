@@ -17,6 +17,7 @@ namespace glint::engine::graphics {
             VkQueue queue;
             uint32_t queueFamily;
             VkRenderPass renderPass;
+            VkCommandPool pool;
             uint32_t imageCount;
         };
 

@@ -1,12 +1,20 @@
 #include "glint/graphics/layers/RenderLayer.h"
 
 namespace glint::engine {
-    namespace scene::components {
-        struct Camera;
+    namespace scene {
+        struct Entity;
+
+        namespace components {
+            struct Camera;
+        }
     }
 
     namespace graphics {
         struct Renderer;
+
+        namespace models {
+            struct Mesh;
+        }
 
         namespace backend {
             struct DeviceContext;
@@ -26,9 +34,11 @@ namespace glint::engine {
                 VkDevice device = {};
                 SceneLayerInfo info;
 
+                scene::Entity* triangleEntity;
                 backend::BufferData* triangleVertexBuffer;
                 backend::BufferData* triangleIndexBuffer;
 
+                scene::Entity* cubeEntity;
                 backend::BufferData* cubeVertexBuffer;
                 backend::BufferData* cubeIndexBuffer;
 

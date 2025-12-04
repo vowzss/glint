@@ -4,6 +4,12 @@
 
 namespace glint::engine::scene {
     namespace components {
+        struct CameraInput {
+            float forward = 0.0f;
+            float right = 0.0f;
+            float up = 0.0f;
+        };
+
         struct Camera {
           private:
             float fov = 45.0f;
@@ -11,8 +17,10 @@ namespace glint::engine::scene {
             float nearPlane = 0.1f;
             float farPlane = 100.0f;
 
+            CameraInput input;
+
             Transform transform = {};
-            float speed = 5.0f;
+            float speed = 2.0f;
 
             float yaw = 0.0f;
             float pitch = 0.0f;
@@ -25,7 +33,11 @@ namespace glint::engine::scene {
             mutable bool isProjectionDirty = true;
 
           public:
-            Camera() { transform.position = JPH::Vec3{0.0f, 0.0f, 2.0f}; }
+            Camera() {
+                transform.onChanged = [this]() { isViewDirty = true; };
+                transform.setPosition(JPH::Vec3{0.0f, 0.0f, 2.0f});
+                transform.setRotation(JPH::Quat::sIdentity());
+            }
 
             inline void setFov(float value) {
                 fov = value;
@@ -47,56 +59,21 @@ namespace glint::engine::scene {
                 isProjectionDirty = true;
             }
 
-            inline void setPosition(const JPH::Vec3& pos) {
-                transform.position = pos;
-                isViewDirty = true;
-            }
+            void rotate(float x, float y);
 
-            inline void setRotation(const JPH::Quat& rot) {
-                transform.rotation = rot;
-                isViewDirty = true;
+            void update(float deltaTime) {
+                JPH::Vec3 direction = transform.getRotation() * JPH::Vec3(input.right, 0.0f, input.forward);
+
+                if (direction.LengthSq() > 0.0f) {
+                    direction = direction.Normalized();
+                    transform.translateBy(direction * speed * deltaTime);
+                }
             }
 
             const JPH::Mat44& getViewMatrix() const;
             const JPH::Mat44& getProjectionMatrix() const;
 
-            inline void forward(float amount) {
-                JPH::Vec3 forward = transform.rotation * JPH::Vec3(0.0f, 0.0f, -1.0f);
-                transform.position += forward * amount * speed;
-                isViewDirty = true;
-            }
-
-            inline void backward(float amount) {
-                JPH::Vec3 forward = transform.rotation * JPH::Vec3(0.0f, 0.0f, -1.0f);
-                transform.position -= forward * amount * speed;
-                isViewDirty = true;
-            }
-
-            inline void right(float amount) {
-                JPH::Vec3 right = transform.rotation * JPH::Vec3(1.0f, 0.0f, 0.0f);
-                transform.position += right * amount * speed;
-                isViewDirty = true;
-            }
-
-            inline void left(float amount) {
-                JPH::Vec3 right = transform.rotation * JPH::Vec3(1.0f, 0.0f, 0.0f);
-                transform.position -= right * amount * speed;
-                isViewDirty = true;
-            }
-
-            inline void up(float amount) {
-                JPH::Vec3 up = transform.rotation * JPH::Vec3(0.0f, 1.0f, 0.0f);
-                transform.position += up * amount * speed;
-                isViewDirty = true;
-            }
-
-            inline void down(float amount) {
-                JPH::Vec3 up = transform.rotation * JPH::Vec3(0.0f, 1.0f, 0.0f);
-                transform.position -= up * amount * speed;
-                isViewDirty = true;
-            }
-
-            void rotate(float x, float y);
+            CameraInput& getInput() { return input; }
         };
     }
 }

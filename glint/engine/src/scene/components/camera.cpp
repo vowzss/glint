@@ -34,9 +34,9 @@ namespace glint::engine::scene {
 
         const JPH::Mat44& Camera::getViewMatrix() const {
             if (isViewDirty) {
-                JPH::Vec3 forward = transform.rotation * JPH::Vec3(0.0f, 0.0f, -1.0f);
-                JPH::Vec3 up = transform.rotation * JPH::Vec3(0.0f, 1.0f, 0.0f);
-                view = JPH::Mat44::sLookAt(transform.position, transform.position + forward, up);
+                JPH::Vec3 forward = transform.getRotation() * JPH::Vec3(0.0f, 0.0f, -1.0f);
+                JPH::Vec3 up = transform.getRotation() * JPH::Vec3(0.0f, 1.0f, 0.0f);
+                view = JPH::Mat44::sLookAt(transform.getPosition(), transform.getPosition() + forward, up);
                 isViewDirty = false;
             }
 
@@ -61,7 +61,7 @@ namespace glint::engine::scene {
             JPH::Quat yawRot = JPH::Quat::sRotation(JPH::Vec3(0, 1, 0), yaw);
             JPH::Quat pitchRot = JPH::Quat::sRotation(JPH::Vec3(1, 0, 0), pitch);
 
-            setRotation(yawRot * pitchRot);
+            transform.setRotation(yawRot * pitchRot);
         }
     }
 }

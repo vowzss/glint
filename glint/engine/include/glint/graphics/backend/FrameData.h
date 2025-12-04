@@ -34,6 +34,8 @@ namespace glint::engine {
             VkSemaphore renderFinished = {};
             VkFence inFlight = {};
 
+            float deltaTime;
+
           public:
             FrameData() = delete;
             FrameData(const DeviceContext& devices, const FrameDataInfo& info);
