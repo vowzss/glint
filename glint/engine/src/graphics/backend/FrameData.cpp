@@ -3,6 +3,7 @@
 
 #include "glint/graphics/backend/FrameData.h"
 #include "glint/graphics/backend/device/DeviceContext.h"
+#include "glint/graphics/layers/RenderLayer.h"
 #include "glint/scene/components/Camera.h"
 
 namespace glint::engine::graphics {
@@ -86,13 +87,19 @@ namespace glint::engine::graphics {
             }
         }
 
-        void FrameData::update(const scene::components::Camera& camera) const {
+        void FrameData::render(float dt, const scene::components::Camera& camera, const VkCommandBuffer& commands) const {
+            deltaTime = dt;
+
             JPH::Mat44 projMatrix = camera.getProjectionMatrix();
             JPH::Mat44 viewMatrix = camera.getViewMatrix();
             JPH::Mat44 projViewMatrix = projMatrix * viewMatrix;
             JPH::Mat44 cameraMatrices[3] = {viewMatrix, projMatrix, projViewMatrix};
 
             cameraBuffer->copy(cameraMatrices, sizeof(JPH::Mat44) * 3, 0);
+
+            for (int i = 0; i < layers.size(); ++i) {
+                layers[i]->render(dt, commands);
+            }
         }
     }
 }

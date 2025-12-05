@@ -131,13 +131,12 @@ namespace glint::engine::graphics {
             vkFreeMemory(device, cubeIndexBuffer->memory, nullptr);
         }
 
-        void SceneLayer::renderFrame(const FrameData& frame, VkCommandBuffer commands) {
-            frame.update(info.camera);
+        void SceneLayer::render(float deltaTime, const VkCommandBuffer& commands) {
 
             JPH::Mat44* models = reinterpret_cast<JPH::Mat44*>(entityBuffer->data);
 
             for (int i = 0; i < entities.size(); ++i) {
-                entities[i]->lifetime += frame.deltaTime;
+                entities[i]->lifetime += deltaTime;
                 models[i] = entities[i]->getModelMatrix();
             }
 

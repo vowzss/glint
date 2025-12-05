@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include <vulkan/vulkan_core.h>
 
@@ -11,39 +12,49 @@ namespace glint::engine {
         struct Camera;
     }
 
-    namespace graphics::backend {
-        struct DeviceContext;
+    namespace graphics {
+        namespace layers {
+            struct RenderLayer;
+        }
 
-        struct FrameDataCreateInfo {
-            VkDescriptorPool descriptorPool;
+        namespace backend {
+            struct DeviceContext;
 
-            VkDescriptorSetLayout cameraDescriptorLayout;
-            VkDescriptorSetLayout entityDescriptorLayout;
+            struct FrameDataCreateInfo {
+                VkDescriptorPool descriptorPool;
 
-            const scene::components::Camera& camera;
-        };
+                VkDescriptorSetLayout cameraDescriptorLayout;
+                VkDescriptorSetLayout entityDescriptorLayout;
 
-        struct FrameData {
-            VkDevice device = nullptr;
+                const scene::components::Camera& camera;
+            };
 
-            VkDescriptorSet cameraDescriptorSet = nullptr;
-            std::unique_ptr<BufferData> cameraBuffer;
+            struct FrameData {
+                VkDevice device = nullptr;
 
-            VkDescriptorSet entityDescriptorSet = nullptr;
+                VkDescriptorSet cameraDescriptorSet = nullptr;
+                std::unique_ptr<BufferData> cameraBuffer;
 
-            VkSemaphore imageAvailable = nullptr;
-            VkSemaphore renderFinished = nullptr;
-            VkFence inFlight = nullptr;
+                VkDescriptorSet entityDescriptorSet = nullptr;
 
-            float deltaTime;
+                std::vector<layers::RenderLayer*> layers;
 
-          public:
-            FrameData() = delete;
-            FrameData(const DeviceContext& devices, const FrameDataCreateInfo& info);
+                VkSemaphore imageAvailable = nullptr;
+                VkSemaphore renderFinished = nullptr;
+                VkFence inFlight = nullptr;
 
-            ~FrameData();
+                mutable float deltaTime;
 
-            void update(const scene::components::Camera& camera) const;
-        };
+              public:
+                FrameData() = delete;
+                FrameData(const DeviceContext& devices, const FrameDataCreateInfo& info);
+
+                ~FrameData();
+
+                void begin() const;
+                void render(float deltaTime, const scene::components::Camera& camera, const VkCommandBuffer& command) const;
+                void end() const;
+            };
+        }
     }
 }

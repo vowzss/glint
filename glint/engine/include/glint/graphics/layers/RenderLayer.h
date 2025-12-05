@@ -13,9 +13,9 @@ namespace glint::engine::graphics {
           public:
             virtual ~RenderLayer() = default;
 
-            virtual void beginFrame() {};
-            virtual void renderFrame(const backend::FrameData& frame, VkCommandBuffer commands) = 0;
-            virtual void endFrame() {};
+            virtual void begin() {};
+            virtual void render(float deltaTime, const VkCommandBuffer& commands) = 0;
+            virtual void end() {};
         };
     }
 }

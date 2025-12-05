@@ -61,7 +61,7 @@ namespace glint::engine::scene {
 
             void rotate(float x, float y);
 
-            void update(float deltaTime) {
+            inline void update(float deltaTime) {
                 JPH::Vec3 direction = transform.getRotation() * JPH::Vec3(input.right, 0.0f, input.forward);
 
                 if (direction.LengthSq() > 0.0f) {

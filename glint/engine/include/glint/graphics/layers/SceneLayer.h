@@ -49,7 +49,7 @@ namespace glint::engine {
                 SceneLayer(const backend::DeviceContext& devices, SceneLayerCreateInfo info_);
                 ~SceneLayer();
 
-                void renderFrame(const backend::FrameData& frame, VkCommandBuffer commands) override;
+                void render(float deltaTime, const VkCommandBuffer& commands) override;
             };
         }
     }
