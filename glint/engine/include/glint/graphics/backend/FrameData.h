@@ -5,6 +5,8 @@
 
 #include <vulkan/vulkan_core.h>
 
+#include "glint/graphics/layers/RenderLayer.h"
+
 #include "buffer/BufferData.h"
 
 namespace glint::engine {
@@ -37,7 +39,7 @@ namespace glint::engine {
 
                 VkDescriptorSet entityDescriptorSet = nullptr;
 
-                std::vector<layers::RenderLayer*> layers;
+                std::vector<std::unique_ptr<layers::RenderLayer>> layers;
 
                 VkSemaphore imageAvailable = nullptr;
                 VkSemaphore renderFinished = nullptr;
@@ -54,6 +56,8 @@ namespace glint::engine {
                 void begin() const;
                 void render(float deltaTime, const scene::components::Camera& camera, const VkCommandBuffer& command) const;
                 void end() const;
+
+                void addLayer(std::unique_ptr<layers::RenderLayer> layer);
             };
         }
     }

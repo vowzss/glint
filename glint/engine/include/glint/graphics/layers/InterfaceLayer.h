@@ -30,8 +30,8 @@ namespace glint::engine::graphics {
             InterfaceLayer(const backend::DeviceContext& devices, InterfaceLayerInfo info);
             ~InterfaceLayer();
 
-            void beginFrame() override;
-            void renderFrame(const backend::FrameData& frame, VkCommandBuffer commands) override;
+            void begin() override;
+            void render(float deltaTime, const VkCommandBuffer& commands) override;
         };
     }
 }

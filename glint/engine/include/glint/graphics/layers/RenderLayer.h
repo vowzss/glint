@@ -2,20 +2,19 @@
 
 #include "vulkan/vulkan_core.h"
 
-namespace glint::engine::graphics {
+namespace glint::engine::graphics::backend {
+    struct FrameData;
+}
 
-    namespace backend {
-        struct FrameData;
-    }
+namespace glint::engine::graphics::layers {
 
-    namespace layers {
-        struct RenderLayer {
-          public:
-            virtual ~RenderLayer() = default;
+    struct RenderLayer {
+      public:
+        virtual ~RenderLayer() = default;
 
-            virtual void begin() {};
-            virtual void render(float deltaTime, const VkCommandBuffer& commands) = 0;
-            virtual void end() {};
-        };
-    }
+        virtual void begin(){};
+        virtual void render(float deltaTime, const VkCommandBuffer& commands) = 0;
+        virtual void end(){};
+    };
+
 }

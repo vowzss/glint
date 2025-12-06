@@ -99,7 +99,7 @@ namespace glint::engine::graphics {
             }
         }
 
-        void InterfaceLayer::beginFrame() {
+        void InterfaceLayer::begin() {
             ImGui_ImplVulkan_NewFrame();
             ImGui_ImplGlfw_NewFrame();
 
@@ -107,7 +107,7 @@ namespace glint::engine::graphics {
             ImGui::ShowDemoWindow();
         }
 
-        void InterfaceLayer::renderFrame(const backend::FrameData& frame, VkCommandBuffer commands) {
+        void InterfaceLayer::render(float deltaTime, const VkCommandBuffer& commands) {
             ImGui::Render();
             ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commands);
         }

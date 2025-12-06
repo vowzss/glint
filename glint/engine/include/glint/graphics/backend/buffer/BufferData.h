@@ -7,11 +7,11 @@ namespace glint::engine::graphics {
         struct DeviceContext;
 
         struct BufferDataInfo {
+            const void* data;
             VkDeviceSize size;
+
             VkBufferUsageFlags usage;
             VkMemoryPropertyFlags properties;
-
-            const void* data;
 
           public:
             BufferDataInfo() = default;
@@ -31,6 +31,10 @@ namespace glint::engine::graphics {
             BufferData(const DeviceContext& devices, const BufferDataInfo& info);
 
             ~BufferData();
+
+            // --- factories ---
+            static BufferData vertex(const DeviceContext& devices, const void* data, VkDeviceSize size);
+            static BufferData index(const DeviceContext& devices, const void* data, VkDeviceSize size);
 
             void copy(const void* srcData, VkDeviceSize srcSize, VkDeviceSize srcOffset);
         };
