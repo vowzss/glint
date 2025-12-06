@@ -8,30 +8,32 @@ namespace glint::engine::graphics {
     namespace backend {
         struct DeviceContext;
     }
+}
 
-    namespace layers {
-        struct InterfaceLayerInfo {
-            GLFWwindow* window;
+namespace glint::engine::graphics::layers {
 
-            VkInstance instance;
-            VkQueue queue;
-            uint32_t queueFamily;
-            VkRenderPass renderPass;
-            VkCommandPool pool;
-            uint32_t imageCount;
-        };
+    struct InterfaceLayerInfo {
+        GLFWwindow* window;
 
-        struct InterfaceLayer : public RenderLayer {
-          private:
-            VkDevice device = {};
-            VkDescriptorPool descriptorPool = {};
+        VkInstance instance;
+        VkQueue queue;
+        uint32_t queueFamily;
+        VkRenderPass renderPass;
+        VkCommandPool pool;
+        uint32_t imageCount;
+    };
 
-          public:
-            InterfaceLayer(const backend::DeviceContext& devices, InterfaceLayerInfo info);
-            ~InterfaceLayer();
+    struct InterfaceLayer : public RenderLayer {
+      private:
+        VkDevice device = {};
+        VkDescriptorPool descriptorPool = {};
 
-            void begin() override;
-            void render(float deltaTime, const VkCommandBuffer& commands) override;
-        };
-    }
+      public:
+        InterfaceLayer(const backend::DeviceContext& devices, InterfaceLayerInfo info);
+        ~InterfaceLayer();
+
+        void begin() override;
+        void render(float deltaTime, const VkCommandBuffer& commands) override;
+    };
+
 }

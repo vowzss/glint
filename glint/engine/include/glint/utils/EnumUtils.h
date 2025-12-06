@@ -2,6 +2,7 @@
 #include <string>
 
 namespace glint::engine::utils {
+
     namespace enums {
         template <typename Enum>
         inline std::string toString(Enum value, std::initializer_list<const char*> names) {

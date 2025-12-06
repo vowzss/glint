@@ -7,6 +7,8 @@ namespace glint {
     namespace engine::core {
         struct TimeManager;
         struct InputManager;
+        struct AssetManager;
+        struct Registry;
     }
 
     namespace engine::graphics {
@@ -18,8 +20,9 @@ namespace glint {
       private:
         std::unique_ptr<engine::graphics::Window> window = nullptr;
 
-        std::unique_ptr<engine::core::InputManager> inputManager = nullptr;
-        std::unique_ptr<engine::core::TimeManager> timeManager = nullptr;
+        std::unique_ptr<engine::core::TimeManager> time = nullptr;
+        std::unique_ptr<engine::core::InputManager> inputs = nullptr;
+        std::unique_ptr<engine::core::AssetManager> assets = nullptr;
 
         std::unique_ptr<engine::graphics::Renderer> renderer = nullptr;
 

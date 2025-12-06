@@ -6,50 +6,50 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-namespace glint::engine {
-    namespace core {
-        struct Logger {
-          private:
-            static std::shared_ptr<spdlog::logger> logger;
+namespace glint::engine::core {
 
-          public:
-            static void init();
+    struct Logger {
+      private:
+        static std::shared_ptr<spdlog::logger> logger;
 
-            template <typename... Args>
-            inline static void trace(const char* sig, const std::string& fmt, Args&&... args) {
-                logger->trace("[{}] > " + fmt, extractClassName(sig), std::forward<Args>(args)...);
-            }
+      public:
+        static void init();
 
-            template <typename... Args>
-            inline static void debug(const char* sig, const std::string& fmt, Args&&... args) {
-                logger->debug("[{}] > " + fmt, extractClassName(sig), std::forward<Args>(args)...);
-            }
+        template <typename... Args>
+        inline static void trace(const char* sig, const std::string& fmt, Args&&... args) {
+            logger->trace("[{}] > " + fmt, extractClassName(sig), std::forward<Args>(args)...);
+        }
 
-            template <typename... Args>
-            inline static void info(const char* sig, const std::string& fmt, Args&&... args) {
-                logger->info("[{}] > " + fmt, extractClassName(sig), std::forward<Args>(args)...);
-            }
+        template <typename... Args>
+        inline static void debug(const char* sig, const std::string& fmt, Args&&... args) {
+            logger->debug("[{}] > " + fmt, extractClassName(sig), std::forward<Args>(args)...);
+        }
 
-            template <typename... Args>
-            inline static void warn(const char* sig, const std::string& fmt, Args&&... args) {
-                logger->warn("[{}] " + fmt, extractClassName(sig), std::forward<Args>(args)...);
-            }
+        template <typename... Args>
+        inline static void info(const char* sig, const std::string& fmt, Args&&... args) {
+            logger->info("[{}] > " + fmt, extractClassName(sig), std::forward<Args>(args)...);
+        }
 
-            template <typename... Args>
-            inline static void error(const char* sig, const std::string& fmt, Args&&... args) {
-                logger->error("[{}] " + fmt, extractClassName(sig), std::forward<Args>(args)...);
-            }
+        template <typename... Args>
+        inline static void warn(const char* sig, const std::string& fmt, Args&&... args) {
+            logger->warn("[{}] " + fmt, extractClassName(sig), std::forward<Args>(args)...);
+        }
 
-            template <typename... Args>
-            inline static void critical(const char* sig, const std::string& fmt, Args&&... args) {
-                logger->critical("[{}] " + fmt, extractClassName(sig), std::forward<Args>(args)...);
-            }
+        template <typename... Args>
+        inline static void error(const char* sig, const std::string& fmt, Args&&... args) {
+            logger->error("[{}] " + fmt, extractClassName(sig), std::forward<Args>(args)...);
+        }
 
-          private:
-            static std::string extractClassName(const char* sig);
-        };
+        template <typename... Args>
+        inline static void critical(const char* sig, const std::string& fmt, Args&&... args) {
+            logger->critical("[{}] " + fmt, extractClassName(sig), std::forward<Args>(args)...);
+        }
 
-        // clang-format off
+      private:
+        static std::string extractClassName(const char* sig);
+    };
+
+    // clang-format off
         #if defined(__GNUC__) || defined(__clang__)
             #define FUNC_SIG __PRETTY_FUNCTION__
         #elif defined(_MSC_VER)
@@ -64,6 +64,6 @@ namespace glint::engine {
         #define LOG_WARN(fmt, ...) glint::engine::core::Logger::warn(FUNC_SIG, fmt, ##__VA_ARGS__)
         #define LOG_ERROR(fmt, ...) glint::engine::core::Logger::error(FUNC_SIG, fmt, ##__VA_ARGS__)
         #define LOG_CRITICAL(fmt, ...) glint::engine::core::Logger::critical(FUNC_SIG, fmt, ##__VA_ARGS__)
-        // clang-format on
-    }
+    // clang-format on
+
 }

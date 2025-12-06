@@ -4,27 +4,27 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics {
-    namespace backend {
-        struct SwapchainData {
-            VkDevice device = {};
+namespace glint::engine::graphics::backend {
 
-            VkSwapchainKHR value = {};
-            const VkFormat format;
-            const VkExtent2D extent;
+    struct SwapchainData {
+        VkDevice device = {};
 
-            std::vector<VkImage> images = {};
-            std::vector<VkImageView> views = {};
+        VkSwapchainKHR value = {};
+        const VkFormat format;
+        const VkExtent2D extent;
 
-          public:
-            SwapchainData() = delete;
-            SwapchainData(VkDevice& device, VkSwapchainCreateInfoKHR info);
+        std::vector<VkImage> images = {};
+        std::vector<VkImageView> views = {};
 
-            ~SwapchainData();
+      public:
+        SwapchainData() = delete;
+        SwapchainData(VkDevice& device, VkSwapchainCreateInfoKHR info);
 
-          private:
-            void initImages();
-            void initViews();
-        };
-    }
+        ~SwapchainData();
+
+      private:
+        void initImages();
+        void initViews();
+    };
+
 }

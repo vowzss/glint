@@ -2,37 +2,37 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics {
-    namespace backend {
-        struct DeviceContext;
+namespace glint::engine::graphics::backend {
 
-        struct ImageBufferDataInfo {
-            VkFormat format;
-            VkExtent2D extent;
-            VkImageUsageFlags usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-            VkMemoryPropertyFlagBits properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    struct DeviceContext;
 
-          public:
-            ImageBufferDataInfo() = default;
-        };
+    struct ImageBufferDataInfo {
+        VkFormat format;
+        VkExtent2D extent;
+        VkImageUsageFlags usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        VkMemoryPropertyFlagBits properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-        struct ImageBufferData {
-            VkDevice device = {};
+      public:
+        ImageBufferDataInfo() = default;
+    };
 
-            VkImage image = {};
-            VkDeviceMemory memory = {};
-            VkImageView view = {};
+    struct ImageBufferData {
+        VkDevice device = {};
 
-            VkFormat format;
-            VkExtent2D extent;
-            VkImageUsageFlags usage;
-            VkMemoryPropertyFlagBits properties;
+        VkImage image = {};
+        VkDeviceMemory memory = {};
+        VkImageView view = {};
 
-          public:
-            ImageBufferData() = delete;
-            ImageBufferData(const DeviceContext& devices, const ImageBufferDataInfo& info);
+        VkFormat format;
+        VkExtent2D extent;
+        VkImageUsageFlags usage;
+        VkMemoryPropertyFlagBits properties;
 
-            ~ImageBufferData();
-        };
-    }
+      public:
+        ImageBufferData() = delete;
+        ImageBufferData(const DeviceContext& devices, const ImageBufferDataInfo& info);
+
+        ~ImageBufferData();
+    };
+
 }

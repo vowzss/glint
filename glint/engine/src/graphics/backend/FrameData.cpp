@@ -40,12 +40,12 @@ namespace glint::engine::graphics::backend {
             JPH::Mat44 projViewMatrix = projMatrix * viewMatrix;
             JPH::Mat44 cameraMatrices[3] = {viewMatrix, projMatrix, projViewMatrix};
 
-            BufferDataInfo dataInfo{};
-            dataInfo.data = cameraMatrices;
-            dataInfo.size = sizeof(JPH::Mat44) * 3;
-            dataInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-            dataInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-            cameraBuffer = std::make_unique<BufferData>(devices, dataInfo);
+            BufferCreateInfo createInfo{};
+            createInfo.data = cameraMatrices;
+            createInfo.size = sizeof(JPH::Mat44) * 3;
+            createInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+            createInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            cameraBuffer = std::make_unique<BufferData>(devices, createInfo);
 
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = cameraBuffer->value;

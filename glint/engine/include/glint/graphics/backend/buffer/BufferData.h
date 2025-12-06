@@ -2,41 +2,42 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics {
-    namespace backend {
-        struct DeviceContext;
+namespace glint::engine::graphics::backend {
 
-        struct BufferDataInfo {
-            const void* data;
-            VkDeviceSize size;
+    struct DeviceContext;
 
-            VkBufferUsageFlags usage;
-            VkMemoryPropertyFlags properties;
+    struct BufferCreateInfo {
+        const void* data;
+        VkDeviceSize size;
 
-          public:
-            BufferDataInfo() = default;
-        };
+        VkBufferUsageFlags usage;
+        VkMemoryPropertyFlags properties;
 
-        struct BufferData {
-            VkDevice device = nullptr;
+      public:
+        BufferCreateInfo() = default;
+    };
 
-            VkBuffer value = nullptr;
-            VkDeviceSize size;
-            VkDeviceMemory memory = nullptr;
+    struct BufferData {
+        VkDevice device = nullptr;
 
-            void* data = nullptr;
+        void* data = nullptr;
+        VkDeviceSize size;
 
-          public:
-            BufferData() = delete;
-            BufferData(const DeviceContext& devices, const BufferDataInfo& info);
+        VkBuffer value = nullptr;
+        VkDeviceMemory memory = nullptr;
 
-            ~BufferData();
+      public:
+        BufferData() = delete;
+        BufferData(const DeviceContext& devices, const BufferCreateInfo& info);
 
-            // --- factories ---
-            static BufferData vertex(const DeviceContext& devices, const void* data, VkDeviceSize size);
-            static BufferData index(const DeviceContext& devices, const void* data, VkDeviceSize size);
+        ~BufferData();
 
-            void copy(const void* srcData, VkDeviceSize srcSize, VkDeviceSize srcOffset);
-        };
-    }
+        // --- factories ---
+        static BufferData vertex(const DeviceContext& devices, const void* data, VkDeviceSize size);
+        static BufferData index(const DeviceContext& devices, const void* data, VkDeviceSize size);
+
+        // --- methods ---
+        void copy(const void* srcData, VkDeviceSize srcSize, VkDeviceSize srcOffset);
+    };
+
 }

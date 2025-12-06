@@ -10,55 +10,55 @@
 #include "buffer/BufferData.h"
 
 namespace glint::engine {
+    namespace graphics::layers {
+        struct RenderLayer;
+    }
+
     namespace scene::components {
         struct Camera;
     }
+}
 
-    namespace graphics {
-        namespace layers {
-            struct RenderLayer;
-        }
+namespace glint::engine::graphics::backend {
 
-        namespace backend {
-            struct DeviceContext;
+    struct DeviceContext;
 
-            struct FrameDataCreateInfo {
-                VkDescriptorPool descriptorPool;
+    struct FrameDataCreateInfo {
+        VkDescriptorPool descriptorPool;
 
-                VkDescriptorSetLayout cameraDescriptorLayout;
-                VkDescriptorSetLayout entityDescriptorLayout;
+        VkDescriptorSetLayout cameraDescriptorLayout;
+        VkDescriptorSetLayout entityDescriptorLayout;
 
-                const scene::components::Camera& camera;
-            };
+        const scene::components::Camera& camera;
+    };
 
-            struct FrameData {
-                VkDevice device = nullptr;
+    struct FrameData {
+        VkDevice device = nullptr;
 
-                VkDescriptorSet cameraDescriptorSet = nullptr;
-                std::unique_ptr<BufferData> cameraBuffer;
+        VkDescriptorSet cameraDescriptorSet = nullptr;
+        std::unique_ptr<BufferData> cameraBuffer;
 
-                VkDescriptorSet entityDescriptorSet = nullptr;
+        VkDescriptorSet entityDescriptorSet = nullptr;
 
-                std::vector<std::unique_ptr<layers::RenderLayer>> layers;
+        std::vector<std::unique_ptr<layers::RenderLayer>> layers;
 
-                VkSemaphore imageAvailable = nullptr;
-                VkSemaphore renderFinished = nullptr;
-                VkFence inFlight = nullptr;
+        VkSemaphore imageAvailable = nullptr;
+        VkSemaphore renderFinished = nullptr;
+        VkFence inFlight = nullptr;
 
-                mutable float deltaTime;
+        mutable float deltaTime;
 
-              public:
-                FrameData() = delete;
-                FrameData(const DeviceContext& devices, const FrameDataCreateInfo& info);
+      public:
+        FrameData() = delete;
+        FrameData(const DeviceContext& devices, const FrameDataCreateInfo& info);
 
-                ~FrameData();
+        ~FrameData();
 
-                void begin() const;
-                void render(float deltaTime, const scene::components::Camera& camera, const VkCommandBuffer& command) const;
-                void end() const;
+        void begin() const;
+        void render(float deltaTime, const scene::components::Camera& camera, const VkCommandBuffer& command) const;
+        void end() const;
 
-                void addLayer(std::unique_ptr<layers::RenderLayer> layer);
-            };
-        }
-    }
+        void addLayer(std::unique_ptr<layers::RenderLayer> layer);
+    };
+
 }

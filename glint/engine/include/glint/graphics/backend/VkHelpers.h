@@ -5,18 +5,18 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics {
-    namespace backend {
-        struct ImageBufferData;
-        struct DeviceContext;
+namespace glint::engine::graphics::backend {
 
-        uint32_t findMemoryType(VkPhysicalDevice device, uint32_t filter, VkMemoryPropertyFlags properties);
+    struct ImageBufferData;
+    struct DeviceContext;
 
-        VkFormat findSupportedImageFormat(const VkPhysicalDevice& device, const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-            VkFormatFeatureFlags features);
+    uint32_t findMemoryType(VkPhysicalDevice device, uint32_t filter, VkMemoryPropertyFlags properties);
 
-        VkFormat findDepthFormat(const VkPhysicalDevice& device);
+    VkFormat findSupportedImageFormat(const VkPhysicalDevice& device, const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+        VkFormatFeatureFlags features);
 
-        ImageBufferData createDepthImage(const DeviceContext& devices, VkExtent2D extent);
-    }
+    VkFormat findDepthFormat(const VkPhysicalDevice& device);
+
+    ImageBufferData createDepthImage(const DeviceContext& devices, VkExtent2D extent);
+
 }

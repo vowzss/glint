@@ -1,4 +1,5 @@
 BasedOnStyle: LLVM
+Language: Cpp
 
 # indentation
 # =========================
@@ -8,7 +9,7 @@ ContinuationIndentWidth: 4
 IndentCaseLabels: true
 UseTab: Never
 
-ColumnLimit: 150
+ColumnLimit: 100
 
 # pointers & references
 # =========================
@@ -34,7 +35,7 @@ IncludeCategories:
 # alignment
 # =========================
 AlignAfterOpenBracket: DontAlign
-AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortFunctionsOnASingleLine: false
 AllowAllArgumentsOnNextLine: false
 
 AlignArrayOfStructures: Left
@@ -44,8 +45,11 @@ AlwaysBreakBeforeMultilineStrings: false
 
 # braces
 BreakBeforeBraces: Attach
+BreakBeforeBinaryOperators: All
+
 BraceWrapping:
   AfterControlStatement: true
+  AfterNamespace: true
 
 # short constructs
 # =========================

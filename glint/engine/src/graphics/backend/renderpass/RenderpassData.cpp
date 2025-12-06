@@ -4,50 +4,50 @@
 #include "glint/graphics/backend/renderpass/RenderpassData.h"
 #include "glint/graphics/backend/swapchain/SwapchainData.h"
 
-namespace glint::engine::graphics {
-    namespace backend {
-        RenderpassData::RenderpassData(const SwapchainData& swapchain, VkRenderPassCreateInfo info, const VkImageView& depthImageView)
-            : device(swapchain.device) {
-            if (vkCreateRenderPass(device, &info, nullptr, &value) != VK_SUCCESS) {
-                throw std::runtime_error("Vulkan | failed to create render pass!");
-            }
+namespace glint::engine::graphics::backend {
 
-            initFramebuffers(swapchain, depthImageView);
+    RenderpassData::RenderpassData(const SwapchainData& swapchain, VkRenderPassCreateInfo info, const VkImageView& depthImageView)
+        : device(swapchain.device) {
+        if (vkCreateRenderPass(device, &info, nullptr, &value) != VK_SUCCESS) {
+            throw std::runtime_error("Vulkan | failed to create render pass!");
         }
 
-        RenderpassData::~RenderpassData() {
-            if (!framebuffers.empty()) {
-                for (VkFramebuffer framebuffer : framebuffers) {
-                    vkDestroyFramebuffer(device, framebuffer, nullptr);
-                }
-                framebuffers.clear();
-            }
+        initFramebuffers(swapchain, depthImageView);
+    }
 
-            if (value != VK_NULL_HANDLE) {
-                vkDestroyRenderPass(device, value, nullptr);
-                value = VK_NULL_HANDLE;
+    RenderpassData::~RenderpassData() {
+        if (!framebuffers.empty()) {
+            for (VkFramebuffer framebuffer : framebuffers) {
+                vkDestroyFramebuffer(device, framebuffer, nullptr);
             }
+            framebuffers.clear();
         }
 
-        void RenderpassData::initFramebuffers(const SwapchainData& swapchain, VkImageView depthImageView) {
-            framebuffers.resize(swapchain.views.size());
+        if (value != VK_NULL_HANDLE) {
+            vkDestroyRenderPass(device, value, nullptr);
+            value = VK_NULL_HANDLE;
+        }
+    }
 
-            for (int i = 0; i < swapchain.views.size(); i++) {
-                std::array<VkImageView, 2> attachments = {swapchain.views[i], depthImageView};
+    void RenderpassData::initFramebuffers(const SwapchainData& swapchain, VkImageView depthImageView) {
+        framebuffers.resize(swapchain.views.size());
 
-                VkFramebufferCreateInfo fbInfo = {};
-                fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-                fbInfo.renderPass = value;
-                fbInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-                fbInfo.pAttachments = attachments.data();
-                fbInfo.width = swapchain.extent.width;
-                fbInfo.height = swapchain.extent.height;
-                fbInfo.layers = 1;
+        for (int i = 0; i < swapchain.views.size(); i++) {
+            std::array<VkImageView, 2> attachments = {swapchain.views[i], depthImageView};
 
-                if (vkCreateFramebuffer(device, &fbInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
-                    throw std::runtime_error("Vulkan | failed to create framebuffer");
-                }
+            VkFramebufferCreateInfo fbInfo = {};
+            fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            fbInfo.renderPass = value;
+            fbInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+            fbInfo.pAttachments = attachments.data();
+            fbInfo.width = swapchain.extent.width;
+            fbInfo.height = swapchain.extent.height;
+            fbInfo.layers = 1;
+
+            if (vkCreateFramebuffer(device, &fbInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
+                throw std::runtime_error("Vulkan | failed to create framebuffer");
             }
         }
     }
+
 }

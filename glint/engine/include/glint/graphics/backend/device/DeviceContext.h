@@ -2,14 +2,14 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics {
-    namespace backend {
-        struct DeviceContext {
-            VkDevice logical;
-            VkPhysicalDevice physical;
+namespace glint::engine::graphics::backend {
 
-          public:
-            DeviceContext() = default;
-        };
-    }
+    struct DeviceContext {
+        VkDevice logical;
+        VkPhysicalDevice physical;
+
+      public:
+        DeviceContext() = default;
+    };
+
 }

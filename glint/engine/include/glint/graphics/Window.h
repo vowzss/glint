@@ -6,27 +6,29 @@ namespace glint::engine {
     namespace core {
         struct InputManager;
     }
+}
 
-    namespace graphics {
-        struct Window {
-          private:
-            int width, height;
+namespace glint::engine::graphics {
 
-            GLFWwindow* handle = nullptr;
-            core::InputManager* inputManager;
+    struct Window {
+      private:
+        int width, height;
 
-          public:
-            Window(int width_, int height_, const char* title_, core::InputManager* inputManager_);
-            ~Window();
+        GLFWwindow* handle = nullptr;
+        core::InputManager* inputManager;
 
-            void present() const;
-            void poll() const;
+      public:
+        Window(int width_, int height_, const char* title_, core::InputManager* inputManager_);
+        ~Window();
 
-            int getWidth() const;
-            int getHeight() const;
-            bool isRunning() const;
+        void present() const;
+        void poll() const;
 
-            inline GLFWwindow* raw() const { return handle; }
-        };
-    }
+        int getWidth() const;
+        int getHeight() const;
+        bool isRunning() const;
+
+        inline GLFWwindow* raw() const { return handle; }
+    };
+
 }

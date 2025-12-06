@@ -4,39 +4,39 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics {
-    namespace backend {
-        struct QueueFamilySupportDetails;
-        struct QueueFamiliesSupportDetails;
+namespace glint::engine::graphics::backend {
 
-        struct QueueData {
-          private:
-            std::vector<VkQueue> values;
+    struct QueueFamilySupportDetails;
+    struct QueueFamiliesSupportDetails;
 
-          public:
-            QueueData() = delete;
-            QueueData(const VkDevice& device, const QueueFamilySupportDetails& family);
+    struct QueueData {
+      private:
+        std::vector<VkQueue> values;
 
-            ~QueueData() = default;
+      public:
+        QueueData() = delete;
+        QueueData(const VkDevice& device, const QueueFamilySupportDetails& family);
 
-            // --- operators ---
-            VkQueue& operator[](size_t i) { return values[i]; }
-            const VkQueue& operator[](size_t i) const { return values[i]; }
-        };
+        ~QueueData() = default;
 
-        struct QueuesData {
-          public:
-            QueueData graphics; // for submitting drawing/rendering commands
-            QueueData present;  // for presenting rendered images to the window/surface
-            QueueData compute;  // for compute shader workloads
-            QueueData transfer; // for optimized buffer/image copy operations
-            QueueData sparse;   // for partially resident resources
+        // --- operators ---
+        VkQueue& operator[](size_t i) { return values[i]; }
+        const VkQueue& operator[](size_t i) const { return values[i]; }
+    };
 
-          public:
-            QueuesData() = delete;
-            QueuesData(const VkDevice& device, const QueueFamiliesSupportDetails& families);
+    struct QueuesData {
+      public:
+        QueueData graphics; // for submitting drawing/rendering commands
+        QueueData present;  // for presenting rendered images to the window/surface
+        QueueData compute;  // for compute shader workloads
+        QueueData transfer; // for optimized buffer/image copy operations
+        QueueData sparse;   // for partially resident resources
 
-            ~QueuesData() = default;
-        };
-    }
+      public:
+        QueuesData() = delete;
+        QueuesData(const VkDevice& device, const QueueFamiliesSupportDetails& families);
+
+        ~QueuesData() = default;
+    };
+
 }

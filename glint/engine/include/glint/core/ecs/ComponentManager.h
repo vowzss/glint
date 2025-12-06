@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -24,9 +23,13 @@ namespace glint::engine::core {
             lookup[handle.id] = data.size() - 1;
         }
 
-        Component& get(EntityHandle handle) { return data[lookup[handle.id]]; }
+        Component& get(EntityHandle handle) {
+            return data[lookup[handle.id]];
+        }
 
-        bool contains(EntityHandle handle) const { return lookup.find(handle.id) != lookup.end(); }
+        bool contains(uint32_t id) const {
+            return lookup.find(id) != lookup.end();
+        }
 
         void remove(EntityHandle handle) {
             size_t index = lookup[handle.id];
@@ -67,7 +70,9 @@ namespace glint::engine::core {
             getStorage<T>().remove(handle);
         }
 
-        inline void removeAll(EntityHandle handle) { transforms.remove(handle); }
+        inline void removeAll(EntityHandle handle) {
+            transforms.remove(handle);
+        }
 
       private:
         template <typename T>

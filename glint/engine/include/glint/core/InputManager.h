@@ -6,6 +6,7 @@
 #include "glint/utils/EnumUtils.h"
 
 namespace glint::engine::core {
+
     enum class InputType : uint8_t { Cursor, Button, Key };
     ENUM_TO_STRING(InputType, "Cursor", "Button", "Key")
 
@@ -89,4 +90,5 @@ namespace glint::engine::core {
             return (buttonsCurrent[code] & (static_cast<uint8_t>(InputAction::Held) | static_cast<uint8_t>(InputAction::Pressed))) != 0;
         }
     };
+
 }

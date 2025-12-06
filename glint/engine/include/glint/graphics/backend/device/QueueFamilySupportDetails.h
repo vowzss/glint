@@ -4,56 +4,56 @@
 #include <unordered_set>
 #include <vector>
 
-namespace glint::engine::graphics {
-    namespace backend {
-        struct QueueFamilySupportDetails {
-          public:
-            uint32_t index = UINT32_MAX;
-            uint32_t count = 0;
-            std::vector<float> priorities;
+namespace glint::engine::graphics::backend {
 
-          public:
-            QueueFamilySupportDetails() = default;
+    struct QueueFamilySupportDetails {
+      public:
+        uint32_t index = UINT32_MAX;
+        uint32_t count = 0;
+        std::vector<float> priorities;
 
-            inline bool isReady() const { return index != UINT32_MAX && count > 0; }
-        };
+      public:
+        QueueFamilySupportDetails() = default;
 
-        struct QueueFamiliesSupportDetails {
-            QueueFamilySupportDetails graphics{};
-            QueueFamilySupportDetails present{};
-            QueueFamilySupportDetails compute{};
-            QueueFamilySupportDetails transfer{};
-            QueueFamilySupportDetails sparseBinding{};
+        inline bool isReady() const { return index != UINT32_MAX && count > 0; }
+    };
 
-          public:
-            QueueFamiliesSupportDetails() = default;
+    struct QueueFamiliesSupportDetails {
+        QueueFamilySupportDetails graphics{};
+        QueueFamilySupportDetails present{};
+        QueueFamilySupportDetails compute{};
+        QueueFamilySupportDetails transfer{};
+        QueueFamilySupportDetails sparseBinding{};
 
-            // --- utility ---
-            inline bool isGraphicsReady() const { return graphics.isReady(); }
-            inline bool isPresentReady() const { return present.isReady(); }
-            inline bool isComputeReady() const { return compute.isReady(); }
-            inline bool isTransferReady() const { return transfer.isReady(); }
-            inline bool isSparseReady() const { return sparseBinding.isReady(); }
+      public:
+        QueueFamiliesSupportDetails() = default;
 
-            // todo: for now only care about graphics + present queue
-            inline bool isReady() const { return isGraphicsReady() && isPresentReady(); }
+        // --- utility ---
+        inline bool isGraphicsReady() const { return graphics.isReady(); }
+        inline bool isPresentReady() const { return present.isReady(); }
+        inline bool isComputeReady() const { return compute.isReady(); }
+        inline bool isTransferReady() const { return transfer.isReady(); }
+        inline bool isSparseReady() const { return sparseBinding.isReady(); }
 
-            inline std::vector<const QueueFamilySupportDetails*> collect() const {
-                std::vector<const QueueFamilySupportDetails*> unique;
-                std::unordered_set<uint32_t> indices;
+        // todo: for now only care about graphics + present queue
+        inline bool isReady() const { return isGraphicsReady() && isPresentReady(); }
 
-                for (const auto* family : {&graphics, &present, &compute, &transfer, &sparseBinding}) {
-                    if (!family->isReady()) {
-                        continue;
-                    }
+        inline std::vector<const QueueFamilySupportDetails*> collect() const {
+            std::vector<const QueueFamilySupportDetails*> unique;
+            std::unordered_set<uint32_t> indices;
 
-                    if (indices.insert(family->index).second) {
-                        unique.push_back(family);
-                    }
+            for (const auto* family : {&graphics, &present, &compute, &transfer, &sparseBinding}) {
+                if (!family->isReady()) {
+                    continue;
                 }
 
-                return unique;
+                if (indices.insert(family->index).second) {
+                    unique.push_back(family);
+                }
             }
-        };
-    }
+
+            return unique;
+        }
+    };
+
 }

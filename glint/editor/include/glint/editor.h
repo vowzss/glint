@@ -5,6 +5,7 @@
 #include "glint/Engine.h"
 
 namespace glint {
+
     struct Editor {
       private:
         std::unique_ptr<Engine> engine = nullptr;
@@ -17,4 +18,5 @@ namespace glint {
 
         void run();
     };
+
 }
