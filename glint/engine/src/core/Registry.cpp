@@ -1,18 +1,15 @@
 #include "glint/core/Registry.h"
-#include "glint/core/ecs/ComponentManager.h"
-#include "glint/core/ecs/EntityManager.h"
-#include "glint/core/ecs/GeometryManager.h"
 
 namespace glint::engine::core {
     using namespace scene::components;
 
-    Registry::Registry(const Devices& devices) {
+    /*Registry::Registry(const Devices& devices) {
         entities = std::make_unique<EntityManager>();
         geometry = std::make_unique<GeometryManager>(devices);
         components = std::make_unique<ComponentManager>();
     }
 
-    /* entities */
+    // --- entities ---
     EntityHandle Registry::createEntity() noexcept {
         return entities->create();
     }
@@ -22,7 +19,7 @@ namespace glint::engine::core {
         entities->destroy(handle);
     }
 
-    /* geometry */
+    // --- geometry ---
     GeometryHandle Registry::createGeometry(const GeometryCreateInfo& info) {
         return geometry->create(info);
     }
@@ -31,7 +28,7 @@ namespace glint::engine::core {
         return geometry->get(handle);
     }
 
-    /* components */
+    // --- components ---
     template <typename Component>
     void Registry::addComponent(EntityHandle handle, const Component& component) {
         components->add(handle, component);
@@ -60,5 +57,5 @@ namespace glint::engine::core {
     template <typename Component>
     const ComponentStorage<Component>& Registry::getStorage() const noexcept {
         return components->getStorage<Component>();
-    }
+    }*/
 }

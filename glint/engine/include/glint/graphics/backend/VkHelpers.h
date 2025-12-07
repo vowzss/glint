@@ -12,8 +12,8 @@ namespace glint::engine::graphics::backend {
 
     uint32_t findMemoryType(VkPhysicalDevice device, uint32_t filter, VkMemoryPropertyFlags properties);
 
-    VkFormat findSupportedImageFormat(const VkPhysicalDevice& device, const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-        VkFormatFeatureFlags features);
+    VkFormat findSupportedImageFormat(const VkPhysicalDevice& device, const std::vector<VkFormat>& candidates,
+        VkImageTiling tiling, VkFormatFeatureFlags features);
 
     VkFormat findDepthFormat(const VkPhysicalDevice& device);
 

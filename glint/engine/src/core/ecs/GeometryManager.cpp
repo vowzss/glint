@@ -1,56 +1,43 @@
-#include "glint/core/Logger.h"
+#include "glint/core/AssetManager.h"
 #include "glint/core/ecs/GeometryManager.h"
-#include "glint/loaders/GeometryLoader.h"
-#include "glint/scene/components/GeometryComponent.h"
+#include "glint/graphics/backend/buffer/GeometryBuffer.h"
+#include "glint/graphics/models/GeometryData.h"
 
 namespace glint::engine::core {
-    using namespace scene::components;
-    using namespace loaders;
+    using namespace graphics::models;
+    using namespace graphics::backend;
 
-    GeometryManager::GeometryManager() {
-        loader = std::make_unique<GeometryLoader>();
+    GeometryHandle GeometryManager::create(const Devices& devices, const std::string& path) {
+        AssetHandle<GeometryData> asset = assets->load<GeometryData>(path);
+        if (!asset.isValid()) return GeometryHandle::invalid();
+
+        const GeometryData* geometry = assets->get(asset);
+        if (geometry == nullptr) return GeometryHandle::invalid();
+
+        uint32_t id = computeUniqueId();
+        entries[id] = std::make_shared<GeometryBuffer>(devices, *geometry);
+
+        return GeometryHandle{id, 0};
     }
 
-    GeometryManager::~GeometryManager() {
-        entries.clear();
-        loader.reset();
+    void GeometryManager::destroy(GeometryHandle handle) {
+        if (!handle.isValid() || handle.id >= entries.size()) return;
+
+        entries[handle.id].reset();
+        freeIds.push_back(handle.id);
     }
 
-    std::optional<GeometryCreateInfo> GeometryManager::load(const std::string& filename) {
-        auto meshInfo = loader->load(filename);
+    uint32_t GeometryManager::computeUniqueId() {
+        const uint32_t id = freeIds.empty() ? nextId++ : freeIds.back();
 
-        if (!meshInfo.has_value()) {
-            LOG_WARN("Failed to load mesh '{}'", filename);
-        }
-
-        return meshInfo;
-    }
-
-    /*GeometryHandle GeometryManager::create(const GeometryCreateInfo& info) {
-        uint32_t id;
-
-        if (freeIds.empty()) {
-            id = nextId++;
-            entries.resize(nextId);
-        } else {
-            id = freeIds.back();
+        if (!freeIds.empty()) {
             freeIds.pop_back();
         }
 
-        entries[id] = std::make_unique<GeometryComponent>(devices, info);
-        return GeometryHandle{id};
-    }*/
+        if (id >= entries.size()) {
+            entries.resize(id + 1);
+        }
 
-    GeometryManager::~GeometryManager() {
-        if (entries.empty()) return;
-        entries.clear();
-    }
-
-    void GeometryManager::destroy(const GeometryHandle& handle) {
-        if (handle.id >= entries.size()) return;
-
-        entries[handle.id].reset();
-
-        freeIds.push_back(handle.id);
+        return id;
     }
 }

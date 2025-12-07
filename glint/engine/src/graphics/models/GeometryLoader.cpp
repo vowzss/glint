@@ -2,13 +2,12 @@
 #include <tiny_obj_loader.h>
 
 #include "glint/core/Logger.h"
+#include "glint/graphics/models/GeometryData.h"
+#include "glint/graphics/models/GeometryLoader.h"
 #include "glint/graphics/models/Vertex.h"
-#include "glint/loaders/GeometryLoader.h"
-#include "glint/scene/components/GeometryComponent.h"
 #include "glint/utils/FileUtils.h"
 
-namespace glint::engine::loaders {
-    using namespace scene::components;
+namespace glint::engine::graphics::models {
 
     std::optional<GeometryData> GeometryLoader::load(const std::string& filename) {
         namespace fs = std::filesystem;

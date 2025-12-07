@@ -1,6 +1,7 @@
 #include "glint/core/AssetManager.h"
-#include "glint/loaders/GeometryLoader.h"
-#include "glint/scene/components/GeometryComponent.h"
+#include "glint/core/Logger.h"
+#include "glint/graphics/models/GeometryData.h"
+#include "glint/graphics/models/GeometryLoader.h"
 
 namespace glint::engine::core {
 
@@ -15,42 +16,52 @@ namespace glint::engine::core {
 
     template <typename Asset>
     AssetHandle<Asset> AssetManager::load(const std::string& path) {
-        using namespace scene::components;
-        using namespace loaders;
+        using namespace graphics::models;
 
         std::unique_ptr<Asset> asset;
-
         if constexpr (std::is_same_v<Asset, GeometryData>) {
-            auto data = GeometryLoader::load(path);
-            if (!data.has_value()) {
-                return AssetHandle<Asset>::invalid();
+            if (auto data = GeometryLoader::load(path); data.has_value()) {
+                asset = std::make_unique<Asset>(std::move(data.value()));
             }
-
-            asset = std::make_unique<Asset>(std::move(data.value()));
         }
 
         if (asset == nullptr) {
+            LOG_WARN("Failed to load asset! path=[{}]", path);
             return AssetHandle<Asset>::invalid();
         }
 
-        uint32_t id;
-        if (freeIds.empty()) {
-            id = nextId++;
-            entries.resize(nextId);
-        } else {
-            id = freeIds.back();
-            freeIds.pop_back();
-        }
-
+        uint32_t id = computeUniqueId();
         entries[id].data = asset.release();
-        entries[id].version++;
         entries[id].deleter = [](void* ptr) { delete static_cast<Asset*>(ptr); };
+        entries[id].version++;
+
+        LOG_INFO("Successfully loaded asset. path=[{}]", path);
 
         return AssetHandle<Asset>{id, entries[id].version};
     }
 
     template <typename Asset>
-    bool AssetManager::exists(AssetHandle<Asset> handle) const {
+    void AssetManager::unload(AssetHandle<Asset> handle) noexcept {
+        if (!handle.isValid() || handle.id >= entries.size()) {
+            return;
+        }
+
+        AssetEntry& entry = entries[handle.id];
+        if (entry.version != handle.version) {
+            return;
+        }
+
+        entry.deleter(entry.data);
+
+        entry.data = nullptr;
+        entry.deleter = nullptr;
+        entry.version++;
+
+        freeIds.push_back(handle.id);
+    }
+
+    template <typename Asset>
+    bool AssetManager::exists(AssetHandle<Asset> handle) const noexcept {
         if (!handle.isValid() || handle.id >= entries.size()) {
             return false;
         }
@@ -60,7 +71,7 @@ namespace glint::engine::core {
     }
 
     template <typename Asset>
-    const Asset* AssetManager::get(AssetHandle<Asset> handle) const {
+    const Asset* AssetManager::get(AssetHandle<Asset> handle) const noexcept {
         if (!handle.isValid() || handle.id >= entries.size()) {
             return nullptr;
         }
@@ -71,6 +82,20 @@ namespace glint::engine::core {
         }
 
         return static_cast<const Asset*>(entry.data);
+    }
+
+    uint32_t AssetManager::computeUniqueId() {
+        const uint32_t id = freeIds.empty() ? nextId++ : freeIds.back();
+
+        if (!freeIds.empty()) {
+            freeIds.pop_back();
+        }
+
+        if (id >= entries.size()) {
+            entries.resize(id + 1);
+        }
+
+        return id;
     }
 
 }

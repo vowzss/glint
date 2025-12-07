@@ -5,17 +5,18 @@
 
 namespace glint::engine::core {
 
+    // todo: maybe put in specific header instead
     template <typename T>
     struct AssetHandle {
         uint32_t id;
         uint32_t version;
 
       public:
-        static constexpr AssetHandle<T> invalid() {
+        static inline constexpr AssetHandle<T> invalid() noexcept {
             return AssetHandle<T>{UINT32_MAX, 0};
         }
 
-        bool isValid() const {
+        inline bool isValid() const noexcept {
             return id != UINT32_MAX;
         }
     };
@@ -43,10 +44,16 @@ namespace glint::engine::core {
         AssetHandle<Asset> load(const std::string& path);
 
         template <typename Asset>
-        bool exists(AssetHandle<Asset> handle) const;
+        void unload(AssetHandle<Asset> handle) noexcept;
 
         template <typename Asset>
-        const Asset* get(AssetHandle<Asset> handle) const;
+        bool exists(AssetHandle<Asset> handle) const noexcept;
+
+        template <typename Asset>
+        const Asset* get(AssetHandle<Asset> handle) const noexcept;
+
+      private:
+        uint32_t computeUniqueId();
     };
 
 }

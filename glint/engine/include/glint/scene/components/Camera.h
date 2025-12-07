@@ -39,22 +39,22 @@ namespace glint::engine::scene::components {
             transform.setRotation(JPH::Quat::sIdentity());
         }
 
-        inline void setFov(float value) {
+        inline void setFov(float value) noexcept {
             fov = value;
             isProjectionDirty = true;
         }
 
-        inline void setAspectRatio(float value) {
+        inline void setAspectRatio(float value) noexcept {
             aspectRatio = value;
             isProjectionDirty = true;
         }
 
-        inline void setNearPlane(float value) {
+        inline void setNearPlane(float value) noexcept {
             nearPlane = value;
             isProjectionDirty = true;
         }
 
-        inline void setFarPlane(float value) {
+        inline void setFarPlane(float value) noexcept {
             farPlane = value;
             isProjectionDirty = true;
         }
@@ -62,7 +62,8 @@ namespace glint::engine::scene::components {
         void rotate(float x, float y);
 
         inline void update(float deltaTime) {
-            JPH::Vec3 direction = transform.getRotation() * JPH::Vec3(input.right, 0.0f, input.forward);
+            JPH::Vec3 direction
+                = transform.getRotation() * JPH::Vec3(input.right, 0.0f, input.forward);
 
             if (direction.LengthSq() > 0.0f) {
                 direction = direction.Normalized();
@@ -73,7 +74,9 @@ namespace glint::engine::scene::components {
         const JPH::Mat44& getViewMatrix() const;
         const JPH::Mat44& getProjectionMatrix() const;
 
-        CameraInput& getInput() { return input; }
+        CameraInput& getInput() {
+            return input;
+        }
     };
 
 }

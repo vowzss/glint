@@ -3,16 +3,10 @@
 #include <optional>
 #include <string>
 
-namespace glint::engine::scene::components {
+namespace glint::engine::graphics::models {
     struct GeometryData;
-}
-
-namespace glint::engine::loaders {
 
     struct GeometryLoader {
-      private:
-        using GeometryData = scene::components::GeometryData;
-
       public:
         GeometryLoader() = default;
         ~GeometryLoader() = default;

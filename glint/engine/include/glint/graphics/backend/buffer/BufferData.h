@@ -18,26 +18,31 @@ namespace glint::engine::graphics::backend {
     };
 
     struct BufferData {
-        VkDevice device = nullptr;
+        VkDevice device;
 
-        void* data = nullptr;
+        void* mapped;
         VkDeviceSize size;
 
-        VkBuffer value = nullptr;
-        VkDeviceMemory memory = nullptr;
+        VkBuffer value;
+        VkDeviceMemory memory;
 
-      public:
-        BufferData() = delete;
-        BufferData(const DeviceContext& devices, const BufferCreateInfo& info);
-
-        ~BufferData();
-
-        // --- factories ---
-        static BufferData vertex(const DeviceContext& devices, const void* data, VkDeviceSize size);
-        static BufferData index(const DeviceContext& devices, const void* data, VkDeviceSize size);
+      protected:
+        BufferData() = default;
+        virtual ~BufferData() noexcept;
 
         // --- methods ---
-        void copy(const void* srcData, VkDeviceSize srcSize, VkDeviceSize srcOffset);
+        void init(const DeviceContext& devices, const BufferCreateInfo& info);
+
+      public:
+        BufferData(const BufferData&) = delete;
+        BufferData(BufferData&& other) = delete;
+
+        // --- methods ---
+        void copy(const void* data, VkDeviceSize size_, VkDeviceSize offset = 0);
+
+        // --- operators ---
+        BufferData& operator=(const BufferData&) = delete;
+        BufferData& operator=(BufferData&& other) noexcept;
     };
 
 }

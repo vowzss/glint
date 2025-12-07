@@ -6,51 +6,41 @@
 #include <string>
 #include <vector>
 
-namespace glint::engine {
-    namespace graphics::backend {
+#include "GeometryHandle.h"
+
+namespace glint::engine::graphics {
+    namespace backend {
         struct DeviceContext;
-    }
-    namespace loaders {
-        struct GeometryLoader;
-    }
-    namespace scene::components {
-        struct GeometryCreateInfo;
-        struct GeometryComponent;
+        struct GeometryBuffer;
     }
 }
 
 namespace glint::engine::core {
-
-    struct GeometryHandle {
-        uint32_t id;
-        uint32_t version;
-
-      public:
-        GeometryHandle() = delete;
-        GeometryHandle(uint32_t id_, uint32_t version_) : id(id_), version(version_) {};
-
-        bool operator==(const GeometryHandle& other) const {
-            return id == other.id && version == other.version;
-        }
-    };
+    struct AssetManager;
 
     struct GeometryManager {
       private:
-        using GeometryCreateInfo = scene::components::GeometryCreateInfo;
+        using Devices = graphics::backend::DeviceContext;
+        using GeometryBuffer = graphics::backend::GeometryBuffer;
 
       private:
-        std::unique_ptr<loaders::GeometryLoader> loader;
+        AssetManager* assets;
+
+        std::vector<std::shared_ptr<GeometryBuffer>> entries;
 
         std::vector<uint32_t> freeIds;
         uint32_t nextId = 0;
 
       public:
-        GeometryManager();
-        ~GeometryManager();
+        GeometryManager(AssetManager* assets_) : assets(assets_) {};
+        ~GeometryManager() = default;
 
-        /* Loads geometry data from disk into CPU memory*/
-        std::optional<GeometryHandle> load(const std::string& filename);
-
+      public:
+        GeometryHandle create(const Devices& devices, const std::string& path);
         void destroy(GeometryHandle handle);
+
+      private:
+        uint32_t computeUniqueId();
     };
+
 }

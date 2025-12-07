@@ -6,14 +6,16 @@
 namespace glint::engine::core {
 
     struct EntityHandle {
+      public:
         size_t id;
         uint32_t version;
 
       public:
         EntityHandle() = delete;
-        EntityHandle(size_t id_, uint32_t version_) : id(id_), version(version_) {};
+        constexpr EntityHandle(size_t id_, uint32_t version_) : id(id_), version(version_) {};
 
-        bool operator==(const EntityHandle& other) const {
+      public:
+        constexpr bool operator==(const EntityHandle& other) const noexcept {
             return id == other.id && version == other.version;
         }
     };
@@ -51,7 +53,7 @@ namespace glint::engine::core {
 
     struct EntityManager {
       private:
-        std::vector<EntityMetadata> states;
+        std::vector<EntityMetadata> entries;
 
         std::vector<uint32_t> freeIds;
         uint32_t nextId = 0;
@@ -61,12 +63,11 @@ namespace glint::engine::core {
 
       public:
         EntityHandle create();
-
         void destroy(EntityHandle handle);
 
         inline bool isValid(EntityHandle handle) const {
-            return handle.id < states.size() && states[handle.id].isAlive()
-                   && states[handle.id].version() == handle.version;
+            return handle.id < entries.size() && entries[handle.id].isAlive()
+                   && entries[handle.id].version() == handle.version;
         }
     };
 }

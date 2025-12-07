@@ -7,7 +7,9 @@
 
 namespace glint::engine::graphics::backend {
 
-    BufferData::BufferData(const DeviceContext& devices, const BufferCreateInfo& info) : device(devices.logical), size(info.size) {
+    void BufferData::init(const DeviceContext& devices, const BufferCreateInfo& info) {
+        device = devices.logical;
+
         VkBufferCreateInfo bufferInfo = {};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = size;
@@ -24,7 +26,8 @@ namespace glint::engine::graphics::backend {
         VkMemoryAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memoryRequirements.size;
-        allocInfo.memoryTypeIndex = findMemoryType(devices.physical, memoryRequirements.memoryTypeBits, info.properties);
+        allocInfo.memoryTypeIndex
+            = findMemoryType(devices.physical, memoryRequirements.memoryTypeBits, info.properties);
 
         if (vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to allocate buffer memory!");
@@ -35,53 +38,37 @@ namespace glint::engine::graphics::backend {
         }
 
         bool isHostVisible = info.properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        if (isHostVisible && vkMapMemory(device, memory, 0, size, 0, &data) != VK_SUCCESS) {
+        if (isHostVisible && vkMapMemory(device, memory, 0, size, 0, &mapped) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to map buffer memory!");
         }
 
-        if (info.data && data) {
-            memcpy(data, info.data, size);
+        if (info.data && mapped) {
+            memcpy(mapped, info.data, size);
+            size = info.size;
         }
     }
 
-    BufferData::~BufferData() {
-        if (data) {
+    BufferData::~BufferData() noexcept {
+        if (mapped) {
             vkUnmapMemory(device, memory);
+            mapped = nullptr;
+            size = 0;
         }
 
         if (value != VK_NULL_HANDLE) {
             vkDestroyBuffer(device, value, nullptr);
+            value = nullptr;
         }
 
         if (memory != VK_NULL_HANDLE) {
             vkFreeMemory(device, memory, nullptr);
+            memory = nullptr;
         }
     }
 
-    // --- factories ---
-    BufferData BufferData::vertex(const DeviceContext& devices, const void* data, VkDeviceSize size) {
-        BufferCreateInfo createInfo = {};
-        createInfo.data = data;
-        createInfo.size = size;
-        createInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-        createInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-        return BufferData(devices, createInfo);
-    }
-
-    BufferData BufferData::index(const DeviceContext& devices, const void* data, VkDeviceSize size) {
-        BufferCreateInfo createInfo = {};
-        createInfo.data = data;
-        createInfo.size = size;
-        createInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-        createInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-        return BufferData(devices, createInfo);
-    }
-
     // --- methods ---
-    void BufferData::copy(const void* data, VkDeviceSize size, VkDeviceSize offset) {
-        if (offset + size > this->size) return;
-        memcpy(static_cast<uint8_t*>(this->data) + offset, data, size);
+    void BufferData::copy(const void* data, VkDeviceSize size_, VkDeviceSize offset) {
+        if (offset + size_ > size) return;
+        memcpy(static_cast<uint8_t*>(this->mapped) + offset, data, size_);
     }
 }
