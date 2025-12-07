@@ -24,6 +24,8 @@ namespace glint::engine::core {
         if (!handle.isValid() || handle.id >= entries.size()) return;
 
         entries[handle.id].reset();
+        handle.version++;
+
         freeIds.push_back(handle.id);
     }
 

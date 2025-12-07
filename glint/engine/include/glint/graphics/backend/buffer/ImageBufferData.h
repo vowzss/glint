@@ -4,7 +4,7 @@
 
 namespace glint::engine::graphics::backend {
 
-    struct DeviceContext;
+    struct DeviceHandles;
 
     struct ImageBufferDataInfo {
         VkFormat format;
@@ -30,7 +30,7 @@ namespace glint::engine::graphics::backend {
 
       public:
         ImageBufferData() = delete;
-        ImageBufferData(const DeviceContext& devices, const ImageBufferDataInfo& info);
+        ImageBufferData(const DeviceHandles& devices, const ImageBufferDataInfo& info);
 
         ~ImageBufferData();
     };

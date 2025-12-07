@@ -14,5 +14,4 @@ namespace glint::engine::graphics::models {
       public:
         static std::optional<GeometryData> load(const std::string& filename);
     };
-
 }

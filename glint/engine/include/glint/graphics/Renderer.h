@@ -5,22 +5,30 @@
 
 #include "glint/graphics/RendererContext.h"
 #include "glint/graphics/backend/CommandsPoolData.h"
-#include "glint/graphics/backend/FrameData.h"
 #include "glint/graphics/backend/buffer/ImageBufferData.h"
-#include "glint/graphics/backend/device/DeviceContext.h"
+#include "glint/graphics/backend/device/DeviceHandles.h"
 #include "glint/graphics/backend/device/QueueData.h"
 #include "glint/graphics/backend/renderpass/RenderpassData.h"
 #include "glint/graphics/backend/swapchain/SwapchainData.h"
-#include "glint/graphics/layers/RenderLayer.h"
 
 namespace glint::engine {
-    namespace scene::components {
-        struct Camera;
+    namespace core {
+        struct Registry;
+    }
+    namespace scene {
+        struct World;
+        namespace components {
+            struct Camera;
+        }
     }
 
     namespace graphics {
         namespace backend {
+            struct FrameData;
             struct BufferData;
+        }
+        namespace layers {
+            struct RenderLayer;
         }
     }
 }
@@ -29,56 +37,72 @@ namespace glint::engine::graphics {
 
     class Renderer {
       private:
+        // --- window / viewport ---
         int width;
         int height;
-        RendererContext context;
+        VkViewport viewport;
+        VkRect2D scissor;
 
+        // --- core ---
         VkInstance instance;
         VkSurfaceKHR surface;
+        backend::DeviceHandles devices;
 
-        backend::DeviceContext devices;
-        VkDescriptorPool descriptorPool = {};
-
-        std::unique_ptr<backend::QueuesData> queues;
+        // --- swapchain + renderpass ---
         std::unique_ptr<backend::SwapchainData> swapchain;
         std::unique_ptr<backend::RenderpassData> renderpass;
         std::unique_ptr<backend::CommandsPoolData> commands;
 
-        VkDescriptorSetLayout cameraDescriptorLayout = {};
-        std::unique_ptr<scene::components::Camera> camera;
+        // --- queues ---
+        std::unique_ptr<backend::QueuesData> queues;
 
-        VkDescriptorSetLayout entityDescriptorLayout = {};
+        // --- descriptors ---
+        VkDescriptorPool descriptorPool = nullptr;
+        VkDescriptorSetLayout cameraLayout = nullptr;
+        VkDescriptorSetLayout entityLayout = nullptr;
 
-        std::unique_ptr<backend::ImageBufferData> depthData;
-
-        VkViewport viewport = {};
-        VkRect2D scissor = {};
-
-        VkPipelineLayout pipelineLayout; // layout for shaders (uniforms, descriptors)
-        VkPipeline pipeline;             // encapsulates all GPU states and shaders
-
+        // --- frame ---
         int frameIndex = 0;
         uint32_t imageIndex = 0;
         std::vector<std::unique_ptr<backend::FrameData>> frames;
 
+        // --- scene ---
+        std::vector<std::unique_ptr<layers::RenderLayer>> layers;
+        std::unique_ptr<scene::components::Camera> camera;
+
+        // --- pipeline ---
+        VkPipeline pipeline;
+        VkPipelineLayout pipelineLayout;
+
+        std::unique_ptr<backend::ImageBufferData> depthBuffer;
+
       public:
         Renderer() = delete;
-        Renderer(int width_, int height_, const std::vector<const char*>& extensions_);
-
         ~Renderer();
 
+        Renderer(int width_, int height_, const std::vector<const char*>& extensions_);
+
+      public:
         void init(const VkSurfaceKHR& surface_);
+
+        inline void append(std::unique_ptr<layers::RenderLayer> layer) {
+            layers.emplace_back(std::move(layer));
+        }
 
         void beginFrame();
         void recordFrame(float deltaTime);
         void endFrame();
 
-        inline const VkInstance& getInstance() const { return instance; }
-        inline scene::components::Camera& getCamera() const { return *camera; }
+        // --- getters ---
+        inline const VkInstance& getInstance() const {
+            return instance;
+        }
+        inline scene::components::Camera& getCamera() const {
+            return *camera;
+        }
 
       private:
-        // --- setup ---
-        void createInstance();
+        void createInstance(const RendererContext& context);
         void createLogicalDevice();
 
         void createSwapchain();

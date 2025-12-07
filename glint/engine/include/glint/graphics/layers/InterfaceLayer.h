@@ -1,12 +1,15 @@
+#include <vulkan/vulkan_core.h>
+
 #include "glint/graphics/layers/RenderLayer.h"
 
 struct GLFWwindow;
 
-namespace glint::engine::graphics {
-    struct Renderer;
-
-    namespace backend {
-        struct DeviceContext;
+namespace glint::engine {
+    namespace graphics {
+        struct Renderer;
+        namespace backend {
+            struct DeviceHandles;
+        }
     }
 }
 
@@ -25,15 +28,15 @@ namespace glint::engine::graphics::layers {
 
     struct InterfaceLayer : public RenderLayer {
       private:
-        VkDevice device = {};
-        VkDescriptorPool descriptorPool = {};
+        VkDevice device = nullptr;
+        VkDescriptorPool descriptorPool = nullptr;
 
       public:
-        InterfaceLayer(const backend::DeviceContext& devices, InterfaceLayerInfo info);
+        InterfaceLayer(const backend::DeviceHandles& devices, const InterfaceLayerInfo& info);
         ~InterfaceLayer();
 
         void begin() override;
-        void render(float deltaTime, const VkCommandBuffer& commands) override;
+        void render(float deltaTime, const LayerRenderInfo& info) override;
     };
 
 }

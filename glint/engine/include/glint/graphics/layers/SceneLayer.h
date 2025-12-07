@@ -1,52 +1,42 @@
 #pragma once
 
+#include <memory>
+
+#include <vulkan/vulkan_core.h>
+
 #include "glint/graphics/layers/RenderLayer.h"
 
 namespace glint::engine {
-    namespace core {
-        struct EcsManager;
-    }
-
     namespace graphics {
         namespace models {
             struct Mesh;
         }
-
         namespace backend {
-            struct DeviceContext;
-            struct BufferData;
+            struct UniformBuffer;
         }
     }
-
     namespace scene {
+        struct World;
         namespace components {
-            struct Camera;
+            struct CameraSnapshot;
         }
     }
 }
 
 namespace glint::engine::graphics::layers {
-
-    struct SceneLayerCreateInfo {
-        VkPipeline pipeline;
-        VkPipelineLayout pipelineLayout;
-
-        const scene::components::Camera& camera;
-        const core::EcsManager& ecs;
-    };
-
     struct SceneLayer : public RenderLayer {
       private:
-        VkDevice device = nullptr;
-        SceneLayerCreateInfo info;
-
-        backend::BufferData* entityBuffer;
+        const scene::World& world;
+        std::unique_ptr<backend::UniformBuffer> entityBuffer;
 
       public:
-        SceneLayer(const backend::DeviceContext& devices, SceneLayerCreateInfo info_);
-        ~SceneLayer() = default;
+        SceneLayer(const scene::World& world);
+        ~SceneLayer();
 
-        void render(float deltaTime, const VkCommandBuffer& commands) override;
+      public:
+        void init(const backend::DeviceHandles& devices) override;
+
+        void render(float deltaTime, const LayerRenderInfo& info) override;
     };
 
 }

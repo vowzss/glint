@@ -5,11 +5,8 @@
 namespace glint::engine::scene::components {
 
     struct GeometryComponent {
-      private:
-        using GeometryHandle = core::GeometryHandle;
-
       public:
-        GeometryHandle handle;
+        core::GeometryHandle handle = core::GeometryHandle::invalid();
     };
 
 }

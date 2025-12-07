@@ -4,20 +4,29 @@
 
 namespace glint::engine::scene::components {
 
-    struct CameraInput {
+    struct CameraMovement {
         float forward = 0.0f;
         float right = 0.0f;
         float up = 0.0f;
     };
 
-    struct Camera {
+    struct CameraSnapshot {
+        JPH::Mat44 view;
+        JPH::Mat44 proj;
+        JPH::Mat44 viewProj;
+
+        inline const void* data() const noexcept { return static_cast<const void*>(&view); }
+        inline size_t size() const noexcept { return sizeof(JPH::Mat44) * 3; }
+    };
+
+    class Camera {
       private:
         float fov = 45.0f;
         float aspectRatio = 16.0f / 9.0f;
         float nearPlane = 0.1f;
         float farPlane = 100.0f;
 
-        CameraInput input;
+        CameraMovement movement;
 
         Transform transform = {};
         float speed = 2.0f;
@@ -59,24 +68,25 @@ namespace glint::engine::scene::components {
             isProjectionDirty = true;
         }
 
-        void rotate(float x, float y);
+        inline void forward(float v) noexcept { movement.forward = v; }
+        inline void right(float v) noexcept { movement.right = v; }
+        inline void up(float v) noexcept { movement.up = v; }
 
-        inline void update(float deltaTime) {
-            JPH::Vec3 direction
-                = transform.getRotation() * JPH::Vec3(input.right, 0.0f, input.forward);
+        void rotate(float dx, float dy) noexcept;
 
-            if (direction.LengthSq() > 0.0f) {
-                direction = direction.Normalized();
-                transform.translateBy(direction * speed * deltaTime);
-            }
+        inline void update(float deltaTime) noexcept {
+            JPH::Vec3 local(movement.right, movement.up, -movement.forward);
+            if (local.LengthSq() < 0.0001f) return;
+
+            local = local.Normalized();
+            JPH::Vec3 direction = transform.getRotation() * local;
+            transform.translateBy(direction * speed * deltaTime);
         }
 
         const JPH::Mat44& getViewMatrix() const;
         const JPH::Mat44& getProjectionMatrix() const;
+        JPH::Mat44 getViewProjectionMatrix() const;
 
-        CameraInput& getInput() {
-            return input;
-        }
+        inline CameraSnapshot getSnapshot() const noexcept { return CameraSnapshot{view, projection, projection * view}; }
     };
-
 }

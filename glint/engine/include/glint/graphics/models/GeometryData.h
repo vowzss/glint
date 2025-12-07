@@ -17,12 +17,10 @@ namespace glint::engine::graphics::models {
         GeometryData(const GeometryData&) = delete;
         GeometryData(GeometryData&&) noexcept = default;
 
-        GeometryData(vertices_t vertices_, indices_t indices_)
-            : vertices(std::move(vertices_)), indices(std::move(indices_)) {
+        GeometryData(vertices_t vertices_, indices_t indices_) : vertices(std::move(vertices_)), indices(std::move(indices_)) {
         }
 
         GeometryData& operator=(const GeometryData&) = delete;
         GeometryData& operator=(GeometryData&&) noexcept = default;
     };
-
 }

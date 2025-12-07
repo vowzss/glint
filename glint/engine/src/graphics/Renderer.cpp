@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "glint/graphics/Renderer.h"
+#include "glint/graphics/backend/FrameData.h"
 #include "glint/graphics/backend/VkHelpers.h"
 #include "glint/graphics/backend/buffer/BufferData.h"
 #include "glint/graphics/backend/buffer/ImageBufferData.h"
@@ -12,8 +13,6 @@
 #include "glint/graphics/backend/renderpass/RenderpassData.h"
 #include "glint/graphics/backend/swapchain/SwapchainData.h"
 #include "glint/graphics/backend/swapchain/SwapchainSupportDetails.h"
-#include "glint/graphics/layers/InterfaceLayer.h"
-#include "glint/graphics/layers/SceneLayer.h"
 #include "glint/graphics/models/Vertex.h"
 #include "glint/scene/components/Camera.h"
 #include "glint/utils/FileUtils.h"
@@ -23,12 +22,12 @@ const int MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace glint::engine::graphics {
     using namespace utils;
-    using namespace scene;
+    using namespace scene::components;
+    using namespace layers;
     using namespace backend;
 
-    Renderer::Renderer(int width_, int height_, const std::vector<const char*>& extensions_)
-        : width(width_), height(height_), context(extensions_) {
-        createInstance();
+    Renderer::Renderer(int width_, int height_, const std::vector<const char*>& extensions_) : width(width_), height(height_) {
+        createInstance(extensions_);
     }
 
     Renderer::~Renderer() {
@@ -40,24 +39,23 @@ namespace glint::engine::graphics {
         for (VkFramebuffer fb : renderpass->framebuffers)
             vkDestroyFramebuffer(devices.logical, fb, nullptr);
 
-        vkDestroyImageView(devices.logical, depthData->view, nullptr);
+        vkDestroyImageView(devices.logical, depthBuffer->view, nullptr);
         for (VkImageView view : swapchain->views)
             vkDestroyImageView(devices.logical, view, nullptr);
 
         vkDestroySwapchainKHR(devices.logical, swapchain->value, nullptr);
 
-        vkDestroyImage(devices.logical, depthData->image, nullptr);
-        vkFreeMemory(devices.logical, depthData->memory, nullptr);
+        vkDestroyImage(devices.logical, depthBuffer->image, nullptr);
+        vkFreeMemory(devices.logical, depthBuffer->memory, nullptr);
 
         vkDestroyPipeline(devices.logical, pipeline, nullptr);
         vkDestroyPipelineLayout(devices.logical, pipelineLayout, nullptr);
         vkDestroyRenderPass(devices.logical, renderpass->value, nullptr);
 
-        vkDestroyDescriptorSetLayout(devices.logical, cameraDescriptorLayout, nullptr);
+        vkDestroyDescriptorSetLayout(devices.logical, cameraLayout, nullptr);
         vkDestroyDescriptorPool(devices.logical, descriptorPool, nullptr);
 
-        vkFreeCommandBuffers(devices.logical, commands->value, commands->buffers.size(),
-            commands->buffers.data());
+        vkFreeCommandBuffers(devices.logical, commands->value, commands->buffers.size(), commands->buffers.data());
         vkDestroyCommandPool(devices.logical, commands->value, nullptr);
 
         vkDestroySurfaceKHR(instance, surface, nullptr);
@@ -85,8 +83,7 @@ namespace glint::engine::graphics {
             poolInfo.pPoolSizes = &poolSize;
             poolInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
 
-            if (vkCreateDescriptorPool(devices.logical, &poolInfo, nullptr, &descriptorPool)
-                != VK_SUCCESS) {
+            if (vkCreateDescriptorPool(devices.logical, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
                 throw std::runtime_error("Vulkan | failed to create frame descriptor pool!");
             }
         }
@@ -102,8 +99,7 @@ namespace glint::engine::graphics {
         vkWaitForFences(devices.logical, 1, &frames[frameIndex]->inFlight, VK_TRUE, UINT64_MAX);
         vkResetFences(devices.logical, 1, &frames[frameIndex]->inFlight);
 
-        vkAcquireNextImageKHR(devices.logical, swapchain->value, UINT64_MAX,
-            frames[frameIndex]->imageAvailable, VK_NULL_HANDLE, &imageIndex);
+        vkAcquireNextImageKHR(devices.logical, swapchain->value, UINT64_MAX, frames[frameIndex]->imageAvailable, VK_NULL_HANDLE, &imageIndex);
 
         const auto& frame = frames[frameIndex];
         frame->begin();
@@ -127,12 +123,12 @@ namespace glint::engine::graphics {
         renderPassInfo.clearValueCount = clearValues.size();
         renderPassInfo.pClearValues = clearValues.data();
 
-        vkCmdBeginRenderPass(commands->buffers[frameIndex], &renderPassInfo,
-            VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(commands->buffers[frameIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdSetViewport(commands->buffers[frameIndex], 0, 1, &viewport);
         vkCmdSetScissor(commands->buffers[frameIndex], 0, 1, &scissor);
 
-        frame->render(deltaTime, *camera.get(), commands->buffers[frameIndex]);
+        FrameRenderInfo frameInfo = {commands->buffers[frameIndex], pipeline, pipelineLayout, cameraLayout, entityLayout, camera->getSnapshot()};
+        frame->render(deltaTime, frameInfo);
 
         vkCmdEndRenderPass(commands->buffers[frameIndex]);
         commands->end(frameIndex);
@@ -169,7 +165,7 @@ namespace glint::engine::graphics {
         frameIndex = (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
-    void Renderer::createInstance() {
+    void Renderer::createInstance(const RendererContext& context) {
         VkInstanceCreateInfo instanceInfo = {};
         instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         instanceInfo.enabledExtensionCount = context.getExtensionCount();
@@ -179,8 +175,7 @@ namespace glint::engine::graphics {
             // LOG_DEBUG("Vulkan validation layers requested!");
 
             if (!utils::isValidationLayersSupported()) {
-                throw std::runtime_error(
-                    "Vulkan | validation layers requested, but not available!");
+                throw std::runtime_error("Vulkan | validation layers requested, but not available!");
             }
 
             instanceInfo.enabledLayerCount = utils::validationLayers.size();
@@ -193,8 +188,7 @@ namespace glint::engine::graphics {
     }
 
     void Renderer::createLogicalDevice() {
-        QueueFamiliesSupportDetails families
-            = utils::queryQueueFamiliesSupport(devices.physical, surface);
+        QueueFamiliesSupportDetails families = utils::queryQueueFamiliesSupport(devices.physical, surface);
 
         // prepare queue creation info for each unique family
         std::vector<VkDeviceQueueCreateInfo> queueInfos;
@@ -224,8 +218,7 @@ namespace glint::engine::graphics {
         deviceInfo.ppEnabledExtensionNames = utils::deviceExtensions.data();
         deviceInfo.pEnabledFeatures = &deviceFeatures;
 
-        if (vkCreateDevice(devices.physical, &deviceInfo, nullptr, &devices.logical)
-            != VK_SUCCESS) {
+        if (vkCreateDevice(devices.physical, &deviceInfo, nullptr, &devices.logical) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create logical device!");
         }
 
@@ -270,13 +263,12 @@ namespace glint::engine::graphics {
     }
 
     void Renderer::createRenderPass() {
-        ImageBufferDataInfo depthInfo
-            = ImageBufferDataInfo{findDepthFormat(devices.physical), swapchain->extent};
+        ImageBufferDataInfo depthInfo = ImageBufferDataInfo{findDepthFormat(devices.physical), swapchain->extent};
 
-        depthData = std::make_unique<ImageBufferData>(devices, depthInfo);
+        depthBuffer = std::make_unique<ImageBufferData>(devices, depthInfo);
 
         ColorAttachmentInfo color(swapchain->format, 0);
-        DepthAttachmentInfo depth(depthData->format, 1);
+        DepthAttachmentInfo depth(depthBuffer->format, 1);
 
         // subpass
         VkSubpassDescription subpass = {};
@@ -289,13 +281,10 @@ namespace glint::engine::graphics {
         VkSubpassDependency subpassDependency = {};
         subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         subpassDependency.dstSubpass = 0;
-        subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-                                         | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-                                         | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         subpassDependency.srcAccessMask = 0;
-        subpassDependency.dstAccessMask
-            = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
         // create render pass
         std::array<VkAttachmentDescription, 2> attachments = {color.description, depth.description};
@@ -309,7 +298,7 @@ namespace glint::engine::graphics {
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies = &subpassDependency;
 
-        renderpass = std::make_unique<RenderpassData>(*swapchain, renderPassInfo, depthData->view);
+        renderpass = std::make_unique<RenderpassData>(*swapchain, renderPassInfo, depthBuffer->view);
     }
 
     void Renderer::createGraphicsPipeline() {
@@ -325,8 +314,7 @@ namespace glint::engine::graphics {
         vertShaderInfo.codeSize = vertShaderCode.size();
         vertShaderInfo.pCode = reinterpret_cast<const uint32_t*>(vertShaderCode.data());
 
-        if (vkCreateShaderModule(devices.logical, &vertShaderInfo, nullptr, &vertShaderModule)
-            != VK_SUCCESS) {
+        if (vkCreateShaderModule(devices.logical, &vertShaderInfo, nullptr, &vertShaderModule) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create vertex shader module!");
         }
 
@@ -336,8 +324,7 @@ namespace glint::engine::graphics {
         fragShaderInfo.codeSize = fragShaderCode.size();
         fragShaderInfo.pCode = reinterpret_cast<const uint32_t*>(fragShaderCode.data());
 
-        if (vkCreateShaderModule(devices.logical, &fragShaderInfo, nullptr, &fragShaderModule)
-            != VK_SUCCESS) {
+        if (vkCreateShaderModule(devices.logical, &fragShaderInfo, nullptr, &fragShaderModule) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create fragment shader module!");
         }
 
@@ -371,7 +358,7 @@ namespace glint::engine::graphics {
         attributeDescriptions[0].location = 0;
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(Vertex, pos);
+        attributeDescriptions[0].offset = offsetof(Vertex, position);
 
         // location 1: color
         attributeDescriptions[1].location = 1;
@@ -395,8 +382,7 @@ namespace glint::engine::graphics {
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         vertexInputInfo.vertexBindingDescriptionCount = 1;
         vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-        vertexInputInfo.vertexAttributeDescriptionCount
-            = static_cast<uint32_t>(attributeDescriptions.size());
+        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -437,8 +423,7 @@ namespace glint::engine::graphics {
         VkPipelineColorBlendAttachmentState colorBlendAttachmentStateInfo = {};
         colorBlendAttachmentStateInfo.blendEnable = VK_FALSE;
         colorBlendAttachmentStateInfo.colorWriteMask
-            = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT
-              | VK_COLOR_COMPONENT_A_BIT;
+            = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
         VkPipelineColorBlendStateCreateInfo colorBlendingStateInfo = {};
         colorBlendingStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -455,12 +440,11 @@ namespace glint::engine::graphics {
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts = &cameraDescriptorLayout;
+        pipelineLayoutInfo.pSetLayouts = &cameraLayout;
         pipelineLayoutInfo.pushConstantRangeCount = 1;
         pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
-        if (vkCreatePipelineLayout(devices.logical, &pipelineLayoutInfo, nullptr, &pipelineLayout)
-            != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(devices.logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create pipeline layout!");
         }
 
@@ -481,9 +465,7 @@ namespace glint::engine::graphics {
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        if (vkCreateGraphicsPipelines(devices.logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                &pipeline)
-            != VK_SUCCESS) {
+        if (vkCreateGraphicsPipelines(devices.logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create graphics pipeline!");
         }
 
@@ -494,24 +476,22 @@ namespace glint::engine::graphics {
 
     void Renderer::createCommandPool() {
         // todo: support other family queues
-        QueueFamiliesSupportDetails families
-            = utils::queryQueueFamiliesSupport(devices.physical, surface);
+        QueueFamiliesSupportDetails families = utils::queryQueueFamiliesSupport(devices.physical, surface);
 
-        commands = std::make_unique<CommandsPoolData>(devices.logical, families.graphics,
-            MAX_FRAMES_IN_FLIGHT);
+        commands = std::make_unique<CommandsPoolData>(devices.logical, families.graphics, MAX_FRAMES_IN_FLIGHT);
     }
 
     void Renderer::createSyncObjects() {
         frames.resize(MAX_FRAMES_IN_FLIGHT);
 
-        FrameDataCreateInfo frameInfo
-            = {descriptorPool, cameraDescriptorLayout, entityDescriptorLayout, getCamera()};
+        FrameCreateInfo frameInfo = {descriptorPool, cameraLayout, entityLayout, camera->getSnapshot()};
+
         for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
             frames[i] = std::make_unique<FrameData>(devices, frameInfo);
 
-            layers::SceneLayerCreateInfo sceneLayerInfo{pipeline, pipelineLayout, getCamera()};
-            auto sceneLayer = std::make_unique<layers::SceneLayer>(devices, sceneLayerInfo);
-            frames[i]->addLayer(std::move(sceneLayer));
+            for (int j = 0; j < layers.size(); ++j) {
+                frames[i]->attach(layers[j].get());
+            }
         }
     }
 
@@ -527,9 +507,7 @@ namespace glint::engine::graphics {
         layoutInfo.bindingCount = 1;
         layoutInfo.pBindings = &layoutBinding;
 
-        if (vkCreateDescriptorSetLayout(devices.logical, &layoutInfo, nullptr,
-                &cameraDescriptorLayout)
-            != VK_SUCCESS) {
+        if (vkCreateDescriptorSetLayout(devices.logical, &layoutInfo, nullptr, &cameraLayout) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create camera layout!");
         }
 

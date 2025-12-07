@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "vulkan/vulkan_core.h"
+#include <vulkan/vulkan_core.h>
 
 namespace glint::engine {
     namespace graphics::backend {
@@ -28,8 +28,10 @@ namespace glint::engine::utils {
     uint32_t selectSurfaceImageCount(const VkSurfaceCapabilitiesKHR& capabilities);
     VkExtent2D selectSurfaceExtent(int width, int height, const VkSurfaceCapabilitiesKHR& capabilities);
 
-    graphics::backend::QueueFamiliesSupportDetails queryQueueFamiliesSupport(const VkPhysicalDevice& device, const VkSurfaceKHR& surface);
-    graphics::backend::SwapchainSupportDetails querySwapchainSupport(const VkPhysicalDevice& device, const VkSurfaceKHR& surface);
+    graphics::backend::QueueFamiliesSupportDetails queryQueueFamiliesSupport(const VkPhysicalDevice& device,
+        const VkSurfaceKHR& surface);
+    graphics::backend::SwapchainSupportDetails querySwapchainSupport(const VkPhysicalDevice& device,
+        const VkSurfaceKHR& surface);
 
     bool isDeviceSuitable(const VkPhysicalDevice& device, const VkSurfaceKHR& surface);
     bool isDeviceExtensionsSupported(const VkPhysicalDevice& device);

@@ -3,22 +3,9 @@
 #include <cstdint>
 #include <vector>
 
+#include "EntityHandle.h"
+
 namespace glint::engine::core {
-
-    struct EntityHandle {
-      public:
-        size_t id;
-        uint32_t version;
-
-      public:
-        EntityHandle() = delete;
-        constexpr EntityHandle(size_t id_, uint32_t version_) : id(id_), version(version_) {};
-
-      public:
-        constexpr bool operator==(const EntityHandle& other) const noexcept {
-            return id == other.id && version == other.version;
-        }
-    };
 
     struct EntityMetadata {
       private:
@@ -60,14 +47,14 @@ namespace glint::engine::core {
 
       public:
         EntityManager() = default;
+        ~EntityManager() = default;
 
       public:
         EntityHandle create();
         void destroy(EntityHandle handle);
 
-        inline bool isValid(EntityHandle handle) const {
-            return handle.id < entries.size() && entries[handle.id].isAlive()
-                   && entries[handle.id].version() == handle.version;
-        }
+      private:
+        uint32_t computeUniqueId();
     };
+
 }

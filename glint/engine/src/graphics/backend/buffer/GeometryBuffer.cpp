@@ -3,7 +3,7 @@
 
 namespace glint::engine::graphics::backend {
 
-    GeometryBuffer::GeometryBuffer(const DeviceContext& devices, const models::GeometryData& data) {
+    GeometryBuffer::GeometryBuffer(const DeviceHandles& devices, const models::GeometryData& data) {
         const auto& v = data.vertices;
         vertices = std::make_unique<VertexBuffer>(devices, v.data(), v.size());
 

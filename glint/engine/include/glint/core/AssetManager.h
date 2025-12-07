@@ -3,23 +3,9 @@
 #include <string>
 #include <vector>
 
+#include "AssetHandle.h"
+
 namespace glint::engine::core {
-
-    // todo: maybe put in specific header instead
-    template <typename T>
-    struct AssetHandle {
-        uint32_t id;
-        uint32_t version;
-
-      public:
-        static inline constexpr AssetHandle<T> invalid() noexcept {
-            return AssetHandle<T>{UINT32_MAX, 0};
-        }
-
-        inline bool isValid() const noexcept {
-            return id != UINT32_MAX;
-        }
-    };
 
     class AssetManager {
       private:
@@ -55,5 +41,6 @@ namespace glint::engine::core {
       private:
         uint32_t computeUniqueId();
     };
-
 }
+
+#include "AssetManager.inl"

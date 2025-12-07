@@ -32,6 +32,21 @@ namespace glint::engine::scene::components {
 
     }
 
+    void Camera::rotate(float dx, float dy) noexcept {
+        static constexpr float HALF_PI_RAD = JPH::DegreesToRadians(90.0f);
+
+        yaw += dx * sensitivity;
+        pitch += dy * sensitivity;
+        pitch = JPH::Clamp(pitch, -HALF_PI_RAD + 0.001f, HALF_PI_RAD - 0.001f);
+
+        // clang-format off
+        transform.setRotation(
+            JPH::Quat::sRotation(JPH::Vec3::sAxisY(), yaw) *
+            JPH::Quat::sRotation(JPH::Vec3::sAxisX(), pitch)
+        );
+        // clang-format on
+    }
+
     const JPH::Mat44& Camera::getViewMatrix() const {
         if (isViewDirty) {
             JPH::Vec3 forward = transform.getRotation() * JPH::Vec3(0.0f, 0.0f, -1.0f);
@@ -52,16 +67,8 @@ namespace glint::engine::scene::components {
         return projection;
     }
 
-    void Camera::rotate(float x, float y) {
-        yaw -= x * sensitivity;
-        pitch -= y * sensitivity;
-
-        pitch = std::clamp(pitch, -1.57f, 1.57f);
-
-        JPH::Quat yawRot = JPH::Quat::sRotation(JPH::Vec3(0, 1, 0), yaw);
-        JPH::Quat pitchRot = JPH::Quat::sRotation(JPH::Vec3(1, 0, 0), pitch);
-
-        transform.setRotation(yawRot * pitchRot);
+    JPH::Mat44 Camera::getViewProjectionMatrix() const {
+        return getProjectionMatrix() * getViewMatrix();
     }
 
 }

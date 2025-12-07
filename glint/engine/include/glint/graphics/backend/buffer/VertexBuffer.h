@@ -5,7 +5,7 @@
 namespace glint::engine::graphics::backend {
 
     struct VertexBuffer : BufferData {
-        VertexBuffer(const DeviceContext& devices, const void* data, VkDeviceSize size) {
+        VertexBuffer(const DeviceHandles& devices, const void* data, VkDeviceSize size) {
             BufferCreateInfo createInfo = {};
             createInfo.data = data;
             createInfo.size = size;

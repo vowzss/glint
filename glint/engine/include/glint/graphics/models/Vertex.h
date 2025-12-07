@@ -5,7 +5,6 @@
 #include <Jolt/Math/Float3.h>
 
 namespace glint::engine::graphics::models {
-
     struct alignas(16) Vertex {
       public:
         JPH::Float3 position;
@@ -16,15 +15,12 @@ namespace glint::engine::graphics::models {
       public:
         Vertex() = delete;
 
-        constexpr Vertex(JPH::Float3 p, JPH::Float3 c, JPH::Float3 n, JPH::Float2 t)
-            : position(p), color(c), normal(n), uv(t) {
+        constexpr Vertex(JPH::Float3 p, JPH::Float3 c, JPH::Float3 n, JPH::Float2 t) : position(p), color(c), normal(n), uv(t) {
         }
 
       public:
-        constexpr bool operator==(const Vertex& other) const noexcept {
-            return position == other.position && color == other.color && normal == other.normal
-                   && uv == other.uv;
+        bool operator==(const Vertex& other) const noexcept {
+            return position == other.position && color == other.color && normal == other.normal && uv == other.uv;
         }
     };
-
 }

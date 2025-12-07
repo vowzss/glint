@@ -9,7 +9,7 @@ ContinuationIndentWidth: 4
 IndentCaseLabels: true
 UseTab: Never
 
-ColumnLimit: 120
+ColumnLimit: 150
 
 # pointers & references
 # =========================
@@ -35,7 +35,7 @@ IncludeCategories:
 # alignment
 # =========================
 AlignAfterOpenBracket: DontAlign
-AllowShortFunctionsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
 AllowAllArgumentsOnNextLine: false
 
 AlignArrayOfStructures: Left
@@ -48,8 +48,11 @@ BreakBeforeBraces: Attach
 BreakBeforeBinaryOperators: All
 
 BraceWrapping:
+  AfterNamespace: false
   AfterControlStatement: true
-  AfterNamespace: true
+  AfterFunction: false
+
+PackConstructorInitializers: BinPack
 
 # short constructs
 # =========================

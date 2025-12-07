@@ -1,40 +1,45 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
-namespace glint {
-    namespace engine::core {
+namespace glint::engine {
+    namespace core {
         struct TimeManager;
         struct InputManager;
         struct AssetManager;
         struct Registry;
     }
-
-    namespace engine::graphics {
+    namespace graphics {
         struct Window;
         struct Renderer;
     }
+    namespace scene {
+        struct World;
+    }
+}
+
+namespace glint {
 
     struct Engine {
       private:
-        std::unique_ptr<engine::graphics::Window> window = nullptr;
-
+        // --- core systems ---
         std::unique_ptr<engine::core::TimeManager> time = nullptr;
         std::unique_ptr<engine::core::InputManager> inputs = nullptr;
         std::unique_ptr<engine::core::AssetManager> assets = nullptr;
 
+        // --- graphics systems ---
+        std::unique_ptr<engine::graphics::Window> window = nullptr;
         std::unique_ptr<engine::graphics::Renderer> renderer = nullptr;
+
+        // --- scene ---
+        std::unique_ptr<engine::scene::World> world = nullptr;
 
       public:
         Engine() = delete;
         Engine(int width, int height);
-
         ~Engine();
 
+      public:
         void run();
-
-      private:
-        std::vector<const char*> getRequiredExtensions() const;
     };
 }

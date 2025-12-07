@@ -3,11 +3,11 @@
 
 #include "glint/graphics/backend/VkHelpers.h"
 #include "glint/graphics/backend/buffer/BufferData.h"
-#include "glint/graphics/backend/device/DeviceContext.h"
+#include "glint/graphics/backend/device/DeviceHandles.h"
 
 namespace glint::engine::graphics::backend {
 
-    void BufferData::init(const DeviceContext& devices, const BufferCreateInfo& info) {
+    void BufferData::init(const DeviceHandles& devices, const BufferCreateInfo& info) {
         device = devices.logical;
 
         VkBufferCreateInfo bufferInfo = {};
@@ -26,8 +26,7 @@ namespace glint::engine::graphics::backend {
         VkMemoryAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memoryRequirements.size;
-        allocInfo.memoryTypeIndex
-            = findMemoryType(devices.physical, memoryRequirements.memoryTypeBits, info.properties);
+        allocInfo.memoryTypeIndex = findMemoryType(devices.physical, memoryRequirements.memoryTypeBits, info.properties);
 
         if (vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to allocate buffer memory!");
@@ -67,7 +66,7 @@ namespace glint::engine::graphics::backend {
     }
 
     // --- methods ---
-    void BufferData::copy(const void* data, VkDeviceSize size_, VkDeviceSize offset) {
+    void BufferData::update(const void* data, VkDeviceSize size_, VkDeviceSize offset) {
         if (offset + size_ > size) return;
         memcpy(static_cast<uint8_t*>(this->mapped) + offset, data, size_);
     }

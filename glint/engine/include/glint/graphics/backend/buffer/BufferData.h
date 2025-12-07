@@ -4,7 +4,7 @@
 
 namespace glint::engine::graphics::backend {
 
-    struct DeviceContext;
+    struct DeviceHandles;
 
     struct BufferCreateInfo {
         const void* data;
@@ -12,37 +12,43 @@ namespace glint::engine::graphics::backend {
 
         VkBufferUsageFlags usage;
         VkMemoryPropertyFlags properties;
-
-      public:
-        BufferCreateInfo() = default;
     };
 
     struct BufferData {
-        VkDevice device;
+        // --- GPU handles ---
+        VkDevice device = nullptr;
+        VkBuffer value = nullptr;
+        VkDeviceMemory memory = nullptr;
 
-        void* mapped;
-        VkDeviceSize size;
-
-        VkBuffer value;
-        VkDeviceMemory memory;
+      protected:
+        // --- GPU info ---
+        void* mapped = nullptr;
+        VkDeviceSize size = 0;
 
       protected:
         BufferData() = default;
-        virtual ~BufferData() noexcept;
-
-        // --- methods ---
-        void init(const DeviceContext& devices, const BufferCreateInfo& info);
 
       public:
+        virtual ~BufferData() noexcept;
+
         BufferData(const BufferData&) = delete;
-        BufferData(BufferData&& other) = delete;
-
-        // --- methods ---
-        void copy(const void* data, VkDeviceSize size_, VkDeviceSize offset = 0);
-
-        // --- operators ---
         BufferData& operator=(const BufferData&) = delete;
-        BufferData& operator=(BufferData&& other) noexcept;
+
+        BufferData(BufferData&& other) = delete;
+        BufferData& operator=(BufferData&& other) = delete;
+
+      protected:
+        void init(const DeviceHandles& devices, const BufferCreateInfo& info);
+
+      public:
+        void update(const void* data, VkDeviceSize size_, VkDeviceSize offset = 0);
+
+        inline const void* getData() const {
+            return mapped;
+        }
+        inline VkDeviceSize getSize() const {
+            return size;
+        }
     };
 
 }

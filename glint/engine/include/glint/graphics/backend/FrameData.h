@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 
+#include <Jolt/Jolt.h>
+#include <Jolt/Math/Mat44.h>
 #include <vulkan/vulkan_core.h>
 
 #include "glint/graphics/layers/RenderLayer.h"
@@ -13,52 +15,66 @@ namespace glint::engine {
     namespace graphics::layers {
         struct RenderLayer;
     }
-
     namespace scene::components {
-        struct Camera;
+        struct CameraSnapshot;
     }
 }
 
 namespace glint::engine::graphics::backend {
 
-    struct DeviceContext;
+    struct DeviceHandles;
 
-    struct FrameDataCreateInfo {
+    struct FrameCreateInfo {
         VkDescriptorPool descriptorPool;
+        VkDescriptorSetLayout cameraLayout;
+        VkDescriptorSetLayout entityLayout;
 
-        VkDescriptorSetLayout cameraDescriptorLayout;
-        VkDescriptorSetLayout entityDescriptorLayout;
+        const scene::components::CameraSnapshot& camera;
+    };
 
-        const scene::components::Camera& camera;
+    struct FrameRenderInfo {
+        VkCommandBuffer commands = nullptr;
+
+        VkPipeline pipeline = nullptr;
+        VkPipelineLayout pipelineLayout = nullptr;
+
+        VkDescriptorSetLayout cameraLayout = nullptr;
+        VkDescriptorSetLayout entityLayout = nullptr;
+
+        const scene::components::CameraSnapshot& camera;
     };
 
     struct FrameData {
         VkDevice device = nullptr;
 
-        VkDescriptorSet cameraDescriptorSet = nullptr;
+        VkDescriptorSet cameraSet = nullptr;
+        VkDescriptorSet entitySet = nullptr;
+
         std::unique_ptr<BufferData> cameraBuffer;
 
-        VkDescriptorSet entityDescriptorSet = nullptr;
+        std::vector<layers::RenderLayer*> layers;
 
-        std::vector<std::unique_ptr<layers::RenderLayer>> layers;
-
+        // --- synchronisation ---
         VkSemaphore imageAvailable = nullptr;
         VkSemaphore renderFinished = nullptr;
         VkFence inFlight = nullptr;
 
+        // --- timing ---
         mutable float deltaTime;
 
       public:
         FrameData() = delete;
-        FrameData(const DeviceContext& devices, const FrameDataCreateInfo& info);
-
         ~FrameData();
 
+        FrameData(const DeviceHandles& devices, const FrameCreateInfo& info);
+
+      public:
         void begin() const;
-        void render(float deltaTime, const scene::components::Camera& camera, const VkCommandBuffer& command) const;
+        void render(float deltaTime, const FrameRenderInfo& info) const;
         void end() const;
 
-        void addLayer(std::unique_ptr<layers::RenderLayer> layer);
+        void attach(layers::RenderLayer* layer);
+        void detach(layers::RenderLayer* layer);
     };
 
 }

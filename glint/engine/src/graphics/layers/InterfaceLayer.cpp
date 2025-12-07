@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "glint/graphics/backend/device/DeviceContext.h"
+#include "glint/graphics/backend/device/DeviceHandles.h"
 #include "glint/graphics/layers/InterfaceLayer.h"
 
 #include "imgui.h"
@@ -9,7 +9,7 @@
 
 namespace glint::engine::graphics::layers {
 
-    InterfaceLayer::InterfaceLayer(const backend::DeviceContext& devices, InterfaceLayerInfo info) : device(devices.logical) {
+    InterfaceLayer::InterfaceLayer(const backend::DeviceHandles& devices, const InterfaceLayerInfo& info) : device(devices.logical) {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
 
@@ -106,9 +106,9 @@ namespace glint::engine::graphics::layers {
         ImGui::ShowDemoWindow();
     }
 
-    void InterfaceLayer::render(float deltaTime, const VkCommandBuffer& commands) {
+    void InterfaceLayer::render(float deltaTime, const LayerRenderInfo& info) {
         ImGui::Render();
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commands);
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), info.commands);
     }
 
 }

@@ -4,12 +4,12 @@
 
 namespace glint::engine::graphics::backend {
 
-    struct DeviceContext {
+    struct DeviceHandles {
         VkDevice logical;
         VkPhysicalDevice physical;
 
       public:
-        DeviceContext() = default;
+        DeviceHandles() = default;
     };
 
 }

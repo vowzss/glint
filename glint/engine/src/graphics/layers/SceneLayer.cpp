@@ -1,13 +1,13 @@
-#include <vector>
-
-#include "glint/graphics/backend/FrameData.h"
-#include "glint/graphics/backend/buffer/BufferData.h"
-#include "glint/graphics/backend/device/DeviceContext.h"
+#include "glint/core/ecs/ComponentManager.h"
+#include "glint/core/ecs/ComponentStorage.h"
+#include "glint/graphics/backend/buffer/UniformBuffer.h"
 #include "glint/graphics/layers/SceneLayer.h"
+#include "glint/scene/World.h"
 #include "glint/scene/components/GeometryComponent.h"
 #include "glint/scene/components/Transform.h"
 
 namespace glint::engine {
+    using namespace core;
     using namespace scene;
 
     namespace graphics {
@@ -21,24 +21,20 @@ namespace glint::engine {
 }
 
 namespace glint::engine::graphics::layers {
+    SceneLayer::SceneLayer(const scene::World& world_) : world(world_) {};
 
-    SceneLayer::SceneLayer(const DeviceContext& devices, SceneLayerCreateInfo info_)
-        : device(devices.logical), info(info_) {
+    SceneLayer::~SceneLayer() = default;
 
-        /*
-        auto loader = new ModelLoader();
-        auto mesh = loader->load("suzanne.obj");
+    void SceneLayer::init(const backend::DeviceHandles& devices) {
 
-        std::vector<JPH::Mat44> entityMatrices(entities.size());
+        std::vector<JPH::Mat44> entities;
 
-        BufferDataInfo entityBufferData = {};
-        entityBufferData.size = sizeof(JPH::Mat44) * entities.size();
-        entityBufferData.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-        entityBufferData.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT; entityBufferData.data = nullptr;
-        entityBuffer = new BufferData(devices, entityBufferData);
+        auto& transforms = world.getStorage<Transform>();
+        transforms.each([&](const Transform& transform) { entities.emplace_back(transform.toMatrix()); });
 
-        VkDescriptorBufferInfo entityBufferInfo = {};
+        entityBuffer = std::make_unique<UniformBuffer>(devices, entities.data(), sizeof(JPH::Mat44) * entities.size());
+
+        /*VkDescriptorBufferInfo entityBufferInfo = {};
         entityBufferInfo.buffer = entityBuffer->value;
         entityBufferInfo.offset = 0;
         entityBufferInfo.range = sizeof(JPH::Mat44) * 3;
@@ -51,38 +47,32 @@ namespace glint::engine::graphics::layers {
         writeInfo.descriptorCount = 1;
         writeInfo.pBufferInfo = &entityBufferInfo;
 
-        vkUpdateDescriptorSets(device, 1, &writeInfo, 0, nullptr);*/
+        vkUpdateDescriptorSets(devices.logical, 1, &writeInfo, 0, nullptr);*/
     }
 
-    void SceneLayer::render(float deltaTime, const VkCommandBuffer& commands) {
+    void SceneLayer::render(float deltaTime, const LayerRenderInfo& info) {
+        const JPH::Mat44* models = reinterpret_cast<const JPH::Mat44*>(entityBuffer->getData());
+        entityBuffer->update(models, sizeof(JPH::Mat44) * entityBuffer->getSize(), 0);
 
-        JPH::Mat44* models = reinterpret_cast<JPH::Mat44*>(entityBuffer->data);
+        const auto& transforms = world.getStorage<Transform>();
+        const auto& geometries = world.getStorage<GeometryComponent>();
 
-        auto& transforms = info.ecs.getComponentStorage<Transform>();
-        auto& geometries = info.ecs.getComponentStorage<GeometryComponent>();
-
-        for (size_t i = 0; i < transforms.data.size(); ++i) {
+        /*for (size_t i = 0; i < transforms.data.size(); ++i) {
             uint32_t entityId = transforms.owners[i];
             if (!geometries.contains(entityId)) continue;
 
             models[i] = transforms.data[i].toMatrix();
-        }
+        }*/
 
-        entityBuffer->copy(models, sizeof(JPH::Mat44) * entityBuffer->size, 0);
+        vkCmdBindPipeline(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipeline);
+        vkCmdBindDescriptorSets(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 0, 1, &info.cameraSet, 0, nullptr);
+        vkCmdBindDescriptorSets(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 1, 1, &info.entitySet, 0, nullptr);
 
-        vkCmdBindPipeline(commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipeline);
-
-        vkCmdBindDescriptorSets(commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 0,
-            1, &frame.cameraDescriptorSet, 0, nullptr);
-
-        vkCmdBindDescriptorSets(commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 1,
-            1, &frame.entityDescriptorSet, 0, nullptr);
-
-        VkDeviceSize offsets[] = {0};
+        /*VkDeviceSize offsets[] = {0};
         for (size_t i = 0; i < geometries.data.size(); ++i) {
-            vkCmdBindVertexBuffers(commands, 0, 1, geometries[i].vertices->value, offsets);
-            vkCmdBindIndexBuffer(commands, geometries[i].indices->value, 0, VK_INDEX_TYPE_UINT32);
-            vkCmdDrawIndexed(commands, geometries[i].indices.size()), 1, 0, 0, 0);
-        }
+            vkCmdBindVertexBuffers(info.commands, 0, 1, geometries[i].vertices->value, offsets);
+            vkCmdBindIndexBuffer(info.commands, geometries[i].indices->value, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdDrawIndexed(info.commands, geometries[i].indices.size(), 1, 0, 0, 0);
+        }*/
     }
 }

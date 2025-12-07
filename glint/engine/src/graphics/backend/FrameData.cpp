@@ -4,7 +4,8 @@
 #include <Jolt/Math/Mat44.h>
 
 #include "glint/graphics/backend/FrameData.h"
-#include "glint/graphics/backend/device/DeviceContext.h"
+#include "glint/graphics/backend/buffer/UniformBuffer.h"
+#include "glint/graphics/backend/device/DeviceHandles.h"
 #include "glint/graphics/layers/RenderLayer.h"
 #include "glint/scene/components/Camera.h"
 
@@ -12,7 +13,7 @@ using namespace glint::engine::graphics::layers;
 
 namespace glint::engine::graphics::backend {
 
-    FrameData::FrameData(const DeviceContext& devices, const FrameDataCreateInfo& info) : device(devices.logical) {
+    FrameData::FrameData(const DeviceHandles& devices, const FrameCreateInfo& info) : device(devices.logical) {
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailable);
@@ -23,38 +24,28 @@ namespace glint::engine::graphics::backend {
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
         vkCreateFence(device, &fenceInfo, nullptr, &inFlight);
 
-        // camera UBO
+        // camera uniform buffer
         {
             VkDescriptorSetAllocateInfo allocInfo{};
             allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
             allocInfo.descriptorPool = info.descriptorPool;
             allocInfo.descriptorSetCount = 1;
-            allocInfo.pSetLayouts = &info.cameraDescriptorLayout;
+            allocInfo.pSetLayouts = &info.cameraLayout;
 
-            if (vkAllocateDescriptorSets(device, &allocInfo, &cameraDescriptorSet) != VK_SUCCESS) {
+            if (vkAllocateDescriptorSets(device, &allocInfo, &cameraSet) != VK_SUCCESS) {
                 throw std::runtime_error("Vulkan | Failed to create camera descriptor!");
             }
 
-            JPH::Mat44 projMatrix = info.camera.getProjectionMatrix();
-            JPH::Mat44 viewMatrix = info.camera.getViewMatrix();
-            JPH::Mat44 projViewMatrix = projMatrix * viewMatrix;
-            JPH::Mat44 cameraMatrices[3] = {viewMatrix, projMatrix, projViewMatrix};
-
-            BufferCreateInfo createInfo{};
-            createInfo.data = cameraMatrices;
-            createInfo.size = sizeof(JPH::Mat44) * 3;
-            createInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-            createInfo.properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-            cameraBuffer = std::make_unique<BufferData>(devices, createInfo);
+            cameraBuffer = std::make_unique<UniformBuffer>(devices, info.camera.data(), info.camera.size());
 
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = cameraBuffer->value;
             bufferInfo.offset = 0;
-            bufferInfo.range = sizeof(JPH::Mat44) * 3;
+            bufferInfo.range = info.camera.size();
 
             VkWriteDescriptorSet writeInfo{};
             writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            writeInfo.dstSet = cameraDescriptorSet;
+            writeInfo.dstSet = cameraSet;
             writeInfo.dstBinding = 0;
             writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             writeInfo.descriptorCount = 1;
@@ -63,15 +54,15 @@ namespace glint::engine::graphics::backend {
             vkUpdateDescriptorSets(device, 1, &writeInfo, 0, nullptr);
         }
 
-        // entity SSBO
+        // entity uniform buffer
         {
             VkDescriptorSetAllocateInfo allocInfo{};
             allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
             allocInfo.descriptorPool = info.descriptorPool;
             allocInfo.descriptorSetCount = 1;
-            allocInfo.pSetLayouts = &info.entityDescriptorLayout;
+            allocInfo.pSetLayouts = &info.entityLayout;
 
-            if (vkAllocateDescriptorSets(device, &allocInfo, &entityDescriptorSet) != VK_SUCCESS) {
+            if (vkAllocateDescriptorSets(device, &allocInfo, &entitySet) != VK_SUCCESS) {
                 throw std::runtime_error("Vulkan | Failed to create entity descriptor!");
             }
         }
@@ -91,23 +82,31 @@ namespace glint::engine::graphics::backend {
         }
     }
 
-    void FrameData::render(float dt, const scene::components::Camera& camera, const VkCommandBuffer& commands) const {
-        deltaTime = dt;
+    void FrameData::begin() const {
+        // your Vulkan commands to begin frame
+    }
 
-        JPH::Mat44 projMatrix = camera.getProjectionMatrix();
-        JPH::Mat44 viewMatrix = camera.getViewMatrix();
-        JPH::Mat44 projViewMatrix = projMatrix * viewMatrix;
-        JPH::Mat44 cameraMatrices[3] = {viewMatrix, projMatrix, projViewMatrix};
+    void FrameData::render(float deltaTime, const FrameRenderInfo& info) const {
+        this->deltaTime = deltaTime;
 
-        cameraBuffer->copy(cameraMatrices, sizeof(JPH::Mat44) * 3, 0);
+        cameraBuffer->update(info.camera.data(), info.camera.size());
 
+        LayerRenderInfo layerInfo = {info.commands, info.pipeline, info.pipelineLayout, cameraSet, entitySet};
         for (int i = 0; i < layers.size(); ++i) {
-            layers[i]->render(dt, commands);
+            layers[i]->render(this->deltaTime, layerInfo);
         }
     }
 
-    void FrameData::addLayer(std::unique_ptr<layers::RenderLayer> layer) {
-        layers.emplace_back(std::move(layer));
+    void FrameData::end() const {
+    }
+
+    void FrameData::attach(layers::RenderLayer* layer) {
+        if (std::find(layers.begin(), layers.end(), layer) != layers.end()) return;
+        layers.push_back(layer);
+    }
+
+    void FrameData::detach(layers::RenderLayer* layer) {
+        layers.erase(std::remove(layers.begin(), layers.end(), layer), layers.end());
     }
 
 }

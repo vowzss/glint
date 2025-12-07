@@ -10,17 +10,18 @@
 
 namespace glint::engine::graphics {
     namespace backend {
-        struct DeviceContext;
+        struct DeviceHandles;
         struct GeometryBuffer;
     }
 }
 
 namespace glint::engine::core {
+
     struct AssetManager;
 
     struct GeometryManager {
       private:
-        using Devices = graphics::backend::DeviceContext;
+        using Devices = graphics::backend::DeviceHandles;
         using GeometryBuffer = graphics::backend::GeometryBuffer;
 
       private:

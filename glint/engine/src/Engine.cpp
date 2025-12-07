@@ -7,18 +7,38 @@
 #include "glint/core/TimeManager.h"
 #include "glint/graphics/Renderer.h"
 #include "glint/graphics/Window.h"
+#include "glint/graphics/backend/buffer/UniformBuffer.h"
+#include "glint/graphics/layers/SceneLayer.h"
+#include "glint/scene/World.h"
 #include "glint/scene/components/Camera.h"
 #include "glint/utils/StringUtils.h"
+
 
 // todo: cleanup
 #include <GLFW/glfw3.h>
 
+using namespace glint::engine;
+using namespace graphics;
+using namespace layers;
+using namespace core;
+using namespace scene;
+
 namespace glint {
+    namespace {
+        const std::vector<const char*> getRequiredExtensions() {
+            using namespace engine::utils;
+
+            uint32_t count;
+            const char** ext = glfwGetRequiredInstanceExtensions(&count);
+
+            std::vector<const char*> extensions(ext, ext + count);
+            LOG_TRACE("Found '{}' required instance extensions! {}", extensions.size(), string::join(extensions));
+
+            return extensions;
+        }
+    }
 
     Engine::Engine(int width, int height) {
-        using namespace engine::graphics;
-        using namespace engine::core;
-
         Logger::init();
 
         time = std::make_unique<TimeManager>();
@@ -28,43 +48,43 @@ namespace glint {
         window = std::make_unique<Window>(width, height, "Vulkan", inputs.get());
         renderer = std::make_unique<Renderer>(width, height, getRequiredExtensions());
 
-        // registry = std::make_unique<Registry>();
+        world = std::make_unique<World>(assets.get());
 
         VkSurfaceKHR surface;
-        if (glfwCreateWindowSurface(renderer->getInstance(), window->raw(), nullptr, &surface)
-            != VK_SUCCESS) {
+        if (glfwCreateWindowSurface(renderer->getInstance(), window->raw(), nullptr, &surface) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create surface!");
         }
 
         renderer->init(surface);
+        renderer->append(std::make_unique<SceneLayer>(*world));
 
         // clang-format off
         inputs->subscribe(InputType::Key, GLFW_KEY_W, InputAction::Held, [&](int code, InputAction action) { 
-            renderer->getCamera().getInput().forward = -1.0f;
+            renderer->getCamera().forward(-1.0f);
         });
         inputs->subscribe(InputType::Key, GLFW_KEY_W, InputAction::Released, [&](int code, InputAction action) { 
-            renderer->getCamera().getInput().forward = 0.0f;
+            renderer->getCamera().forward(0.0f);
         });
 
         inputs->subscribe(InputType::Key, GLFW_KEY_A, InputAction::Held, [&](int code, InputAction action) { 
-            renderer->getCamera().getInput().right = -1.0f;
+            renderer->getCamera().right(-1.0f);
         });
          inputs->subscribe(InputType::Key, GLFW_KEY_A, InputAction::Released, [&](int code, InputAction action) { 
-            renderer->getCamera().getInput().right = 0.0f;
+            renderer->getCamera().right(0.0f);
         });
 
         inputs->subscribe(InputType::Key, GLFW_KEY_S, InputAction::Held, [&](int code, InputAction action) { 
-            renderer->getCamera().getInput().forward = 1.0f;
+            renderer->getCamera().forward(1.0f);
         });
         inputs->subscribe(InputType::Key, GLFW_KEY_S, InputAction::Released, [&](int code, InputAction action) { 
-            renderer->getCamera().getInput().forward = 0.0f;
+            renderer->getCamera().forward(0.0f);
         });
         
         inputs->subscribe(InputType::Key, GLFW_KEY_D, InputAction::Held, [&](int code, InputAction action) { 
-            renderer->getCamera().getInput().right = 1.0f;
+            renderer->getCamera().right(1.0f);
         });
         inputs->subscribe(InputType::Key, GLFW_KEY_D, InputAction::Released, [&](int code, InputAction action) { 
-            renderer->getCamera().getInput().right = 0.0f;
+            renderer->getCamera().right(0.0f);
         });
 
         inputs->subscribe([&](double x, double y, double deltaX, double deltaY) { 
@@ -73,14 +93,7 @@ namespace glint {
         // clang-format on
     }
 
-    Engine::~Engine() {
-        time.reset();
-        inputs.reset();
-        assets.reset();
-
-        renderer.reset();
-        window.reset();
-    }
+    Engine::~Engine() = default;
 
     void Engine::run() {
         using namespace engine::core;
@@ -105,20 +118,6 @@ namespace glint {
         }
 
         LOG_INFO("Exiting main loop");
-    }
-
-    std::vector<const char*> Engine::getRequiredExtensions() const {
-        using namespace engine::core;
-        using namespace engine::utils;
-
-        uint32_t count;
-        const char** ext = glfwGetRequiredInstanceExtensions(&count);
-
-        std::vector<const char*> extensions(ext, ext + count);
-        LOG_TRACE("Found '{}' required instance extensions! {}", extensions.size(),
-            string::join(extensions));
-
-        return extensions;
     }
 
 }

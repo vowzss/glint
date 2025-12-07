@@ -18,6 +18,6 @@ namespace glint::engine::graphics::backend {
 
       public:
         GeometryBuffer() = delete;
-        GeometryBuffer(const DeviceContext& devices, const models::GeometryData& data);
+        GeometryBuffer(const DeviceHandles& devices, const models::GeometryData& data);
     };
 }
