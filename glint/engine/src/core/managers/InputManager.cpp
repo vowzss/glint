@@ -91,13 +91,9 @@ namespace glint::engine::core {
                         using T = std::underlying_type_t<InputAction>;
                         bool call = (static_cast<T>(listener.mask) & static_cast<T>(e.action)) != 0;
 
-                        if ((static_cast<T>(listener.mask) & static_cast<T>(InputAction::Any)) != 0) {
-                            call = true;
-                        }
-
                         if (call) {
                             listener.keyCallback(e.code, e.action);
-                            LOG_TRACE("Dispatched input callback! handle:[{}]", handle);
+                            LOG_TRACE("Dispatched input callback! handle:[{}] code:[{}] action:[{}]", handle, e.code, enums::toString(e.action));
                         }
                     }
                 }
@@ -133,7 +129,6 @@ namespace glint::engine::core {
 
         for (uint8_t i = 0; i < 4; ++i) {
             if ((bits & (1 << i)) == 0) continue;
-
             vecs[i].push_back(handle);
         }
 

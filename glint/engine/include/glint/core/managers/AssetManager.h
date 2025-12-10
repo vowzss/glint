@@ -3,12 +3,14 @@
 #include <string>
 #include <vector>
 
+#include "glint/graphics/models/GeometryLoader.h"
+
 #include "AssetHandle.h"
+
 
 namespace glint::engine::core {
 
     class AssetManager {
-      private:
         struct AssetEntry {
             uint32_t version = 0;
 
@@ -16,16 +18,15 @@ namespace glint::engine::core {
             void (*deleter)(void*) = nullptr;
         };
 
-        std::vector<AssetEntry> entries;
+        std::vector<AssetEntry> m_entries;
 
-        std::vector<uint32_t> freeIds;
-        uint32_t nextId = 0;
+        std::vector<uint32_t> m_freeIds;
+        uint32_t m_nextId = 0;
 
       public:
         AssetManager() = default;
         ~AssetManager();
 
-      public:
         template <typename Asset>
         AssetHandle<Asset> load(const std::string& path);
 
@@ -37,9 +38,6 @@ namespace glint::engine::core {
 
         template <typename Asset>
         const Asset* get(AssetHandle<Asset> handle) const noexcept;
-
-      private:
-        uint32_t computeUniqueId();
     };
 }
 

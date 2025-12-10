@@ -33,15 +33,7 @@ namespace glint::engine::core {
         }
 
         inline void bump() noexcept {
-            uint32_t current = version();
-            uint32_t next = current + 1;
-
-            if (next > VersionMask) {
-                std::cerr << "[Warning] GeometryEntry version exceeded max value (" << VersionMask << ") and will wrap around.\n";
-                next = 0;
-            }
-
-            flags = (flags & ~VersionMask) | (next & VersionMask);
+            flags = (flags & ~VersionMask) | ((version() + 1) & VersionMask);
         }
     };
 
@@ -59,6 +51,19 @@ namespace glint::engine::core {
 
         GeometryHandle create(const graphics::Devices& devices, const std::string& path);
         void destroy(GeometryHandle handle);
+
+        // --- getters ---
+        graphics::GeometryBuffer* get(GeometryHandle handle) noexcept;
+        const graphics::GeometryBuffer* get(GeometryHandle handle) const noexcept;
+
+        inline bool isValid(GeometryHandle handle) const noexcept {
+            // clang-format off
+            return handle.valid() 
+              && handle.id() < m_entries.size() 
+              && m_entries[handle.id()].version() == handle.version()
+              && m_entries[handle.id()].buffer.has_value();
+            // clang-format on
+        }
     };
 
 }

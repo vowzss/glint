@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -9,18 +10,18 @@ namespace glint::engine::utils::files {
 
     namespace fs = std::filesystem;
 
-    fs::path getResourcePath(const std::string& filename) {
+    std::string getResourcePath(const std::string& filename) {
         fs::path path = fs::current_path() / "resources";
         fs::path fullPath = path / filename;
 
-        return fullPath;
+        return fullPath.string();
     }
 
-    fs::path getModelPath(const std::string& filename) {
+    std::string getModelPath(const std::string& filename) {
         fs::path path = fs::current_path() / "resources" / "models";
         fs::path fullPath = path / filename;
 
-        return fullPath;
+        return fullPath.string();
     }
 
     std::vector<char> read(const std::string& filename) {

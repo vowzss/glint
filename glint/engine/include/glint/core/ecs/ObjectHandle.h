@@ -6,11 +6,13 @@ namespace glint::engine::core {
 
     template <typename Tag>
     class ObjectHandle {
-        uint32_t m_id;
-        uint32_t m_version;
+        uint32_t m_id = UINT32_MAX;
+        uint32_t m_version = 0;
 
       public:
-        constexpr ObjectHandle(uint32_t id, uint32_t version) noexcept : m_id(id), m_version(version) {};
+        ObjectHandle() = default;
+        explicit ObjectHandle(uint32_t id, uint32_t version) noexcept : m_id(id), m_version(version) {};
+        explicit ObjectHandle(uint32_t id) noexcept : m_id(id), m_version(0) {};
 
         inline bool valid() const {
             return m_id != UINT32_MAX;
@@ -26,7 +28,7 @@ namespace glint::engine::core {
 
         // --- factories ---
         static inline constexpr ObjectHandle invalid() noexcept {
-            return {UINT32_MAX, 0};
+            return ObjectHandle{UINT32_MAX, 0};
         }
 
         // --- getters ---

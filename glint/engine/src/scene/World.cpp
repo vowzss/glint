@@ -49,17 +49,75 @@ namespace glint::engine::scene {
         });
     }
 
-    EntityView World::entity(EntityHandle handle) {
-        EntityView view;
+    // --- components ---
+    template <typename Component>
+    void World::attach(core::EntityHandle handle, const Component& component) const noexcept {
+        if (!m_entities->isValid(handle)) return;
+        m_components->add<Component>(handle, component);
+    }
 
-        if (!m_entities->isAlive(handle)) {
-            return view;
+    template void World::attach<Transform>(core::EntityHandle, const Transform&) const noexcept;
+    template void World::attach<GeometryComponent>(core::EntityHandle, const GeometryComponent&) const noexcept;
+
+    template <typename Component>
+    void World::detach(core::EntityHandle handle) const noexcept {
+        if (!m_entities->isValid(handle)) return;
+        m_components->remove<Component>(handle);
+    }
+
+    template <typename Component>
+    const Component* World::component(core::EntityHandle handle) const noexcept {
+        if (!m_entities->isValid(handle)) return nullptr;
+        return m_components ? m_components->get<Component>(handle) : nullptr;
+    }
+
+    template const Transform* World::component<Transform>(core::EntityHandle) const noexcept;
+    template const GeometryComponent* World::component<GeometryComponent>(core::EntityHandle) const noexcept;
+
+    // --- query ---
+    template <typename Component, typename Handle>
+    const Component* World::resolve(Handle) const noexcept {
+        static_assert(sizeof(Handle) == 0, "Unsupported handle type!");
+        return nullptr;
+    }
+
+    template <>
+    const graphics::GeometryBuffer* World::resolve<graphics::GeometryBuffer, core::GeometryHandle>(core::GeometryHandle handle) const noexcept {
+        return m_geometries ? m_geometries->get(handle) : nullptr;
+    }
+
+    /*template <>
+    const graphics::GeometryBuffer* World::resolve<graphics::GeometryBuffer, core::GeometryHandle>(core::GeometryHandle handle) const noexcept {
+        return m_geometries ? m_geometries->get(handle) : nullptr;
+    }*/
+
+    EntityView World::entity(EntityHandle handle) const noexcept {
+        if (!m_entities->isValid(handle)) {
+            return EntityView{};
         }
 
+        EntityView view;
         view.transform = m_components->get<Transform>(handle);
         view.geometry = m_components->get<GeometryComponent>(handle);
 
         return view;
+    }
+
+    std::vector<EntityView> World::entities() const {
+        const std::vector<EntityHandle>& handles = m_entities->query();
+
+        std::vector<EntityView> entities;
+        entities.reserve(handles.size());
+
+        for (const EntityHandle& handle : handles) {
+            EntityView view;
+            view.transform = m_components->get<Transform>(handle);
+            view.geometry = m_components->get<GeometryComponent>(handle);
+
+            entities.emplace_back(view);
+        }
+
+        return entities;
     }
 
 }

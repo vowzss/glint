@@ -32,8 +32,8 @@ namespace glint::engine {
 namespace glint::engine::scene {
 
     struct EntityView {
-        scene::Transform* transform = nullptr;
-        scene::GeometryComponent* geometry = nullptr;
+        const scene::Transform* transform = nullptr;
+        const scene::GeometryComponent* geometry = nullptr;
     };
 
     class World {
@@ -50,12 +50,26 @@ namespace glint::engine::scene {
         core::EntityHandle createEntity() noexcept;
         void destroyEntity(core::EntityHandle handle) noexcept;
 
-        // --- geometry ---
+        // --- geometries ---
         core::GeometryHandle createGeometry(const graphics::Devices& devices, const std::string& path);
         void destroyGeometry(core::GeometryHandle handle) noexcept;
 
-        EntityView entity(core::EntityHandle handle);
-        std::vector<EntityView> entities();
+        // --- components ---
+        template <typename Component>
+        void attach(core::EntityHandle handle, const Component& component) const noexcept;
+
+        template <typename Component>
+        void detach(core::EntityHandle handle) const noexcept;
+
+        template <typename Component>
+        const Component* component(core::EntityHandle handle) const noexcept;
+
+        // --- query ---
+        template <typename Component, typename Handle>
+        const Component* resolve(Handle handle) const noexcept;
+
+        EntityView entity(core::EntityHandle handle) const noexcept;
+        std::vector<EntityView> entities() const;
     };
 
 }

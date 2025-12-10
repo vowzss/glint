@@ -13,16 +13,15 @@ namespace glint::engine::core {
         Button,
         Key,
     };
-    ENUM_TO_STRING(InputType, "Cursor", "Button", "Key")
+    ENUM_TO_STRING(InputType, "Undefined", "Cursor", "Button", "Key")
 
     enum class InputAction : uint8_t {
         Undefined = 0,
         Pressed = 1 << 0,
         Held = 1 << 1,
         Released = 1 << 2,
-        Any = 1 << 3,
     };
-    ENUM_TO_STRING(InputAction, "Undefined", "Pressed", "Released", "Held")
+    ENUM_TO_STRING(InputAction, "Undefined", "Pressed", "Held", "Released")
 
     using InputCallback = std::function<void(int code, InputAction action)>;
     using CursorCallback = std::function<void(double x, double y, double deltaX, double deltaY)>;

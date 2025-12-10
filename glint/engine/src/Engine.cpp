@@ -8,9 +8,9 @@
 #include "glint/core/systems/CameraSystem.h"
 #include "glint/graphics/Renderer.h"
 #include "glint/graphics/Window.h"
-#include "glint/graphics/backend/buffer/UniformBuffer.h"
 #include "glint/graphics/layers/SceneLayer.h"
 #include "glint/scene/World.h"
+#include "glint/utils/FileUtils.h"
 #include "glint/utils/StringUtils.h"
 
 // todo: cleanup
@@ -56,20 +56,22 @@ namespace glint {
         renderer->init(surface);
         renderer->append(std::make_unique<SceneLayer>(*world));
 
+        world->createGeometry(renderer->getDevices(), files::getModelPath("cube.obj"));
+
         // clang-format off
-        inputs->subscribe(InputType::Key, GLFW_KEY_W, InputAction::Any, [&](int code, InputAction action) {
+        inputs->subscribe(InputType::Key, GLFW_KEY_W, InputAction::Held, [&](int code, InputAction action) {
             cameras->forward(cameras->active(), action == InputAction::Held ? -1.0f : 0.0f);
         });
 
-        inputs->subscribe(InputType::Key, GLFW_KEY_A, InputAction::Any, [&](int code, InputAction action) { 
+        inputs->subscribe(InputType::Key, GLFW_KEY_A, InputAction::Held, [&](int code, InputAction action) { 
             cameras->right(cameras->active(), action == InputAction::Held ? -1.0f : 0.0f);
         });
 
-        inputs->subscribe(InputType::Key, GLFW_KEY_S, InputAction::Any, [&](int code, InputAction action) { 
+        inputs->subscribe(InputType::Key, GLFW_KEY_S, InputAction::Held, [&](int code, InputAction action) { 
             cameras->forward(cameras->active(), action == InputAction::Held ? 1.0f : 0.0f);
         });
         
-        inputs->subscribe(InputType::Key, GLFW_KEY_D, InputAction::Any, [&](int code, InputAction action) { 
+        inputs->subscribe(InputType::Key, GLFW_KEY_D, InputAction::Held, [&](int code, InputAction action) { 
             cameras->right(cameras->active(), action == InputAction::Held ? 1.0f : 0.0f);
         });
 

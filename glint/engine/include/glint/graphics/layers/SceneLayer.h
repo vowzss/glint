@@ -22,7 +22,7 @@ namespace glint::engine {
 namespace glint::engine::graphics {
 
     class SceneLayer : public RenderLayer {
-        const scene::World& world;
+        const scene::World& m_world;
 
       public:
         SceneLayer(const scene::World& world);

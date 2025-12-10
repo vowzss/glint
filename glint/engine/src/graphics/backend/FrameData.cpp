@@ -9,7 +9,7 @@ namespace glint::engine::graphics {
 
     FrameData::FrameData(const Devices& devices, const FrameCreateInfo& info)
         : m_device(devices.logical), m_camera{VK_NULL_HANDLE, UniformBuffer(devices, CameraSnapshot::size())},
-          m_entity{VK_NULL_HANDLE, StorageBuffer(devices, sizeof(JPH::Mat44) * 10)} {
+          m_entity{VK_NULL_HANDLE, StorageBuffer(devices, sizeof(JPH::Mat44) * 100)} {
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_ready);

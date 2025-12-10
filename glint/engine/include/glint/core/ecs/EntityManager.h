@@ -17,37 +17,26 @@ namespace glint::engine::core {
         uint32_t flags = 0;
 
       public:
-        bool isAlive() const noexcept {
-            return (flags & AliveMask) != 0;
-        }
-
         uint32_t version() const noexcept {
             return flags & VersionMask;
         }
 
-        void setAlive(bool alive) noexcept {
-            if (alive) {
-                flags |= AliveMask;
-            } else {
-                flags &= ~AliveMask;
-            }
+        inline void bump() noexcept {
+            flags = (flags & AliveMask) | ((version() + 1) & VersionMask);
         }
 
-        inline void bump() noexcept {
-            uint32_t current = version();
-            uint32_t next = current + 1;
+        bool isAlive() const noexcept {
+            return (flags & AliveMask) != 0;
+        }
 
-            if (next > VersionMask) {
-                std::cerr << "[Warning] GeometryEntry version exceeded max value (" << VersionMask << ") and will wrap around.\n";
-                next = 0;
-            }
-
-            flags = (flags & AliveMask) | (next & VersionMask);
+        void setAlive(bool alive) noexcept {
+            flags = (flags & ~AliveMask) | (static_cast<uint32_t>(alive) << 31);
         }
     };
 
     class EntityManager {
         std::vector<EntityEntry> m_entries;
+        std::vector<uint32_t> m_aliveIds;
 
         std::vector<uint32_t> m_freeIds;
         uint32_t m_nextId = 0;
@@ -59,9 +48,15 @@ namespace glint::engine::core {
         EntityHandle create();
         void destroy(EntityHandle handle);
 
-        inline bool isAlive(EntityHandle handle) const noexcept {
-            return handle.id() < m_entries.size() && m_entries[handle.id()].isAlive();
+        inline bool isValid(EntityHandle handle) const noexcept {
+            // clang-format off
+            return handle.id() < m_entries.size() 
+                && m_entries[handle.id()].isAlive() 
+                && m_entries[handle.id()].version() == handle.version();
+            // clang-format on
         }
+
+        std::vector<EntityHandle> query() const;
     };
 
 }

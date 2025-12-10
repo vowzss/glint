@@ -25,14 +25,22 @@ namespace glint::engine::core {
     }
 
     void GeometryManager::destroy(GeometryHandle handle) {
-        if (!handle.valid() || handle.id() >= m_entries.size()) return;
+        if (!isValid(handle)) return;
 
         GeometryEntry& entry = m_entries[handle.id()];
-        if (entry.version() != handle.version() || !entry.buffer) return;
-
         entry.buffer.reset();
         entry.bump();
 
         m_freeIds.push_back(handle.id());
+    }
+
+    graphics::GeometryBuffer* GeometryManager::get(GeometryHandle handle) noexcept {
+        if (!isValid(handle)) return nullptr;
+        return &m_entries[handle.id()].buffer.value();
+    }
+
+    const graphics::GeometryBuffer* GeometryManager::get(GeometryHandle handle) const noexcept {
+        if (!isValid(handle)) return nullptr;
+        return &m_entries[handle.id()].buffer.value();
     }
 }

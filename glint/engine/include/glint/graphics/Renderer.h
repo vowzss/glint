@@ -81,6 +81,11 @@ namespace glint::engine::graphics {
             return m_instance;
         }
 
+        // todo: debug only for now
+        inline const Devices& getDevices() const noexcept {
+            return m_devices;
+        }
+
       private:
         void createInstance(const std::vector<const char*>& extensions);
         void createDevices();
