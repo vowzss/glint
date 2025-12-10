@@ -8,38 +8,31 @@ using namespace glint::engine::graphics;
 namespace glint::engine::core {
 
     GeometryHandle GeometryManager::create(const Devices& devices, const std::string& path) {
-        AssetHandle<GeometryData> asset = assets->load<GeometryData>(path);
-        if (!asset.isValid()) return GeometryHandle::invalid();
+        AssetHandle<GeometryData> data = m_assets->load<GeometryData>(path);
+        if (!data.isValid()) return GeometryHandle::invalid();
 
-        const GeometryData* geometry = assets->get(asset);
+        const GeometryData* geometry = m_assets->get(data);
         if (geometry == nullptr) return GeometryHandle::invalid();
 
-        uint32_t id = computeUniqueId();
-        entries[id] = std::make_shared<GeometryBuffer>(devices, *geometry);
+        const uint32_t id = m_freeIds.empty() ? m_nextId++ : m_freeIds.back();
+        if (!m_freeIds.empty()) m_freeIds.pop_back();
+        if (id >= m_entries.size()) m_entries.resize(id + 1);
 
-        return GeometryHandle{id, 0};
+        GeometryEntry& entry = m_entries[id];
+        entry.buffer.emplace(devices, *geometry);
+
+        return GeometryHandle{id, entry.version()};
     }
 
     void GeometryManager::destroy(GeometryHandle handle) {
-        if (!handle.isValid() || handle.id >= entries.size()) return;
+        if (!handle.valid() || handle.id() >= m_entries.size()) return;
 
-        entries[handle.id].reset();
-        handle.version++;
+        GeometryEntry& entry = m_entries[handle.id()];
+        if (entry.version() != handle.version() || !entry.buffer) return;
 
-        freeIds.push_back(handle.id);
-    }
+        entry.buffer.reset();
+        entry.bump();
 
-    uint32_t GeometryManager::computeUniqueId() {
-        const uint32_t id = freeIds.empty() ? nextId++ : freeIds.back();
-
-        if (!freeIds.empty()) {
-            freeIds.pop_back();
-        }
-
-        if (id >= entries.size()) {
-            entries.resize(id + 1);
-        }
-
-        return id;
+        m_freeIds.push_back(handle.id());
     }
 }

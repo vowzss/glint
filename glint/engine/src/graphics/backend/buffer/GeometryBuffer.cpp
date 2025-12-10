@@ -3,12 +3,9 @@
 
 namespace glint::engine::graphics {
 
-    GeometryBuffer::GeometryBuffer(const Devices& devices, const GeometryData& data) {
-        const auto& v = data.vertices;
-        vertices = std::make_unique<VertexBuffer>(devices, v.size(), v.data());
-
-        const auto& i = data.indices;
-        indices = std::make_unique<IndexBuffer>(devices, i.size(), i.data());
+    GeometryBuffer::GeometryBuffer(const Devices& devices, const GeometryData& data)
+        : m_vertices(VertexBuffer{devices, data.m_vertices.size(), data.m_vertices.data()}),
+          m_indices(IndexBuffer{devices, data.m_indices.size(), data.m_indices.data()}) {
     }
 
 }

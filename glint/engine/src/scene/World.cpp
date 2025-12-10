@@ -6,6 +6,7 @@
 #include "glint/core/managers/AssetManager.h"
 #include "glint/scene/World.h"
 #include "glint/scene/components/GeometryComponent.h"
+#include "glint/scene/components/Transform.h"
 
 using namespace glint::engine::core;
 using namespace glint::engine::graphics;
@@ -22,7 +23,10 @@ namespace glint::engine::scene {
 
     // --- entities ---
     EntityHandle World::createEntity() noexcept {
-        return m_entities->create();
+        EntityHandle handle = m_entities->create();
+        m_components->add(handle, Transform{});
+
+        return handle;
     }
 
     void World::destroyEntity(EntityHandle handle) noexcept {
@@ -38,10 +42,24 @@ namespace glint::engine::scene {
     void World::destroyGeometry(GeometryHandle handle) noexcept {
         m_geometries->destroy(handle);
 
-        auto& storage = getStorage<GeometryComponent>();
-        storage.each([&](GeometryComponent& component) {
-            if (component.handle != handle) return;
-            component.handle = GeometryHandle::invalid();
+        auto& geometries = m_components->query<GeometryComponent>();
+        geometries.each([handle](GeometryComponent& component) {
+            if (!component.matches(handle)) return;
+            component.invalidate();
         });
     }
+
+    EntityView World::entity(EntityHandle handle) {
+        EntityView view;
+
+        if (!m_entities->isAlive(handle)) {
+            return view;
+        }
+
+        view.transform = m_components->get<Transform>(handle);
+        view.geometry = m_components->get<GeometryComponent>(handle);
+
+        return view;
+    }
+
 }

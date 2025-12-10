@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 
 #include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
@@ -10,12 +11,49 @@ using namespace glint::engine::graphics;
 
 namespace glint::engine::utils {
 
+    VulkanVersion getVulkanLoaderVersion() {
+        VulkanVersion version{0, 0, 0};
+
+        uint32_t apiVersion = 0;
+        VkResult result = vkEnumerateInstanceVersion(&apiVersion);
+
+        if (result != VK_SUCCESS) {
+            version.major = 1;
+            version.minor = 0;
+            version.patch = 0;
+        } else {
+            version.major = VK_VERSION_MAJOR(apiVersion);
+            version.minor = VK_VERSION_MINOR(apiVersion);
+            version.patch = VK_VERSION_PATCH(apiVersion);
+        }
+
+        return version;
+    }
+
+    VulkanVersion getDeviceVulkanVersion(VkPhysicalDevice device) {
+        VulkanVersion version{0, 0, 0};
+
+        if (device == VK_NULL_HANDLE) {
+            std::cerr << "Invalid physical device!\n";
+            return version;
+        }
+
+        VkPhysicalDeviceProperties properties;
+        vkGetPhysicalDeviceProperties(device, &properties);
+
+        version.major = VK_VERSION_MAJOR(properties.apiVersion);
+        version.minor = VK_VERSION_MINOR(properties.apiVersion);
+        version.patch = VK_VERSION_PATCH(properties.apiVersion);
+
+        return version;
+    }
+
     VkPhysicalDevice selectPhysicalDevice(const VkInstance& instance, const VkSurfaceKHR& surface) {
         // get number of GPUs available
         uint32_t count = 0;
         vkEnumeratePhysicalDevices(instance, &count, nullptr);
         if (count == 0) {
-            throw std::runtime_error("Vulkan | no supported GPUs!");
+            throw std::runtime_error("Vulkan | No supported GPUs!");
         }
 
         // get list of physical devices
@@ -29,7 +67,7 @@ namespace glint::engine::utils {
             }
         }
 
-        throw std::runtime_error("Vulkan | no suitable GPU!");
+        throw std::runtime_error("Vulkan | No suitable GPU!");
     }
 
     VkSurfaceFormatKHR selectSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats) {
@@ -206,20 +244,19 @@ namespace glint::engine::utils {
     bool isDeviceExtensionsSupported(const VkPhysicalDevice& device) {
         uint32_t count;
         vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
+        if (count == 0) return false;
 
         std::vector<VkExtensionProperties> props(count);
         vkEnumerateDeviceExtensionProperties(device, nullptr, &count, props.data());
 
         for (const char* ext : deviceExtensions) {
             bool found = false;
-
-            for (const VkExtensionProperties& prop : props) {
-                if (strcmp(ext, prop.extensionName) == 0) {
+            for (const auto& prop : props) {
+                if (std::string_view(ext) == prop.extensionName) {
                     found = true;
                     break;
                 }
             }
-
             if (!found) {
                 return false;
             }

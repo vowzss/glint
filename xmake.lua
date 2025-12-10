@@ -32,6 +32,7 @@ add_requires("joltphysics")
 add_requires("glfw")
 add_requires("vulkan-loader")
 add_requires("vulkan-headers")
+add_requires("vulkan-memory-allocator")
 add_requires("shaderc")
 
 -- engine target (library)
@@ -42,7 +43,7 @@ target("glint_engine")
     -- dependencies
     add_packages("spdlog", "xxhash")
     add_packages("glfw", "joltphysics", "tinyobjloader", "imgui")
-    add_packages("vulkan-loader", "vulkan-headers", "shaderc")
+    add_packages("vulkan-loader", "vulkan-headers", "vulkan-memory-allocator", "shaderc")
 
     -- headers
     --set_pcheader("glint/engine/include/glint/pch.h")

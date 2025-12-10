@@ -1,10 +1,5 @@
-#include "glint/core/ecs/ComponentManager.h"
-#include "glint/core/ecs/ComponentStorage.h"
-#include "glint/graphics/backend/buffer/StorageBuffer.h"
 #include "glint/graphics/layers/SceneLayer.h"
 #include "glint/scene/World.h"
-#include "glint/scene/components/GeometryComponent.h"
-#include "glint/scene/components/Transform.h"
 
 using namespace glint::engine::core;
 using namespace glint::engine::scene;
@@ -14,11 +9,8 @@ namespace glint::engine::graphics {
     SceneLayer::~SceneLayer() = default;
 
     void SceneLayer::render(float deltaTime, const LayerRenderInfo& info) {
-        // const JPH::Mat44* models = reinterpret_cast<const JPH::Mat44*>(entityBuffer->data());
-        // entityBuffer->update(sizeof(JPH::Mat44) * entityBuffer->size(), models);
-
-        const auto& transforms = world.getStorage<Transform>();
-        const auto& geometries = world.getStorage<GeometryComponent>();
+        /*const auto& transforms = world.query<Transform>();
+        const auto& geometries = world.query<GeometryComponent>();*/
 
         /*for (size_t i = 0; i < transforms.data.size(); ++i) {
             uint32_t entityId = transforms.owners[i];
@@ -28,8 +20,8 @@ namespace glint::engine::graphics {
         }*/
 
         vkCmdBindPipeline(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipeline);
-        vkCmdBindDescriptorSets(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 0, 1, &info.camera.set, 0, nullptr);
-        vkCmdBindDescriptorSets(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 1, 1, &info.entity.set, 0, nullptr);
+        vkCmdBindDescriptorSets(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 0, 1, &info.cameraSet, 0, nullptr);
+        vkCmdBindDescriptorSets(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 1, 1, &info.entitySet, 0, nullptr);
 
         /*VkDeviceSize offsets[] = {0};
         for (size_t i = 0; i < geometries.data.size(); ++i) {

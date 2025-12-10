@@ -1,12 +1,13 @@
 #pragma once
 
-#include <memory>
 #include <vector>
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Math/Mat44.h>
 #include <vulkan/vulkan_core.h>
 
+#include "glint/graphics/backend/buffer/StorageBuffer.h"
+#include "glint/graphics/backend/buffer/UniformBuffer.h"
 #include "glint/graphics/layers/RenderLayer.h"
 
 namespace glint::engine {
@@ -36,20 +37,20 @@ namespace glint::engine::graphics {
         VkPipeline pipeline;
         VkPipelineLayout pipelineLayout;
 
-        VkDescriptorSetLayout cameraLayout;
-        VkDescriptorSetLayout entityLayout;
-
         const core::CameraSnapshot& camera;
+    };
+
+    template <typename T>
+    struct FrameBufferBinding {
+        VkDescriptorSet set;
+        T buffer;
     };
 
     struct FrameData {
         const VkDevice m_device;
 
-        VkDescriptorSet m_cameraSet;
-        VkDescriptorSet m_entitySet;
-
-        std::unique_ptr<UniformBuffer> m_cameraBuffer;
-        std::unique_ptr<StorageBuffer> m_entityBuffer;
+        FrameBufferBinding<UniformBuffer> m_camera;
+        FrameBufferBinding<StorageBuffer> m_entity;
 
         std::vector<RenderLayer*> m_layers;
 
@@ -67,9 +68,9 @@ namespace glint::engine::graphics {
 
         ~FrameData();
 
-        void begin() const;
-        void render(float deltaTime, const FrameRenderInfo& info) const;
-        void end() const;
+        void begin();
+        void render(float deltaTime, const FrameRenderInfo& info);
+        void end();
 
         void attach(RenderLayer* layer) noexcept;
         void detach(RenderLayer* layer) noexcept;

@@ -6,8 +6,7 @@ namespace glint::engine::graphics {
 
     struct VertexBuffer : BufferData {
         VertexBuffer() = delete;
-        VertexBuffer(const Devices& devices, VkDeviceSize size, const void* data = nullptr) : BufferData(devices, makeBufferInfo(size, data)) {
-        }
+        VertexBuffer(const Devices& devices, VkDeviceSize size, const void* data = nullptr) : BufferData(devices, makeBufferInfo(size, data)) {};
 
       private:
         static BufferCreateInfo makeBufferInfo(VkDeviceSize size, const void* data) {

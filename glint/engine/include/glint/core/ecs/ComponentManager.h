@@ -1,18 +1,17 @@
 #pragma once
 
+#include "ComponentStorage.h"
+
 namespace glint::engine::scene {
     struct Transform;
     struct GeometryComponent;
 }
 
-#include "ComponentStorage.h"
-
 namespace glint::engine::core {
 
-    struct ComponentManager {
-      private:
-        ComponentStorage<scene::Transform> transforms;
-        ComponentStorage<scene::GeometryComponent> geometries;
+    class ComponentManager {
+        ComponentStorage<scene::Transform> m_transforms;
+        ComponentStorage<scene::GeometryComponent> m_geometries;
 
       public:
         template <typename T>
@@ -22,10 +21,10 @@ namespace glint::engine::core {
         inline bool has(EntityHandle handle) const noexcept;
 
         template <typename T>
-        inline T& get(EntityHandle handle);
+        inline T* get(EntityHandle handle);
 
         template <typename T>
-        inline const T& get(EntityHandle handle) const;
+        inline const T* get(EntityHandle handle) const;
 
         template <typename T>
         inline void remove(EntityHandle handle);
@@ -33,10 +32,10 @@ namespace glint::engine::core {
         inline void removeAll(EntityHandle handle);
 
         template <typename T>
-        ComponentStorage<T>& getStorage() noexcept;
+        ComponentStorage<T>& query() noexcept;
 
         template <typename T>
-        const ComponentStorage<T>& getStorage() const noexcept;
+        const ComponentStorage<T>& query() const noexcept;
     };
 
 }

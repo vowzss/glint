@@ -7,8 +7,8 @@ namespace glint::engine::graphics {
     struct Devices;
 
     struct BufferCreateInfo {
-        const void* data;
-        VkDeviceSize size;
+        const void* data = nullptr;
+        VkDeviceSize size = 0;
 
         VkBufferUsageFlags usage;
         VkMemoryPropertyFlags properties;
@@ -17,7 +17,7 @@ namespace glint::engine::graphics {
     struct BufferData {
         // --- GPU handles ---
         const VkDevice m_device = nullptr;
-        VkBuffer m_value = nullptr;
+        VkBuffer m_handle = nullptr;
         VkDeviceMemory m_memory = nullptr;
 
       protected:
@@ -34,8 +34,8 @@ namespace glint::engine::graphics {
         BufferData(const BufferData&) = delete;
         BufferData& operator=(const BufferData&) = delete;
 
-        BufferData(BufferData&& other) = delete;
-        BufferData& operator=(BufferData&& other) = delete;
+        BufferData(BufferData&& other) noexcept;
+        BufferData& operator=(BufferData&& other) noexcept;
 
         bool update(VkDeviceSize size, const void* data = nullptr, VkDeviceSize offset = 0);
 

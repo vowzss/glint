@@ -7,15 +7,15 @@ namespace glint::engine::graphics {
         using vertices_t = std::vector<Vertex>;
         using indices_t = std::vector<uint32_t>;
 
-        vertices_t vertices;
-        indices_t indices;
+        vertices_t m_vertices;
+        indices_t m_indices;
 
       public:
         GeometryData() = default;
         GeometryData(const GeometryData&) = delete;
         GeometryData(GeometryData&&) noexcept = default;
 
-        GeometryData(vertices_t vertices_, indices_t indices_) : vertices(std::move(vertices_)), indices(std::move(indices_)) {
+        GeometryData(vertices_t vertices, indices_t indices) : m_vertices(std::move(vertices)), m_indices(std::move(indices)) {
         }
 
         GeometryData& operator=(const GeometryData&) = delete;

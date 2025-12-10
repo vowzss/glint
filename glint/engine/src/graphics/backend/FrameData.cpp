@@ -1,7 +1,5 @@
 #include "glint/core/systems/CameraSystem.h"
 #include "glint/graphics/backend/FrameData.h"
-#include "glint/graphics/backend/buffer/StorageBuffer.h"
-#include "glint/graphics/backend/buffer/UniformBuffer.h"
 #include "glint/graphics/backend/device/Devices.h"
 #include "glint/graphics/layers/RenderLayer.h"
 
@@ -9,7 +7,9 @@ using namespace glint::engine::core;
 
 namespace glint::engine::graphics {
 
-    FrameData::FrameData(const Devices& devices, const FrameCreateInfo& info) : m_device(devices.logical) {
+    FrameData::FrameData(const Devices& devices, const FrameCreateInfo& info)
+        : m_device(devices.logical), m_camera{VK_NULL_HANDLE, UniformBuffer(devices, CameraSnapshot::size())},
+          m_entity{VK_NULL_HANDLE, StorageBuffer(devices, sizeof(JPH::Mat44) * 10)} {
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_ready);
@@ -28,20 +28,18 @@ namespace glint::engine::graphics {
             allocInfo.descriptorSetCount = 1;
             allocInfo.pSetLayouts = &info.cameraLayout;
 
-            if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_cameraSet) != VK_SUCCESS) {
+            if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_camera.set) != VK_SUCCESS) {
                 throw std::runtime_error("Vulkan | Failed to create camera descriptor!");
             }
 
-            m_cameraBuffer = std::make_unique<UniformBuffer>(devices, CameraSnapshot::size());
-
             VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = m_cameraBuffer->m_value;
+            bufferInfo.buffer = m_camera.buffer.m_handle;
             bufferInfo.offset = 0;
             bufferInfo.range = VK_WHOLE_SIZE;
 
             VkWriteDescriptorSet writeInfo{};
             writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            writeInfo.dstSet = m_cameraSet;
+            writeInfo.dstSet = m_camera.set;
             writeInfo.dstBinding = 0;
             writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             writeInfo.descriptorCount = 1;
@@ -58,20 +56,18 @@ namespace glint::engine::graphics {
             allocInfo.descriptorSetCount = 1;
             allocInfo.pSetLayouts = &info.entityLayout;
 
-            if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_entitySet) != VK_SUCCESS) {
+            if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_entity.set) != VK_SUCCESS) {
                 throw std::runtime_error("Vulkan | Failed to create entity descriptor!");
             }
 
-            m_entityBuffer = std::make_unique<StorageBuffer>(devices, sizeof(JPH::Mat44) * 15000);
-
             VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = m_entityBuffer->m_value;
+            bufferInfo.buffer = m_entity.buffer.m_handle;
             bufferInfo.offset = 0;
             bufferInfo.range = VK_WHOLE_SIZE;
 
             VkWriteDescriptorSet writeInfo{};
             writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            writeInfo.dstSet = m_entitySet;
+            writeInfo.dstSet = m_entity.set;
             writeInfo.dstBinding = 0;
             writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
             writeInfo.descriptorCount = 1;
@@ -82,9 +78,6 @@ namespace glint::engine::graphics {
     }
 
     FrameData::~FrameData() {
-        m_cameraBuffer.reset();
-        m_entityBuffer.reset();
-
         if (m_guard != VK_NULL_HANDLE) {
             vkDestroyFence(m_device, m_guard, nullptr);
         }
@@ -98,27 +91,31 @@ namespace glint::engine::graphics {
         }
     }
 
-    void FrameData::begin() const {
+    void FrameData::begin() {
         // your Vulkan commands to begin frame
     }
 
-    void FrameData::render(float deltaTime, const FrameRenderInfo& info) const {
+    void FrameData::render(float deltaTime, const FrameRenderInfo& info) {
         m_deltaTime = deltaTime;
-        m_cameraBuffer->update(info.camera.size(), info.camera.data());
+
+        m_camera.buffer.update(info.camera.size(), info.camera.data());
+
+        const JPH::Mat44* models = reinterpret_cast<const JPH::Mat44*>(m_entity.buffer.data());
+        m_entity.buffer.update(m_entity.buffer.size(), models);
 
         LayerRenderInfo renderInfo;
         renderInfo.commands = info.commands;
         renderInfo.pipeline = info.pipeline;
         renderInfo.pipelineLayout = info.pipelineLayout;
-        renderInfo.camera = {m_cameraSet, m_cameraBuffer.get()};
-        renderInfo.entity = {m_entitySet, m_entityBuffer.get()};
+        renderInfo.cameraSet = m_camera.set;
+        renderInfo.entitySet = m_entity.set;
 
         for (int i = 0; i < m_layers.size(); ++i) {
             m_layers[i]->render(this->m_deltaTime, renderInfo);
         }
     }
 
-    void FrameData::end() const {
+    void FrameData::end() {
     }
 
     void FrameData::attach(RenderLayer* layer) noexcept {

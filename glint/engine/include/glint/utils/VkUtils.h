@@ -15,11 +15,22 @@ namespace glint::engine::utils {
 
     const std::vector<const char*> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME,
+        VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
         // VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME,
         // VK_AMD_NEGATIVE_VIEWPORT_HEIGHT_EXTENSION_NAME,
     };
 
     const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
+
+    struct VulkanVersion {
+        uint32_t major;
+        uint32_t minor;
+        uint32_t patch;
+    };
+
+    VulkanVersion getVulkanLoaderVersion();
+    VulkanVersion getDeviceVulkanVersion(VkPhysicalDevice device);
 
     VkPhysicalDevice selectPhysicalDevice(const VkInstance& instance, const VkSurfaceKHR& surface);
 

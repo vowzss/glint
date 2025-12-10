@@ -6,8 +6,7 @@ namespace glint::engine::graphics {
 
     struct IndexBuffer : BufferData {
         IndexBuffer() = delete;
-        IndexBuffer(const Devices& devices, VkDeviceSize size, const void* data = nullptr) : BufferData(devices, makeBufferInfo(size, data)) {
-        }
+        IndexBuffer(const Devices& devices, VkDeviceSize size, const void* data = nullptr) : BufferData(devices, makeBufferInfo(size, data)) {};
 
       private:
         static BufferCreateInfo makeBufferInfo(VkDeviceSize size, const void* data) {

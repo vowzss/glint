@@ -1,7 +1,9 @@
 #include <cstdint>
+#include <iostream>
 
 #include <vulkan/vulkan.hpp>
 
+#include "glint/core/Logger.h"
 #include "glint/graphics/Renderer.h"
 #include "glint/graphics/backend/FrameData.h"
 #include "glint/graphics/backend/VkHelpers.h"
@@ -34,49 +36,54 @@ using namespace glint::engine::utils;
 
 namespace glint::engine::graphics {
 
-    Renderer::Renderer(int width_, int height_, const std::vector<const char*>& extensions) : width(width_), height(height_) {
+    Renderer::Renderer(int width, int height, const std::vector<const char*>& extensions) : m_width(width), m_height(height) {
+        VulkanVersion loaderVersion = getVulkanLoaderVersion();
+        LOG_DEBUG("Vulkan loader supports version {}.{}.{}", loaderVersion.major, loaderVersion.minor, loaderVersion.patch);
+
         createInstance(extensions);
     }
 
     Renderer::~Renderer() {
-        vkDeviceWaitIdle(devices.logical);
+        vkDeviceWaitIdle(m_devices.logical);
 
-        for (auto& frame : frames)
+        for (auto& frame : m_frames)
             frame.reset();
 
         for (VkFramebuffer fb : renderpass->framebuffers)
-            vkDestroyFramebuffer(devices.logical, fb, nullptr);
+            vkDestroyFramebuffer(m_devices.logical, fb, nullptr);
 
-        vkDestroyImageView(devices.logical, depthBuffer->view, nullptr);
+        vkDestroyImageView(m_devices.logical, depthBuffer->view, nullptr);
         for (VkImageView view : swapchain->views)
-            vkDestroyImageView(devices.logical, view, nullptr);
+            vkDestroyImageView(m_devices.logical, view, nullptr);
 
-        vkDestroySwapchainKHR(devices.logical, swapchain->handle, nullptr);
+        vkDestroySwapchainKHR(m_devices.logical, swapchain->handle, nullptr);
 
-        vkDestroyImage(devices.logical, depthBuffer->image, nullptr);
-        vkFreeMemory(devices.logical, depthBuffer->memory, nullptr);
+        vkDestroyImage(m_devices.logical, depthBuffer->image, nullptr);
+        vkFreeMemory(m_devices.logical, depthBuffer->memory, nullptr);
 
-        vkDestroyPipeline(devices.logical, pipeline, nullptr);
-        vkDestroyPipelineLayout(devices.logical, pipelineLayout, nullptr);
-        vkDestroyRenderPass(devices.logical, renderpass->handle, nullptr);
+        vkDestroyPipeline(m_devices.logical, m_pipeline, nullptr);
+        vkDestroyPipelineLayout(m_devices.logical, m_pipelineLayout, nullptr);
+        vkDestroyRenderPass(m_devices.logical, renderpass->handle, nullptr);
 
-        vkDestroyDescriptorSetLayout(devices.logical, cameraLayout, nullptr);
-        vkDestroyDescriptorSetLayout(devices.logical, entityLayout, nullptr);
-        vkDestroyDescriptorPool(devices.logical, descriptorPool, nullptr);
+        vkDestroyDescriptorSetLayout(m_devices.logical, cameraLayout, nullptr);
+        vkDestroyDescriptorSetLayout(m_devices.logical, entityLayout, nullptr);
+        vkDestroyDescriptorPool(m_devices.logical, descriptorPool, nullptr);
 
-        vkFreeCommandBuffers(devices.logical, commands->handle, commands->buffers.size(), commands->buffers.data());
-        vkDestroyCommandPool(devices.logical, commands->handle, nullptr);
+        vkFreeCommandBuffers(m_devices.logical, commands->handle, commands->buffers.size(), commands->buffers.data());
+        vkDestroyCommandPool(m_devices.logical, commands->handle, nullptr);
 
-        vkDestroySurfaceKHR(instance, surface, nullptr);
-        vkDestroyDevice(devices.logical, nullptr);
-        vkDestroyInstance(instance, nullptr);
+        vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+        vkDestroyDevice(m_devices.logical, nullptr);
+        vkDestroyInstance(m_instance, nullptr);
     }
 
-    void Renderer::init(const VkSurfaceKHR& surface_) {
-        surface = surface_;
-        devices.physical = utils::selectPhysicalDevice(instance, surface);
+    void Renderer::init(const VkSurfaceKHR& surface) {
+        m_surface = surface;
 
-        createLogicalDevice();
+        createDevices();
+
+        VulkanVersion deviceVersion = getDeviceVulkanVersion(m_devices.physical);
+        LOG_DEBUG("Vulkan physical device supports version {}.{}.{}", deviceVersion.major, deviceVersion.minor, deviceVersion.patch);
 
         createSwapchain();
         createRenderPass();
@@ -92,7 +99,7 @@ namespace glint::engine::graphics {
             poolInfo.pPoolSizes = poolSizes.data();
             poolInfo.maxSets = MAX_FRAMES_IN_FLIGHT * 2;
 
-            if (vkCreateDescriptorPool(devices.logical, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+            if (vkCreateDescriptorPool(m_devices.logical, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
                 throw std::runtime_error("Vulkan | Failed to create descriptor pool!");
             }
         }
@@ -106,48 +113,48 @@ namespace glint::engine::graphics {
     }
 
     void Renderer::begin() noexcept {
-        const auto& frame = frames[frameIndex];
+        const auto& frame = m_frames[m_frame];
 
-        vkWaitForFences(devices.logical, 1, &frames[frameIndex]->m_guard, VK_TRUE, UINT64_MAX);
-        vkResetFences(devices.logical, 1, &frames[frameIndex]->m_guard);
+        vkWaitForFences(m_devices.logical, 1, &m_frames[m_frame]->m_guard, VK_TRUE, UINT64_MAX);
+        vkResetFences(m_devices.logical, 1, &m_frames[m_frame]->m_guard);
 
-        vkAcquireNextImageKHR(devices.logical, swapchain->handle, UINT64_MAX, frames[frameIndex]->m_ready, VK_NULL_HANDLE, &imageIndex);
+        vkAcquireNextImageKHR(m_devices.logical, swapchain->handle, UINT64_MAX, m_frames[m_frame]->m_ready, VK_NULL_HANDLE, &m_image);
 
         frame->begin();
     }
 
     void Renderer::record(float deltaTime, const CameraSnapshot& snapshot) noexcept {
-        const auto& frame = frames[frameIndex];
+        const auto& frame = m_frames[m_frame];
 
         std::array<VkClearValue, 2> clearValues;
         clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
         clearValues[1].depthStencil = {1.0f, 0};
 
-        commands->begin(frameIndex);
+        commands->begin(m_frame);
 
         VkRenderPassBeginInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = renderpass->handle;
-        renderPassInfo.framebuffer = renderpass->framebuffers[frameIndex];
+        renderPassInfo.framebuffer = renderpass->framebuffers[m_frame];
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = swapchain->extent;
         renderPassInfo.clearValueCount = clearValues.size();
         renderPassInfo.pClearValues = clearValues.data();
 
-        vkCmdBeginRenderPass(commands->buffers[frameIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(commands->buffers[m_frame], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdSetViewport(commands->buffers[frameIndex], 0, 1, &viewport);
-        vkCmdSetScissor(commands->buffers[frameIndex], 0, 1, &scissor);
+        vkCmdSetViewport(commands->buffers[m_frame], 0, 1, &m_viewport);
+        vkCmdSetScissor(commands->buffers[m_frame], 0, 1, &m_scissor);
 
-        FrameRenderInfo frameInfo = {commands->buffers[frameIndex], pipeline, pipelineLayout, cameraLayout, entityLayout, snapshot};
+        FrameRenderInfo frameInfo = {commands->buffers[m_frame], m_pipeline, m_pipelineLayout, snapshot};
         frame->render(deltaTime, frameInfo);
 
-        vkCmdEndRenderPass(commands->buffers[frameIndex]);
-        commands->end(frameIndex);
+        vkCmdEndRenderPass(commands->buffers[m_frame]);
+        commands->end(m_frame);
     }
 
     void Renderer::end() noexcept {
-        const auto& frame = frames[frameIndex];
+        const auto& frame = m_frames[m_frame];
 
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         std::vector<VkSemaphore> waitSemaphores = {frame->m_ready};
@@ -159,7 +166,7 @@ namespace glint::engine::graphics {
         submitInfo.pWaitSemaphores = waitSemaphores.data();
         submitInfo.pWaitDstStageMask = waitStages;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commands->buffers[frameIndex];
+        submitInfo.pCommandBuffers = &commands->buffers[m_frame];
         submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
         submitInfo.pSignalSemaphores = signalSemaphores.data();
         vkQueueSubmit(queues->graphics[0], 1, &submitInfo, frame->m_guard);
@@ -170,11 +177,11 @@ namespace glint::engine::graphics {
         presentInfo.pWaitSemaphores = signalSemaphores.data();
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = &swapchain->handle;
-        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pImageIndices = &m_image;
         vkQueuePresentKHR(queues->present[0], &presentInfo);
 
         frame->end();
-        frameIndex = (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
+        m_frame = (m_frame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
     void Renderer::createInstance(const std::vector<const char*>& extensions) {
@@ -194,13 +201,15 @@ namespace glint::engine::graphics {
             instanceInfo.ppEnabledLayerNames = utils::validationLayers.data();
         }
 
-        if (vkCreateInstance(&instanceInfo, nullptr, &instance) != VK_SUCCESS) {
+        if (vkCreateInstance(&instanceInfo, nullptr, &m_instance) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create instance!");
         }
     }
 
-    void Renderer::createLogicalDevice() {
-        QueueFamiliesSupportDetails families = utils::queryQueueFamiliesSupport(devices.physical, surface);
+    void Renderer::createDevices() {
+        m_devices.physical = utils::selectPhysicalDevice(m_instance, m_surface);
+
+        QueueFamiliesSupportDetails families = utils::queryQueueFamiliesSupport(m_devices.physical, m_surface);
 
         // prepare queue creation info for each unique family
         std::vector<VkDeviceQueueCreateInfo> queueInfos;
@@ -230,15 +239,15 @@ namespace glint::engine::graphics {
         deviceInfo.ppEnabledExtensionNames = utils::deviceExtensions.data();
         deviceInfo.pEnabledFeatures = &deviceFeatures;
 
-        if (vkCreateDevice(devices.physical, &deviceInfo, nullptr, &devices.logical) != VK_SUCCESS) {
+        if (vkCreateDevice(m_devices.physical, &deviceInfo, nullptr, &m_devices.logical) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create logical device!");
         }
 
-        queues = std::make_unique<QueuesData>(devices.logical, families);
+        queues = std::make_unique<QueuesData>(m_devices.logical, families);
     }
 
     void Renderer::createSwapchain() {
-        SwapchainSupportDetails details = utils::querySwapchainSupport(devices.physical, surface);
+        SwapchainSupportDetails details = utils::querySwapchainSupport(m_devices.physical, m_surface);
         if (details.formats.empty() || details.modes.empty()) {
             throw std::runtime_error("Vulkan | swapchain not supported!");
         }
@@ -248,11 +257,11 @@ namespace glint::engine::graphics {
 
         VkSwapchainCreateInfoKHR swapchainInfo = {};
         swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        swapchainInfo.surface = surface;
+        swapchainInfo.surface = m_surface;
         swapchainInfo.minImageCount = utils::selectSurfaceImageCount(details.capabilities);
         swapchainInfo.imageFormat = surfaceFormat.format;
         swapchainInfo.imageColorSpace = surfaceFormat.colorSpace;
-        swapchainInfo.imageExtent = utils::selectSurfaceExtent(width, height, details.capabilities);
+        swapchainInfo.imageExtent = utils::selectSurfaceExtent(m_width, m_height, details.capabilities);
         swapchainInfo.imageArrayLayers = 1;
         swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         swapchainInfo.preTransform = details.capabilities.currentTransform;
@@ -261,23 +270,23 @@ namespace glint::engine::graphics {
         swapchainInfo.clipped = VK_TRUE;
         swapchainInfo.oldSwapchain = VK_NULL_HANDLE;
 
-        swapchain = std::make_unique<SwapchainData>(devices.logical, swapchainInfo);
+        swapchain = std::make_unique<SwapchainData>(m_devices.logical, swapchainInfo);
 
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        viewport.width = static_cast<float>(swapchain->extent.width);
-        viewport.height = static_cast<float>(swapchain->extent.height);
+        m_viewport.x = 0.0f;
+        m_viewport.y = 0.0f;
+        m_viewport.minDepth = 0.0f;
+        m_viewport.maxDepth = 1.0f;
+        m_viewport.width = static_cast<float>(swapchain->extent.width);
+        m_viewport.height = static_cast<float>(swapchain->extent.height);
 
-        scissor.offset = {0, 0};
-        scissor.extent = swapchain->extent;
+        m_scissor.offset = {0, 0};
+        m_scissor.extent = swapchain->extent;
     }
 
     void Renderer::createRenderPass() {
-        ImageBufferDataInfo depthInfo = ImageBufferDataInfo{findDepthFormat(devices.physical), swapchain->extent};
+        ImageBufferDataInfo depthInfo = ImageBufferDataInfo{findDepthFormat(m_devices.physical), swapchain->extent};
 
-        depthBuffer = std::make_unique<ImageBufferData>(devices, depthInfo);
+        depthBuffer = std::make_unique<ImageBufferData>(m_devices, depthInfo);
 
         ColorAttachmentInfo color(swapchain->format, 0);
         DepthAttachmentInfo depth(depthBuffer->format, 1);
@@ -324,7 +333,7 @@ namespace glint::engine::graphics {
         vertShaderInfo.codeSize = vertShaderCode.size();
         vertShaderInfo.pCode = reinterpret_cast<const uint32_t*>(vertShaderCode.data());
 
-        if (vkCreateShaderModule(devices.logical, &vertShaderInfo, nullptr, &vertShaderModule) != VK_SUCCESS) {
+        if (vkCreateShaderModule(m_devices.logical, &vertShaderInfo, nullptr, &vertShaderModule) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create vertex shader module!");
         }
 
@@ -334,7 +343,7 @@ namespace glint::engine::graphics {
         fragShaderInfo.codeSize = fragShaderCode.size();
         fragShaderInfo.pCode = reinterpret_cast<const uint32_t*>(fragShaderCode.data());
 
-        if (vkCreateShaderModule(devices.logical, &fragShaderInfo, nullptr, &fragShaderModule) != VK_SUCCESS) {
+        if (vkCreateShaderModule(m_devices.logical, &fragShaderInfo, nullptr, &fragShaderModule) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create fragment shader module!");
         }
 
@@ -403,9 +412,9 @@ namespace glint::engine::graphics {
         VkPipelineViewportStateCreateInfo viewportState = {};
         viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         viewportState.viewportCount = 1;
-        viewportState.pViewports = &viewport;
+        viewportState.pViewports = &m_viewport;
         viewportState.scissorCount = 1;
-        viewportState.pScissors = &scissor;
+        viewportState.pScissors = &m_scissor;
 
         VkPipelineRasterizationStateCreateInfo rasterizerStateInfo = {};
         rasterizerStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -449,7 +458,7 @@ namespace glint::engine::graphics {
         pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(layouts.size());
         pipelineLayoutInfo.pSetLayouts = layouts.data();
 
-        if (vkCreatePipelineLayout(devices.logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(m_devices.logical, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create pipeline layout!");
         }
 
@@ -465,37 +474,37 @@ namespace glint::engine::graphics {
         pipelineInfo.pMultisampleState = &multisamplingStateInfo;
         pipelineInfo.pDepthStencilState = &depthStencilStateInfo;
         pipelineInfo.pColorBlendState = &colorBlendingStateInfo;
-        pipelineInfo.layout = pipelineLayout;
+        pipelineInfo.layout = m_pipelineLayout;
         pipelineInfo.renderPass = renderpass->handle;
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        if (vkCreateGraphicsPipelines(devices.logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS) {
+        if (vkCreateGraphicsPipelines(m_devices.logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create graphics pipeline!");
         }
 
         // cleanup shader modules
-        vkDestroyShaderModule(devices.logical, fragShaderModule, nullptr);
-        vkDestroyShaderModule(devices.logical, vertShaderModule, nullptr);
+        vkDestroyShaderModule(m_devices.logical, fragShaderModule, nullptr);
+        vkDestroyShaderModule(m_devices.logical, vertShaderModule, nullptr);
     }
 
     void Renderer::createCommandPool() {
         // todo: support other family queues
-        QueueFamiliesSupportDetails families = utils::queryQueueFamiliesSupport(devices.physical, surface);
+        QueueFamiliesSupportDetails families = utils::queryQueueFamiliesSupport(m_devices.physical, m_surface);
 
-        commands = std::make_unique<CommandsPoolData>(devices.logical, families.graphics, MAX_FRAMES_IN_FLIGHT);
+        commands = std::make_unique<CommandsPoolData>(m_devices.logical, families.graphics, MAX_FRAMES_IN_FLIGHT);
     }
 
     void Renderer::createSyncObjects() {
-        frames.resize(MAX_FRAMES_IN_FLIGHT);
+        m_frames.resize(MAX_FRAMES_IN_FLIGHT);
 
         FrameCreateInfo frameInfo = {descriptorPool, cameraLayout, entityLayout};
 
         for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-            frames[i] = std::make_unique<FrameData>(devices, frameInfo);
+            m_frames[i] = std::make_unique<FrameData>(m_devices, frameInfo);
 
             for (int j = 0; j < layers.size(); ++j) {
-                frames[i]->attach(layers[j].get());
+                m_frames[i]->attach(layers[j].get());
             }
         }
     }
@@ -512,7 +521,7 @@ namespace glint::engine::graphics {
         layoutInfo.bindingCount = 1;
         layoutInfo.pBindings = &layoutBinding;
 
-        if (vkCreateDescriptorSetLayout(devices.logical, &layoutInfo, nullptr, &cameraLayout) != VK_SUCCESS) {
+        if (vkCreateDescriptorSetLayout(m_devices.logical, &layoutInfo, nullptr, &cameraLayout) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | Failed to create camera layout!");
         }
     }
@@ -529,7 +538,7 @@ namespace glint::engine::graphics {
         layoutInfo.bindingCount = 1;
         layoutInfo.pBindings = &layoutBinding;
 
-        if (vkCreateDescriptorSetLayout(devices.logical, &layoutInfo, nullptr, &entityLayout) != VK_SUCCESS) {
+        if (vkCreateDescriptorSetLayout(m_devices.logical, &layoutInfo, nullptr, &entityLayout) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | Failed to create entity layout!");
         }
     }

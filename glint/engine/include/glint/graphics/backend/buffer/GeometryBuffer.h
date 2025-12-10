@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 
@@ -9,9 +7,8 @@ namespace glint::engine::graphics {
     struct GeometryData;
 
     struct GeometryBuffer {
-      public:
-        std::unique_ptr<VertexBuffer> vertices;
-        std::unique_ptr<IndexBuffer> indices;
+        VertexBuffer m_vertices;
+        IndexBuffer m_indices;
 
       public:
         GeometryBuffer() = delete;

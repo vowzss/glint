@@ -4,16 +4,15 @@
 #include <unordered_map>
 #include <vector>
 
-#include "EntityHandle.h"
+#include "ObjectHandle.h"
 
 namespace glint::engine::core {
 
     template <typename Component>
-    struct ComponentStorage {
-      private:
-        std::vector<Component> data;
-        std::vector<uint32_t> owners;
-        std::unordered_map<uint32_t, size_t> lookup;
+    class ComponentStorage {
+        std::vector<Component> m_data;
+        std::vector<uint32_t> m_owners;
+        std::unordered_map<uint32_t, size_t> m_lookup;
 
       public:
         ComponentStorage() noexcept = default;
@@ -25,11 +24,10 @@ namespace glint::engine::core {
         ComponentStorage(ComponentStorage&&) noexcept = delete;
         ComponentStorage& operator=(ComponentStorage&&) = delete;
 
-      public:
         inline void add(EntityHandle handle, const Component& component) noexcept;
 
-        inline Component& get(EntityHandle handle) noexcept;
-        inline const Component& get(EntityHandle handle) const noexcept;
+        inline Component* get(EntityHandle handle) noexcept;
+        inline const Component* get(EntityHandle handle) const noexcept;
 
         inline bool contains(uint32_t id) const noexcept;
 

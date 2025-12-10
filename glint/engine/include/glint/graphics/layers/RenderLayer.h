@@ -10,21 +10,14 @@ namespace glint::engine {
 }
 
 namespace glint::engine::graphics {
-
-    template <typename T>
-    struct BufferRenderInfo {
-        VkDescriptorSet set;
-        T* data;
-    };
-
     struct LayerRenderInfo {
         VkCommandBuffer commands;
 
         VkPipeline pipeline;
         VkPipelineLayout pipelineLayout;
 
-        BufferRenderInfo<UniformBuffer> camera;
-        BufferRenderInfo<StorageBuffer> entity;
+        VkDescriptorSet cameraSet;
+        VkDescriptorSet entitySet;
     };
 
     class RenderLayer {

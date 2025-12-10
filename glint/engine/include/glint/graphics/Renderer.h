@@ -24,15 +24,14 @@ namespace glint::engine::graphics {
 
     class Renderer {
         // --- window / viewport ---
-        int width;
-        int height;
-        VkViewport viewport;
-        VkRect2D scissor;
+        int m_width, m_height;
+        VkViewport m_viewport;
+        VkRect2D m_scissor;
 
         // --- core ---
-        VkInstance instance;
-        VkSurfaceKHR surface;
-        Devices devices;
+        VkInstance m_instance;
+        VkSurfaceKHR m_surface;
+        Devices m_devices;
 
         // --- swapchain + renderpass ---
         std::unique_ptr<SwapchainData> swapchain;
@@ -48,13 +47,13 @@ namespace glint::engine::graphics {
         VkDescriptorSetLayout entityLayout = nullptr;
 
         // --- frame ---
-        int frameIndex = 0;
-        uint32_t imageIndex = 0;
-        std::vector<std::unique_ptr<FrameData>> frames;
+        int m_frame = 0;
+        uint32_t m_image = 0;
+        std::vector<std::unique_ptr<FrameData>> m_frames;
 
         // --- pipeline ---
-        VkPipeline pipeline;
-        VkPipelineLayout pipelineLayout;
+        VkPipeline m_pipeline;
+        VkPipelineLayout m_pipelineLayout;
 
         std::unique_ptr<ImageBufferData> depthBuffer;
 
@@ -63,11 +62,11 @@ namespace glint::engine::graphics {
 
       public:
         Renderer() = delete;
-        Renderer(int width_, int height_, const std::vector<const char*>& extensions);
+        Renderer(int width, int height, const std::vector<const char*>& extensions);
 
         ~Renderer();
 
-        void init(const VkSurfaceKHR& surface_);
+        void init(const VkSurfaceKHR& surface);
 
         inline void append(std::unique_ptr<RenderLayer> layer) noexcept {
             layers.emplace_back(std::move(layer));
@@ -79,12 +78,12 @@ namespace glint::engine::graphics {
 
         // --- getters ---
         inline const VkInstance& getInstance() const noexcept {
-            return instance;
+            return m_instance;
         }
 
       private:
         void createInstance(const std::vector<const char*>& extensions);
-        void createLogicalDevice();
+        void createDevices();
 
         void createSwapchain();
         void createRenderPass();

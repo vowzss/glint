@@ -2,9 +2,9 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
-#include "glint/core/ecs/EntityHandle.h"
-#include "glint/core/ecs/GeometryHandle.h"
+#include "glint/core/ecs/ObjectHandle.h"
 
 namespace glint::engine {
     namespace core {
@@ -24,15 +24,22 @@ namespace glint::engine {
     }
 
     namespace scene {
+        struct Transform;
         struct GeometryComponent;
     }
 }
 
 namespace glint::engine::scene {
 
+    struct EntityView {
+        scene::Transform* transform = nullptr;
+        scene::GeometryComponent* geometry = nullptr;
+    };
+
     class World {
         std::unique_ptr<core::EntityManager> m_entities;
         std::unique_ptr<core::GeometryManager> m_geometries;
+
         std::unique_ptr<core::ComponentManager> m_components;
 
       public:
@@ -47,14 +54,8 @@ namespace glint::engine::scene {
         core::GeometryHandle createGeometry(const graphics::Devices& devices, const std::string& path);
         void destroyGeometry(core::GeometryHandle handle) noexcept;
 
-        // --- components ---
-        template <typename Component>
-        core::ComponentStorage<Component>& getStorage() noexcept;
-
-        template <typename Component>
-        const core::ComponentStorage<Component>& getStorage() const noexcept;
+        EntityView entity(core::EntityHandle handle);
+        std::vector<EntityView> entities();
     };
 
 }
-
-#include "World.inl"
