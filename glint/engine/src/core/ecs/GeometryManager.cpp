@@ -1,11 +1,10 @@
-#include "glint/core/AssetManager.h"
 #include "glint/core/ecs/GeometryManager.h"
+#include "glint/core/managers/AssetManager.h"
 #include "glint/graphics/backend/buffer/GeometryBuffer.h"
 #include "glint/graphics/models/GeometryData.h"
 
 namespace glint::engine::core {
-    using namespace graphics::models;
-    using namespace graphics::backend;
+    using namespace graphics;
 
     GeometryHandle GeometryManager::create(const Devices& devices, const std::string& path) {
         AssetHandle<GeometryData> asset = assets->load<GeometryData>(path);

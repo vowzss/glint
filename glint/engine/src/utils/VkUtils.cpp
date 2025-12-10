@@ -2,14 +2,13 @@
 #include <cstring>
 #include <stdexcept>
 
-#include <sys/types.h>
-
 #include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
 #include "glint/graphics/backend/swapchain/SwapchainSupportDetails.h"
 #include "glint/utils/VkUtils.h"
 
+using namespace glint::engine::graphics;
+
 namespace glint::engine::utils {
-    using namespace graphics::backend;
 
     VkPhysicalDevice selectPhysicalDevice(const VkInstance& instance, const VkSurfaceKHR& surface) {
         // get number of GPUs available
@@ -89,7 +88,7 @@ namespace glint::engine::utils {
             const VkQueueFamilyProperties& prop = props[i];
 
             // can execute draw commands
-            if ((prop.queueFlags & VK_QUEUE_GRAPHICS_BIT) && !families.isGraphicsReady()) {
+            if ((prop.queueFlags & VK_QUEUE_GRAPHICS_BIT) && !families.graphicsAvailable()) {
                 families.graphics.index = i;
                 families.graphics.count = 1;
 
@@ -100,7 +99,7 @@ namespace glint::engine::utils {
             }
 
             // can execute compute shaders
-            if ((prop.queueFlags & VK_QUEUE_COMPUTE_BIT) && !families.isComputeReady()) {
+            if ((prop.queueFlags & VK_QUEUE_COMPUTE_BIT) && !families.computeAvailable()) {
                 families.compute.index = i;
                 families.compute.count = 1;
 
@@ -111,7 +110,7 @@ namespace glint::engine::utils {
             }
 
             // optimized for buffer/image copies
-            if ((prop.queueFlags & VK_QUEUE_TRANSFER_BIT) && !families.isTransferReady()) {
+            if ((prop.queueFlags & VK_QUEUE_TRANSFER_BIT) && !families.transferAvailable()) {
                 families.transfer.index = i;
                 families.transfer.count = 1;
 
@@ -122,7 +121,7 @@ namespace glint::engine::utils {
             }
 
             // supports partially resident resources
-            if ((prop.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) && !families.isSparseReady()) {
+            if ((prop.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) && !families.sparseAvailable()) {
                 families.sparseBinding.index = i;
                 families.sparseBinding.count = 1;
 
@@ -132,7 +131,7 @@ namespace glint::engine::utils {
             // can present images to the surface
             VkBool32 present_support = false;
             vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
-            if (present_support && !families.isPresentReady()) {
+            if (present_support && !families.presentAvailable()) {
                 families.present.index = i;
                 families.present.count = 1;
 
@@ -142,7 +141,7 @@ namespace glint::engine::utils {
                 }*/
             }
 
-            if (families.isReady()) {
+            if (families.available()) {
                 break;
             }
         }
@@ -177,7 +176,7 @@ namespace glint::engine::utils {
 
     bool isDeviceSuitable(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
         // check required queues
-        if (!queryQueueFamiliesSupport(device, surface).isReady()) {
+        if (!queryQueueFamiliesSupport(device, surface).available()) {
             return false;
         }
 

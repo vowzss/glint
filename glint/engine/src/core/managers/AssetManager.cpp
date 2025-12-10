@@ -1,4 +1,4 @@
-#include "glint/core/AssetManager.h"
+#include "glint/core/managers/AssetManager.h"
 
 namespace glint::engine::core {
 

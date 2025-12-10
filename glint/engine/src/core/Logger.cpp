@@ -2,21 +2,21 @@
 
 #include "glint/core/Logger.h"
 
-namespace glint::engine::core {
+namespace glint::engine {
 
-    std::shared_ptr<spdlog::logger> Logger::logger = nullptr;
+    std::shared_ptr<spdlog::logger> Logger::m_logger = nullptr;
 
     void Logger::init() {
-        if (!logger) {
+        if (!m_logger) {
             auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
-            logger = std::make_shared<spdlog::logger>("GLINT", sink);
-            logger->set_level(spdlog::level::trace);
-            logger->flush_on(spdlog::level::info);
+            m_logger = std::make_shared<spdlog::logger>("GLINT", sink);
+            m_logger->set_level(spdlog::level::trace);
+            m_logger->flush_on(spdlog::level::info);
 
             // Pattern: timestamp | colored level | message
-            logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
-            spdlog::register_logger(logger);
+            m_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+            spdlog::register_logger(m_logger);
         }
     }
 
@@ -33,8 +33,9 @@ namespace glint::engine::core {
 
         // scan backward from 'last' to find start of class name
         size_t start = last;
-        while (start > 0 && (std::isalnum(s[start - 1]) || s[start - 1] == '_'))
+        while (start > 0 && (std::isalnum(s[start - 1]) || s[start - 1] == '_')) {
             --start;
+        }
 
         return s.substr(start, last - start);
     }

@@ -3,33 +3,20 @@
 #include <memory>
 #include <vector>
 
-#include "glint/graphics/RendererContext.h"
 #include "glint/graphics/backend/CommandsPoolData.h"
 #include "glint/graphics/backend/buffer/ImageBufferData.h"
-#include "glint/graphics/backend/device/DeviceHandles.h"
+#include "glint/graphics/backend/device/Devices.h"
 #include "glint/graphics/backend/device/QueueData.h"
 #include "glint/graphics/backend/renderpass/RenderpassData.h"
 #include "glint/graphics/backend/swapchain/SwapchainData.h"
 
 namespace glint::engine {
     namespace core {
-        struct Registry;
+        struct CameraSnapshot;
     }
-    namespace scene {
-        struct World;
-        namespace components {
-            struct Camera;
-        }
-    }
-
     namespace graphics {
-        namespace backend {
-            struct FrameData;
-            struct BufferData;
-        }
-        namespace layers {
-            struct RenderLayer;
-        }
+        struct FrameData;
+        struct RenderLayer;
     }
 }
 
@@ -46,15 +33,15 @@ namespace glint::engine::graphics {
         // --- core ---
         VkInstance instance;
         VkSurfaceKHR surface;
-        backend::DeviceHandles devices;
+        Devices devices;
 
         // --- swapchain + renderpass ---
-        std::unique_ptr<backend::SwapchainData> swapchain;
-        std::unique_ptr<backend::RenderpassData> renderpass;
-        std::unique_ptr<backend::CommandsPoolData> commands;
+        std::unique_ptr<SwapchainData> swapchain;
+        std::unique_ptr<RenderpassData> renderpass;
+        std::unique_ptr<CommandsPoolData> commands;
 
         // --- queues ---
-        std::unique_ptr<backend::QueuesData> queues;
+        std::unique_ptr<QueuesData> queues;
 
         // --- descriptors ---
         VkDescriptorPool descriptorPool = nullptr;
@@ -64,45 +51,41 @@ namespace glint::engine::graphics {
         // --- frame ---
         int frameIndex = 0;
         uint32_t imageIndex = 0;
-        std::vector<std::unique_ptr<backend::FrameData>> frames;
-
-        // --- scene ---
-        std::vector<std::unique_ptr<layers::RenderLayer>> layers;
-        std::unique_ptr<scene::components::Camera> camera;
+        std::vector<std::unique_ptr<FrameData>> frames;
 
         // --- pipeline ---
         VkPipeline pipeline;
         VkPipelineLayout pipelineLayout;
 
-        std::unique_ptr<backend::ImageBufferData> depthBuffer;
+        std::unique_ptr<ImageBufferData> depthBuffer;
+
+        // --- scene ---
+        std::vector<std::unique_ptr<RenderLayer>> layers;
 
       public:
         Renderer() = delete;
         ~Renderer();
 
-        Renderer(int width_, int height_, const std::vector<const char*>& extensions_);
+        Renderer(int width_, int height_, const std::vector<const char*>& extensions);
 
       public:
         void init(const VkSurfaceKHR& surface_);
 
-        inline void append(std::unique_ptr<layers::RenderLayer> layer) {
+        inline void append(std::unique_ptr<RenderLayer> layer) noexcept {
             layers.emplace_back(std::move(layer));
         }
 
-        void beginFrame();
-        void recordFrame(float deltaTime);
-        void endFrame();
+        void begin() noexcept;
+        void record(float deltaTime, const core::CameraSnapshot& snapshot) noexcept;
+        void end() noexcept;
 
         // --- getters ---
-        inline const VkInstance& getInstance() const {
+        inline const VkInstance& getInstance() const noexcept {
             return instance;
-        }
-        inline scene::components::Camera& getCamera() const {
-            return *camera;
         }
 
       private:
-        void createInstance(const RendererContext& context);
+        void createInstance(const std::vector<const char*>& extensions);
         void createLogicalDevice();
 
         void createSwapchain();
@@ -112,7 +95,8 @@ namespace glint::engine::graphics {
         void createCommandPool();
         void createSyncObjects();
 
-        void createCamera();
+        void createCameraLayout();
+        void createEntityLayout();
     };
 
 }

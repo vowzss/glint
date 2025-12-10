@@ -4,46 +4,54 @@
 #include <unordered_set>
 #include <vector>
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
     struct QueueFamilySupportDetails {
-      public:
         uint32_t index = UINT32_MAX;
         uint32_t count = 0;
         std::vector<float> priorities;
 
       public:
-        QueueFamilySupportDetails() = default;
-
-        inline bool isReady() const { return index != UINT32_MAX && count > 0; }
+        inline bool available() const noexcept {
+            return index != UINT32_MAX && count > 0;
+        }
     };
 
     struct QueueFamiliesSupportDetails {
-        QueueFamilySupportDetails graphics{};
-        QueueFamilySupportDetails present{};
-        QueueFamilySupportDetails compute{};
-        QueueFamilySupportDetails transfer{};
-        QueueFamilySupportDetails sparseBinding{};
+        QueueFamilySupportDetails graphics;
+        QueueFamilySupportDetails present;
+        QueueFamilySupportDetails compute;
+        QueueFamilySupportDetails transfer;
+        QueueFamilySupportDetails sparseBinding;
 
       public:
-        QueueFamiliesSupportDetails() = default;
+        inline bool available() const noexcept {
+            return graphicsAvailable() && presentAvailable();
+        }
 
         // --- utility ---
-        inline bool isGraphicsReady() const { return graphics.isReady(); }
-        inline bool isPresentReady() const { return present.isReady(); }
-        inline bool isComputeReady() const { return compute.isReady(); }
-        inline bool isTransferReady() const { return transfer.isReady(); }
-        inline bool isSparseReady() const { return sparseBinding.isReady(); }
-
-        // todo: for now only care about graphics + present queue
-        inline bool isReady() const { return isGraphicsReady() && isPresentReady(); }
+        inline bool graphicsAvailable() const noexcept {
+            return graphics.available();
+        }
+        inline bool presentAvailable() const noexcept {
+            return present.available();
+        }
+        inline bool computeAvailable() const noexcept {
+            return compute.available();
+        }
+        inline bool transferAvailable() const noexcept {
+            return transfer.available();
+        }
+        inline bool sparseAvailable() const noexcept {
+            return sparseBinding.available();
+        }
 
         inline std::vector<const QueueFamilySupportDetails*> collect() const {
             std::vector<const QueueFamilySupportDetails*> unique;
             std::unordered_set<uint32_t> indices;
 
             for (const auto* family : {&graphics, &present, &compute, &transfer, &sparseBinding}) {
-                if (!family->isReady()) {
+                if (!family->available()) {
                     continue;
                 }
 

@@ -73,7 +73,7 @@ target("glint_editor")
 
     -- sources
     add_files("glint/editor/src/*.cpp")
-    add_files("glint/editor/src/**/*.cpp")
+    -- add_files("glint/editor/src/**/*.cpp")
 
     -- package
     after_build(function (target)

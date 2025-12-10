@@ -7,11 +7,10 @@
 #include "glint/graphics/models/Vertex.h"
 #include "glint/utils/FileUtils.h"
 
-namespace glint::engine::graphics::models {
+namespace glint::engine::graphics {
 
     std::optional<GeometryData> GeometryLoader::load(const std::string& filename) {
         namespace fs = std::filesystem;
-        using namespace graphics::models;
 
         fs::path path = utils::files::getModelPath(filename);
         LOG_INFO("Loading OBJ file from: {}", path.string());

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "glint/graphics/backend/device/DeviceHandles.h"
+#include "vulkan/vulkan_core.h"
 
-namespace glint::engine::graphics::layers {
+namespace glint::engine::graphics {
 
     struct LayerRenderInfo {
         VkCommandBuffer commands = nullptr;
@@ -20,8 +20,6 @@ namespace glint::engine::graphics::layers {
 
       public:
         virtual ~RenderLayer() = default;
-
-        virtual void init(const backend::DeviceHandles& devices) = 0;
 
         virtual void begin() {};
         virtual void render(float deltaTime, const LayerRenderInfo& info) = 0;

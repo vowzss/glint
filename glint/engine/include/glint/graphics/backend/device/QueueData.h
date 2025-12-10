@@ -4,7 +4,7 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
     struct QueueFamilySupportDetails;
     struct QueueFamiliesSupportDetails;
@@ -17,11 +17,15 @@ namespace glint::engine::graphics::backend {
         QueueData() = delete;
         QueueData(const VkDevice& device, const QueueFamilySupportDetails& family);
 
-        ~QueueData() = default;
+        ~QueueData() noexcept = default;
 
         // --- operators ---
-        VkQueue& operator[](size_t i) { return values[i]; }
-        const VkQueue& operator[](size_t i) const { return values[i]; }
+        VkQueue& operator[](size_t i) noexcept {
+            return values[i];
+        }
+        const VkQueue& operator[](size_t i) const noexcept {
+            return values[i];
+        }
     };
 
     struct QueuesData {
@@ -36,7 +40,7 @@ namespace glint::engine::graphics::backend {
         QueuesData() = delete;
         QueuesData(const VkDevice& device, const QueueFamiliesSupportDetails& families);
 
-        ~QueuesData() = default;
+        ~QueuesData() noexcept = default;
     };
 
 }

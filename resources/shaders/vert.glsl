@@ -9,7 +9,7 @@ layout(set = 0, binding = 0) uniform camera {
     mat4 viewProj;
 };
 
-layout(set = 1, binding = 0) buffer entities {
+layout(set = 1, binding = 0) readonly buffer entities {
     mat4 models[];
 };
 

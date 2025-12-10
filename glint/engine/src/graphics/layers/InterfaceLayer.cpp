@@ -1,15 +1,14 @@
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
 #include <stdexcept>
 
-#include "glint/graphics/backend/device/DeviceHandles.h"
+#include "glint/graphics/backend/device/Devices.h"
 #include "glint/graphics/layers/InterfaceLayer.h"
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_vulkan.h"
+namespace glint::engine::graphics {
 
-namespace glint::engine::graphics::layers {
-
-    InterfaceLayer::InterfaceLayer(const backend::DeviceHandles& devices, const InterfaceLayerInfo& info) : device(devices.logical) {
+    InterfaceLayer::InterfaceLayer(const Devices& devices, const InterfaceLayerInfo& info) : device(devices.logical) {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
 

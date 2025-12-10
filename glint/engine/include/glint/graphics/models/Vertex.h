@@ -4,7 +4,8 @@
 #include <Jolt/Math/Float2.h>
 #include <Jolt/Math/Float3.h>
 
-namespace glint::engine::graphics::models {
+namespace glint::engine::graphics {
+
     struct alignas(16) Vertex {
       public:
         JPH::Float3 position;
@@ -23,4 +24,5 @@ namespace glint::engine::graphics::models {
             return position == other.position && color == other.color && normal == other.normal && uv == other.uv;
         }
     };
+
 }

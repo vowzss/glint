@@ -2,9 +2,9 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
-    struct DeviceHandles;
+    struct Devices;
 
     struct ImageBufferDataInfo {
         VkFormat format;
@@ -17,11 +17,11 @@ namespace glint::engine::graphics::backend {
     };
 
     struct ImageBufferData {
-        VkDevice device = {};
+        VkDevice device;
 
-        VkImage image = {};
-        VkDeviceMemory memory = {};
-        VkImageView view = {};
+        VkImage image;
+        VkDeviceMemory memory;
+        VkImageView view;
 
         VkFormat format;
         VkExtent2D extent;
@@ -30,7 +30,7 @@ namespace glint::engine::graphics::backend {
 
       public:
         ImageBufferData() = delete;
-        ImageBufferData(const DeviceHandles& devices, const ImageBufferDataInfo& info);
+        ImageBufferData(const Devices& devices, const ImageBufferDataInfo& info);
 
         ~ImageBufferData();
     };

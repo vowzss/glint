@@ -1,7 +1,7 @@
 #include <spdlog/logger.h>
 
-#include "glint/core/InputManager.h"
 #include "glint/core/Logger.h"
+#include "glint/core/managers/InputManager.h"
 
 namespace glint::engine::core {
 
@@ -86,8 +86,19 @@ namespace glint::engine::core {
                         const auto& it = registry.find(handle);
                         if (it == registry.end()) continue;
 
-                        it->second.keyCallback(e.code, e.action);
-                        LOG_TRACE("Dispatched input callback! handle:[{}]", handle);
+                        const InputListener& listener = it->second;
+
+                        using T = std::underlying_type_t<InputAction>;
+                        bool call = (static_cast<T>(listener.mask) & static_cast<T>(e.action)) != 0;
+
+                        if ((static_cast<T>(listener.mask) & static_cast<T>(InputAction::Any)) != 0) {
+                            call = true;
+                        }
+
+                        if (call) {
+                            listener.keyCallback(e.code, e.action);
+                            LOG_TRACE("Dispatched input callback! handle:[{}]", handle);
+                        }
                     }
                 }
 

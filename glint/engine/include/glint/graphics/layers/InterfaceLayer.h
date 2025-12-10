@@ -7,13 +7,11 @@ struct GLFWwindow;
 namespace glint::engine {
     namespace graphics {
         struct Renderer;
-        namespace backend {
-            struct DeviceHandles;
-        }
+        struct Devices;
     }
 }
 
-namespace glint::engine::graphics::layers {
+namespace glint::engine::graphics {
 
     struct InterfaceLayerInfo {
         GLFWwindow* window;
@@ -32,7 +30,7 @@ namespace glint::engine::graphics::layers {
         VkDescriptorPool descriptorPool = nullptr;
 
       public:
-        InterfaceLayer(const backend::DeviceHandles& devices, const InterfaceLayerInfo& info);
+        InterfaceLayer(const Devices& devices, const InterfaceLayerInfo& info);
         ~InterfaceLayer();
 
         void begin() override;

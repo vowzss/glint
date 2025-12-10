@@ -1,19 +1,17 @@
 #include <memory>
 
-#include "glint/core/AssetManager.h"
 #include "glint/core/ecs/ComponentManager.h"
 #include "glint/core/ecs/EntityManager.h"
 #include "glint/core/ecs/GeometryManager.h"
+#include "glint/core/managers/AssetManager.h"
 #include "glint/scene/World.h"
 #include "glint/scene/components/GeometryComponent.h"
 
-
 using namespace glint::engine::core;
-using namespace glint::engine::scene::components;
 
 namespace glint::engine::scene {
 
-    World::World(core::AssetManager* assetManager) {
+    World::World(AssetManager* assetManager) {
         entityManager = std::make_unique<EntityManager>();
         geometryManager = std::make_unique<GeometryManager>(assetManager);
         componentManager = std::make_unique<ComponentManager>();

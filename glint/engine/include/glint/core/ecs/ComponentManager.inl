@@ -1,3 +1,6 @@
+#include "glint/scene/components/GeometryComponent.h"
+#include "glint/scene/components/Transform.h"
+
 namespace glint::engine::core {
 
     template <typename T>
@@ -33,26 +36,26 @@ namespace glint::engine::core {
 
     // clang-format off
     template <>
-    inline ComponentStorage<scene::components::Transform>& 
-    ComponentManager::getStorage<scene::components::Transform>() noexcept {
+    inline ComponentStorage<scene::Transform>& 
+    ComponentManager::getStorage<scene::Transform>() noexcept {
         return transforms;
     };
 
     template <>
-    inline const ComponentStorage<scene::components::Transform>& 
-    ComponentManager::getStorage<scene::components::Transform>() const noexcept {
+    inline const ComponentStorage<scene::Transform>& 
+    ComponentManager::getStorage<scene::Transform>() const noexcept {
         return transforms;
     };
 
     template <>
-    inline ComponentStorage<scene::components::GeometryComponent>& 
-    ComponentManager::getStorage<scene::components::GeometryComponent>() noexcept {
+    inline ComponentStorage<scene::GeometryComponent>& 
+    ComponentManager::getStorage<scene::GeometryComponent>() noexcept {
         return geometries;
     }
 
     template <>
-    inline const ComponentStorage<scene::components::GeometryComponent>& 
-    ComponentManager::getStorage<scene::components::GeometryComponent>() const noexcept {
+    inline const ComponentStorage<scene::GeometryComponent>& 
+    ComponentManager::getStorage<scene::GeometryComponent>() const noexcept {
         return geometries;
     }
 

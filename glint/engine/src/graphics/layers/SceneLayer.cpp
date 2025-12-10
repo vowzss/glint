@@ -1,6 +1,6 @@
 #include "glint/core/ecs/ComponentManager.h"
 #include "glint/core/ecs/ComponentStorage.h"
-#include "glint/graphics/backend/buffer/UniformBuffer.h"
+#include "glint/graphics/backend/buffer/StorageBuffer.h"
 #include "glint/graphics/layers/SceneLayer.h"
 #include "glint/scene/World.h"
 #include "glint/scene/components/GeometryComponent.h"
@@ -9,50 +9,15 @@
 namespace glint::engine {
     using namespace core;
     using namespace scene;
-
-    namespace graphics {
-        using namespace backend;
-        using namespace models;
-    }
-
-    namespace scene {
-        using namespace components;
-    }
 }
 
-namespace glint::engine::graphics::layers {
+namespace glint::engine::graphics {
     SceneLayer::SceneLayer(const scene::World& world_) : world(world_) {};
-
     SceneLayer::~SceneLayer() = default;
 
-    void SceneLayer::init(const backend::DeviceHandles& devices) {
-
-        std::vector<JPH::Mat44> entities;
-
-        auto& transforms = world.getStorage<Transform>();
-        transforms.each([&](const Transform& transform) { entities.emplace_back(transform.toMatrix()); });
-
-        entityBuffer = std::make_unique<UniformBuffer>(devices, entities.data(), sizeof(JPH::Mat44) * entities.size());
-
-        /*VkDescriptorBufferInfo entityBufferInfo = {};
-        entityBufferInfo.buffer = entityBuffer->value;
-        entityBufferInfo.offset = 0;
-        entityBufferInfo.range = sizeof(JPH::Mat44) * 3;
-
-        VkWriteDescriptorSet writeInfo = {};
-        writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        writeInfo.dstSet = entityDescriptorSet;
-        writeInfo.dstBinding = 0;
-        writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        writeInfo.descriptorCount = 1;
-        writeInfo.pBufferInfo = &entityBufferInfo;
-
-        vkUpdateDescriptorSets(devices.logical, 1, &writeInfo, 0, nullptr);*/
-    }
-
     void SceneLayer::render(float deltaTime, const LayerRenderInfo& info) {
-        const JPH::Mat44* models = reinterpret_cast<const JPH::Mat44*>(entityBuffer->getData());
-        entityBuffer->update(models, sizeof(JPH::Mat44) * entityBuffer->getSize(), 0);
+        // const JPH::Mat44* models = reinterpret_cast<const JPH::Mat44*>(entityBuffer->data());
+        // entityBuffer->update(sizeof(JPH::Mat44) * entityBuffer->size(), models);
 
         const auto& transforms = world.getStorage<Transform>();
         const auto& geometries = world.getStorage<GeometryComponent>();

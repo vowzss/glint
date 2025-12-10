@@ -2,7 +2,7 @@
 
 #include "Vertex.h"
 
-namespace glint::engine::graphics::models {
+namespace glint::engine::graphics {
     struct GeometryData {
       private:
         using vertices_t = std::vector<Vertex>;

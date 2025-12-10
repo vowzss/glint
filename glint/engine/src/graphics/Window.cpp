@@ -3,11 +3,12 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include "glint/core/InputManager.h"
+#include "glint/core/managers/InputManager.h"
 #include "glint/graphics/Window.h"
 
+using namespace glint::engine::core;
+
 namespace glint::engine::graphics {
-    using namespace core;
 
     namespace {
         InputAction translateKeyAction(int action) {
@@ -24,7 +25,7 @@ namespace glint::engine::graphics {
         }
     }
 
-    Window::Window(int width_, int height_, const char* title_, core::InputManager* inputManager_)
+    Window::Window(int width_, int height_, const char* title_, InputManager* inputManager_)
         : width(width_), height(height_), inputManager(inputManager_) {
 
         if (!glfwInit()) {

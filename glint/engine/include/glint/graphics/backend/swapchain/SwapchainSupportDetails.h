@@ -3,7 +3,7 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
     struct SwapchainSupportDetails {
         VkSurfaceCapabilitiesKHR capabilities = {};

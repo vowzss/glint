@@ -1,7 +1,7 @@
 #include "glint/graphics/backend/device/QueueData.h"
 #include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
     QueueData::QueueData(const VkDevice& device, const QueueFamilySupportDetails& family) : values({}) {
         values.resize(family.count);

@@ -5,11 +5,8 @@
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 
-namespace glint::engine::graphics::models {
+namespace glint::engine::graphics {
     struct GeometryData;
-}
-
-namespace glint::engine::graphics::backend {
 
     struct GeometryBuffer {
       public:
@@ -18,6 +15,6 @@ namespace glint::engine::graphics::backend {
 
       public:
         GeometryBuffer() = delete;
-        GeometryBuffer(const DeviceHandles& devices, const models::GeometryData& data);
+        GeometryBuffer(const Devices& devices, const GeometryData& data);
     };
 }

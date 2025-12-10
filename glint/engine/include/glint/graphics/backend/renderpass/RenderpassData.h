@@ -4,15 +4,21 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
     struct SwapchainData;
 
-    struct RenderpassData {
-        VkDevice device = {};
+    /*struct RenderpassCreateInfo {
+        const SwapchainData& swapchain,
+        VkRenderPassCreateInfo info,
+        const VkImageView& depthImageView,
+    };*/
 
-        VkRenderPass value = {};
-        std::vector<VkFramebuffer> framebuffers = {};
+    struct RenderpassData {
+        const VkDevice device;
+
+        VkRenderPass value;
+        std::vector<VkFramebuffer> framebuffers;
 
       public:
         RenderpassData() = delete;

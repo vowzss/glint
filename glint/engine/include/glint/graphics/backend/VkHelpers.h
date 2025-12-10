@@ -5,10 +5,10 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
     struct ImageBufferData;
-    struct DeviceHandles;
+    struct Devices;
 
     uint32_t findMemoryType(VkPhysicalDevice device, uint32_t filter, VkMemoryPropertyFlags properties);
 
@@ -17,6 +17,6 @@ namespace glint::engine::graphics::backend {
 
     VkFormat findDepthFormat(const VkPhysicalDevice& device);
 
-    ImageBufferData createDepthImage(const DeviceHandles& devices, VkExtent2D extent);
+    ImageBufferData createDepthImage(const Devices& devices, VkExtent2D extent);
 
 }

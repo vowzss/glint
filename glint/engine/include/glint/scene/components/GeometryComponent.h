@@ -2,7 +2,7 @@
 
 #include "glint/core/ecs/GeometryHandle.h"
 
-namespace glint::engine::scene::components {
+namespace glint::engine::scene {
 
     struct GeometryComponent {
       public:

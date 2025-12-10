@@ -2,9 +2,9 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
-    struct DeviceHandles;
+    struct Devices;
 
     struct BufferCreateInfo {
         const void* data;
@@ -16,17 +16,17 @@ namespace glint::engine::graphics::backend {
 
     struct BufferData {
         // --- GPU handles ---
-        VkDevice device = nullptr;
-        VkBuffer value = nullptr;
-        VkDeviceMemory memory = nullptr;
+        const VkDevice m_device = nullptr;
+        VkBuffer m_value = nullptr;
+        VkDeviceMemory m_memory = nullptr;
 
       protected:
         // --- GPU info ---
-        void* mapped = nullptr;
-        VkDeviceSize size = 0;
+        void* m_mapped = nullptr;
+        VkDeviceSize m_size = 0;
 
       protected:
-        BufferData() = default;
+        BufferData(const Devices& devices, const BufferCreateInfo& info);
 
       public:
         virtual ~BufferData() noexcept;
@@ -37,17 +37,15 @@ namespace glint::engine::graphics::backend {
         BufferData(BufferData&& other) = delete;
         BufferData& operator=(BufferData&& other) = delete;
 
-      protected:
-        void init(const DeviceHandles& devices, const BufferCreateInfo& info);
+        bool update(VkDeviceSize size, const void* data = nullptr, VkDeviceSize offset = 0);
 
-      public:
-        void update(const void* data, VkDeviceSize size_, VkDeviceSize offset = 0);
-
-        inline const void* getData() const {
-            return mapped;
+        // --- getters ---
+        inline const void* data() const noexcept {
+            return m_mapped;
         }
-        inline VkDeviceSize getSize() const {
-            return size;
+
+        inline const VkDeviceSize size() const noexcept {
+            return m_size;
         }
     };
 

@@ -7,7 +7,7 @@ namespace glint::engine {
         struct TimeManager;
         struct InputManager;
         struct AssetManager;
-        struct Registry;
+        struct CameraSystem;
     }
     namespace graphics {
         struct Window;
@@ -33,6 +33,7 @@ namespace glint {
 
         // --- scene ---
         std::unique_ptr<engine::scene::World> world = nullptr;
+        std::unique_ptr<engine::core::CameraSystem> cameras = nullptr;
 
       public:
         Engine() = delete;

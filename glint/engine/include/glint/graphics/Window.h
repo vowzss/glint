@@ -28,7 +28,9 @@ namespace glint::engine::graphics {
         int getHeight() const;
         bool isRunning() const;
 
-        inline GLFWwindow* raw() const { return handle; }
+        inline GLFWwindow* raw() const {
+            return handle;
+        }
     };
 
 }

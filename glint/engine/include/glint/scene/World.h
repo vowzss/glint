@@ -8,25 +8,22 @@
 
 namespace glint::engine {
     namespace core {
-        struct AssetManager;
-
         struct EntityManager;
         struct GeometryManager;
         struct ComponentManager;
 
         template <typename Component>
         class ComponentStorage;
+
+        struct AssetManager;
     }
+
     namespace graphics {
-        namespace models {
-            struct GeometryData;
-        }
-        namespace backend {
-            struct DeviceHandles;
-        }
+        struct GeometryData;
+        struct Devices;
     }
-    namespace scene::components {
-        struct GeometryCreateInfo;
+
+    namespace scene {
         struct GeometryComponent;
     }
 }
@@ -35,7 +32,7 @@ namespace glint::engine::scene {
 
     class World {
       private:
-        using Devices = graphics::backend::DeviceHandles;
+        using Devices = graphics::Devices;
 
       private:
         std::unique_ptr<core::EntityManager> entityManager;

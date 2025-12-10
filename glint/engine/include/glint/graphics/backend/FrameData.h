@@ -9,27 +9,25 @@
 
 #include "glint/graphics/layers/RenderLayer.h"
 
-#include "buffer/BufferData.h"
-
 namespace glint::engine {
-    namespace graphics::layers {
-        struct RenderLayer;
-    }
-    namespace scene::components {
+    namespace core {
         struct CameraSnapshot;
+    }
+    namespace graphics {
+        struct UniformBuffer;
+        struct StorageBuffer;
     }
 }
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
-    struct DeviceHandles;
+    struct Devices;
+    struct RenderLayer;
 
     struct FrameCreateInfo {
         VkDescriptorPool descriptorPool;
         VkDescriptorSetLayout cameraLayout;
         VkDescriptorSetLayout entityLayout;
-
-        const scene::components::CameraSnapshot& camera;
     };
 
     struct FrameRenderInfo {
@@ -41,18 +39,19 @@ namespace glint::engine::graphics::backend {
         VkDescriptorSetLayout cameraLayout = nullptr;
         VkDescriptorSetLayout entityLayout = nullptr;
 
-        const scene::components::CameraSnapshot& camera;
+        const core::CameraSnapshot& camera;
     };
 
     struct FrameData {
-        VkDevice device = nullptr;
+        const VkDevice m_device = nullptr;
 
-        VkDescriptorSet cameraSet = nullptr;
-        VkDescriptorSet entitySet = nullptr;
+        VkDescriptorSet m_cameraSet = nullptr;
+        VkDescriptorSet m_entitySet = nullptr;
 
-        std::unique_ptr<BufferData> cameraBuffer;
+        std::unique_ptr<UniformBuffer> m_cameraBuffer;
+        std::unique_ptr<StorageBuffer> m_entityBuffer;
 
-        std::vector<layers::RenderLayer*> layers;
+        std::vector<RenderLayer*> m_layers;
 
         // --- synchronisation ---
         VkSemaphore imageAvailable = nullptr;
@@ -60,21 +59,24 @@ namespace glint::engine::graphics::backend {
         VkFence inFlight = nullptr;
 
         // --- timing ---
-        mutable float deltaTime;
+        mutable float m_deltaTime;
 
       public:
         FrameData() = delete;
+        FrameData(const Devices& devices, const FrameCreateInfo& info);
+
         ~FrameData();
 
-        FrameData(const DeviceHandles& devices, const FrameCreateInfo& info);
-
-      public:
         void begin() const;
         void render(float deltaTime, const FrameRenderInfo& info) const;
         void end() const;
 
-        void attach(layers::RenderLayer* layer);
-        void detach(layers::RenderLayer* layer);
+        inline void tick(float dt) const noexcept {
+            m_deltaTime = dt;
+        }
+
+        void attach(RenderLayer* layer) noexcept;
+        void detach(RenderLayer* layer) noexcept;
     };
 
 }

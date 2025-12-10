@@ -1,7 +1,9 @@
 #pragma once
 
-#include "glint/scene/components/GeometryComponent.h"
-#include "glint/scene/components/Transform.h"
+namespace glint::engine::scene {
+    struct Transform;
+    struct GeometryComponent;
+}
 
 #include "ComponentStorage.h"
 
@@ -9,8 +11,8 @@ namespace glint::engine::core {
 
     struct ComponentManager {
       private:
-        ComponentStorage<scene::components::Transform> transforms;
-        ComponentStorage<scene::components::GeometryComponent> geometries;
+        ComponentStorage<scene::Transform> transforms;
+        ComponentStorage<scene::GeometryComponent> geometries;
 
       public:
         template <typename T>
@@ -36,6 +38,7 @@ namespace glint::engine::core {
         template <typename T>
         const ComponentStorage<T>& getStorage() const noexcept;
     };
+
 }
 
 #include "ComponentManager.inl"

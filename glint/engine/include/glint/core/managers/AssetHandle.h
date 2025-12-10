@@ -3,6 +3,7 @@
 #include <cstdint>
 
 namespace glint::engine::core {
+
     template <typename T>
     struct AssetHandle {
         uint32_t id;
@@ -22,4 +23,5 @@ namespace glint::engine::core {
             return AssetHandle<T>{UINT32_MAX, 0};
         }
     };
+
 }

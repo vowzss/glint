@@ -1,28 +1,23 @@
-#include <utility>
-
-#include <Jolt/Jolt.h>
-#include <Jolt/Math/Mat44.h>
-
+#include "glint/core/systems/CameraSystem.h"
 #include "glint/graphics/backend/FrameData.h"
+#include "glint/graphics/backend/buffer/StorageBuffer.h"
 #include "glint/graphics/backend/buffer/UniformBuffer.h"
-#include "glint/graphics/backend/device/DeviceHandles.h"
+#include "glint/graphics/backend/device/Devices.h"
 #include "glint/graphics/layers/RenderLayer.h"
-#include "glint/scene/components/Camera.h"
 
-using namespace glint::engine::graphics::layers;
+namespace glint::engine::graphics {
+    using namespace core;
 
-namespace glint::engine::graphics::backend {
-
-    FrameData::FrameData(const DeviceHandles& devices, const FrameCreateInfo& info) : device(devices.logical) {
+    FrameData::FrameData(const Devices& devices, const FrameCreateInfo& info) : m_device(devices.logical) {
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailable);
-        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinished);
+        vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &imageAvailable);
+        vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &renderFinished);
 
         VkFenceCreateInfo fenceInfo{};
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-        vkCreateFence(device, &fenceInfo, nullptr, &inFlight);
+        vkCreateFence(m_device, &fenceInfo, nullptr, &inFlight);
 
         // camera uniform buffer
         {
@@ -32,29 +27,29 @@ namespace glint::engine::graphics::backend {
             allocInfo.descriptorSetCount = 1;
             allocInfo.pSetLayouts = &info.cameraLayout;
 
-            if (vkAllocateDescriptorSets(device, &allocInfo, &cameraSet) != VK_SUCCESS) {
+            if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_cameraSet) != VK_SUCCESS) {
                 throw std::runtime_error("Vulkan | Failed to create camera descriptor!");
             }
 
-            cameraBuffer = std::make_unique<UniformBuffer>(devices, info.camera.data(), info.camera.size());
+            m_cameraBuffer = std::make_unique<UniformBuffer>(devices, CameraSnapshot::size());
 
             VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = cameraBuffer->value;
+            bufferInfo.buffer = m_cameraBuffer->m_value;
             bufferInfo.offset = 0;
-            bufferInfo.range = info.camera.size();
+            bufferInfo.range = VK_WHOLE_SIZE;
 
             VkWriteDescriptorSet writeInfo{};
             writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            writeInfo.dstSet = cameraSet;
+            writeInfo.dstSet = m_cameraSet;
             writeInfo.dstBinding = 0;
             writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             writeInfo.descriptorCount = 1;
             writeInfo.pBufferInfo = &bufferInfo;
 
-            vkUpdateDescriptorSets(device, 1, &writeInfo, 0, nullptr);
+            vkUpdateDescriptorSets(m_device, 1, &writeInfo, 0, nullptr);
         }
 
-        // entity uniform buffer
+        // entity storage buffer
         {
             VkDescriptorSetAllocateInfo allocInfo{};
             allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -62,23 +57,43 @@ namespace glint::engine::graphics::backend {
             allocInfo.descriptorSetCount = 1;
             allocInfo.pSetLayouts = &info.entityLayout;
 
-            if (vkAllocateDescriptorSets(device, &allocInfo, &entitySet) != VK_SUCCESS) {
+            if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_entitySet) != VK_SUCCESS) {
                 throw std::runtime_error("Vulkan | Failed to create entity descriptor!");
             }
+
+            m_entityBuffer = std::make_unique<StorageBuffer>(devices, sizeof(JPH::Mat44) * 15000);
+
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = m_entityBuffer->m_value;
+            bufferInfo.offset = 0;
+            bufferInfo.range = VK_WHOLE_SIZE;
+
+            VkWriteDescriptorSet writeInfo{};
+            writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writeInfo.dstSet = m_entitySet;
+            writeInfo.dstBinding = 0;
+            writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            writeInfo.descriptorCount = 1;
+            writeInfo.pBufferInfo = &bufferInfo;
+
+            vkUpdateDescriptorSets(m_device, 1, &writeInfo, 0, nullptr);
         }
     }
 
     FrameData::~FrameData() {
+        m_cameraBuffer.reset();
+        m_entityBuffer.reset();
+
         if (inFlight != VK_NULL_HANDLE) {
-            vkDestroyFence(device, inFlight, nullptr);
+            vkDestroyFence(m_device, inFlight, nullptr);
         }
 
         if (imageAvailable != VK_NULL_HANDLE) {
-            vkDestroySemaphore(device, imageAvailable, nullptr);
+            vkDestroySemaphore(m_device, imageAvailable, nullptr);
         }
 
         if (renderFinished != VK_NULL_HANDLE) {
-            vkDestroySemaphore(device, renderFinished, nullptr);
+            vkDestroySemaphore(m_device, renderFinished, nullptr);
         }
     }
 
@@ -87,26 +102,26 @@ namespace glint::engine::graphics::backend {
     }
 
     void FrameData::render(float deltaTime, const FrameRenderInfo& info) const {
-        this->deltaTime = deltaTime;
+        tick(deltaTime);
 
-        cameraBuffer->update(info.camera.data(), info.camera.size());
+        m_cameraBuffer->update(info.camera.size(), info.camera.data());
 
-        LayerRenderInfo layerInfo = {info.commands, info.pipeline, info.pipelineLayout, cameraSet, entitySet};
-        for (int i = 0; i < layers.size(); ++i) {
-            layers[i]->render(this->deltaTime, layerInfo);
+        LayerRenderInfo layerInfo = {info.commands, info.pipeline, info.pipelineLayout, m_cameraSet, m_entitySet};
+        for (int i = 0; i < m_layers.size(); ++i) {
+            m_layers[i]->render(this->m_deltaTime, layerInfo);
         }
     }
 
     void FrameData::end() const {
     }
 
-    void FrameData::attach(layers::RenderLayer* layer) {
-        if (std::find(layers.begin(), layers.end(), layer) != layers.end()) return;
-        layers.push_back(layer);
+    void FrameData::attach(RenderLayer* layer) noexcept {
+        if (std::find(m_layers.begin(), m_layers.end(), layer) != m_layers.end()) return;
+        m_layers.push_back(layer);
     }
 
-    void FrameData::detach(layers::RenderLayer* layer) {
-        layers.erase(std::remove(layers.begin(), layers.end(), layer), layers.end());
+    void FrameData::detach(RenderLayer* layer) noexcept {
+        m_layers.erase(std::remove(m_layers.begin(), m_layers.end(), layer), m_layers.end());
     }
 
 }

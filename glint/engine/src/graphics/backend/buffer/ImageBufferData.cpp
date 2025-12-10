@@ -2,11 +2,11 @@
 
 #include "glint/graphics/backend/VkHelpers.h"
 #include "glint/graphics/backend/buffer/ImageBufferData.h"
-#include "glint/graphics/backend/device/DeviceHandles.h"
+#include "glint/graphics/backend/device/Devices.h"
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
-    ImageBufferData::ImageBufferData(const DeviceHandles& devices, const ImageBufferDataInfo& info)
+    ImageBufferData::ImageBufferData(const Devices& devices, const ImageBufferDataInfo& info)
         : device(devices.logical), format(info.format), extent(info.extent), usage(info.usage) {
         VkImageCreateInfo imageInfo = {};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;

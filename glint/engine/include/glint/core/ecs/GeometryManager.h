@@ -2,17 +2,14 @@
 
 #include <cstdint>
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
 #include "GeometryHandle.h"
 
 namespace glint::engine::graphics {
-    namespace backend {
-        struct DeviceHandles;
-        struct GeometryBuffer;
-    }
+    struct Devices;
+    struct GeometryBuffer;
 }
 
 namespace glint::engine::core {
@@ -21,8 +18,8 @@ namespace glint::engine::core {
 
     struct GeometryManager {
       private:
-        using Devices = graphics::backend::DeviceHandles;
-        using GeometryBuffer = graphics::backend::GeometryBuffer;
+        using Devices = graphics::Devices;
+        using GeometryBuffer = graphics::GeometryBuffer;
 
       private:
         AssetManager* assets;

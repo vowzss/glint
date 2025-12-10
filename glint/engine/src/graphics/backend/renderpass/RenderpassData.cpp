@@ -4,7 +4,7 @@
 #include "glint/graphics/backend/renderpass/RenderpassData.h"
 #include "glint/graphics/backend/swapchain/SwapchainData.h"
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
     RenderpassData::RenderpassData(const SwapchainData& swapchain, VkRenderPassCreateInfo info, const VkImageView& depthImageView)
         : device(swapchain.device) {
@@ -35,16 +35,16 @@ namespace glint::engine::graphics::backend {
         for (int i = 0; i < swapchain.views.size(); i++) {
             std::array<VkImageView, 2> attachments = {swapchain.views[i], depthImageView};
 
-            VkFramebufferCreateInfo fbInfo = {};
-            fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            fbInfo.renderPass = value;
-            fbInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-            fbInfo.pAttachments = attachments.data();
-            fbInfo.width = swapchain.extent.width;
-            fbInfo.height = swapchain.extent.height;
-            fbInfo.layers = 1;
+            VkFramebufferCreateInfo framebufferInfo = {};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferInfo.renderPass = value;
+            framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+            framebufferInfo.pAttachments = attachments.data();
+            framebufferInfo.width = swapchain.extent.width;
+            framebufferInfo.height = swapchain.extent.height;
+            framebufferInfo.layers = 1;
 
-            if (vkCreateFramebuffer(device, &fbInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
+            if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("Vulkan | failed to create framebuffer");
             }
         }

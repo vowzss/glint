@@ -4,59 +4,81 @@
 #include <Jolt/Math/Quat.h>
 #include <Jolt/Math/Vec3.h>
 
-namespace glint::engine::scene::components {
+namespace glint::engine::scene {
 
     struct Transform {
-        std::function<void()> onChanged;
-
       private:
-        JPH::Vec3 position = JPH::Vec3::sZero();
-        JPH::Quat rotation = JPH::Quat::sIdentity();
-        JPH::Vec3 scale = JPH::Vec3::sOne();
+        JPH::Vec3 pos = JPH::Vec3::sZero();
+        JPH::Quat rot = JPH::Quat::sIdentity();
+        JPH::Vec3 scl = JPH::Vec3::sOne();
+
+        // --- cache ---
+        mutable JPH::Mat44 mat = JPH::Mat44::sIdentity();
+        mutable bool isDirty = true;
 
       public:
-        Transform() = default;
+        Transform() noexcept = default;
+        ~Transform() noexcept = default;
 
-        inline void setPosition(const JPH::Vec3& value) {
-            position = value;
-            if (onChanged) onChanged();
-        }
+        Transform(const Transform&) = default;
+        Transform& operator=(const Transform&) = default;
 
-        inline void setRotation(const JPH::Quat& value) {
-            rotation = value;
-            if (onChanged) onChanged();
-        }
+        Transform(Transform&&) noexcept = default;
+        Transform& operator=(Transform&&) = default;
 
-        inline void setScale(const JPH::Vec3& value) {
-            scale = value;
-            if (onChanged) onChanged();
-        }
-
+        // --- utils ---
         inline void translateBy(const JPH::Vec3& delta) {
-            position += delta;
-            if (onChanged) onChanged();
+            pos += delta;
+            isDirty = true;
         }
 
         inline void rotateBy(const JPH::Quat& delta) {
-            rotation = delta * rotation;
-            if (onChanged) onChanged();
+            rot = delta * rot;
+            isDirty = true;
         }
 
         inline void scaleBy(const JPH::Vec3& factor) {
-            scale *= factor;
-            if (onChanged) onChanged();
+            scl *= factor;
+            isDirty = true;
         }
 
-        inline JPH::Mat44 toMatrix() const {
-            const JPH::Mat44 r = JPH::Mat44::sRotationTranslation(rotation, position);
-            const JPH::Mat44 s = JPH::Mat44::sScale(scale);
-
-            return s * r;
+        // --- setters ---
+        inline void setPosition(const JPH::Vec3& value) {
+            pos = value;
+            isDirty = true;
         }
 
-        inline const JPH::Vec3& getPosition() const { return position; }
-        inline const JPH::Quat& getRotation() const { return rotation; }
-        inline const JPH::Vec3& getScale() const { return scale; }
+        inline void setRotation(const JPH::Quat& value) {
+            rot = value;
+            isDirty = true;
+        }
+
+        inline void setScale(const JPH::Vec3& value) {
+            scl = value;
+            isDirty = true;
+        }
+
+        // --- getters ---
+        inline const JPH::Vec3& position() const {
+            return pos;
+        }
+
+        inline const JPH::Quat& rotation() const {
+            return rot;
+        }
+
+        inline const JPH::Vec3& scale() const {
+            return scl;
+        }
+
+        inline const JPH::Mat44& matrix() const noexcept {
+            if (isDirty) {
+                mat = JPH::Mat44::sScale(scl) * JPH::Mat44::sRotationTranslation(rot, pos);
+                isDirty = false;
+            }
+
+            return mat;
+        }
     };
 
 }

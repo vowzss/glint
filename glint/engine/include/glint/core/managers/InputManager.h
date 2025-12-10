@@ -20,6 +20,7 @@ namespace glint::engine::core {
         Pressed = 1 << 0,
         Held = 1 << 1,
         Released = 1 << 2,
+        Any = 1 << 3,
     };
     ENUM_TO_STRING(InputAction, "Undefined", "Pressed", "Released", "Held")
 
@@ -28,7 +29,6 @@ namespace glint::engine::core {
     using CallbackHandle = uint32_t;
 
     struct InputEvent {
-      public:
         InputType type;
         InputAction action;
 
@@ -37,13 +37,13 @@ namespace glint::engine::core {
 
       public:
         // --- factories ---
-        inline static InputEvent cursor(double x, double y) {
+        inline static InputEvent cursor(double x, double y) noexcept {
             return {InputType::Cursor, InputAction::Undefined, -1, x, y};
         }
-        inline static InputEvent key(int key, InputAction action) {
+        inline static InputEvent key(int key, InputAction action) noexcept {
             return {InputType::Key, action, key};
         }
-        inline static InputEvent button(int button, InputAction action) {
+        inline static InputEvent button(int button, InputAction action) noexcept {
             return {InputType::Button, action, button};
         }
     };
@@ -60,19 +60,16 @@ namespace glint::engine::core {
         CursorCallback cursorCallback;
 
       public:
-        InputListener(CallbackHandle handle_, InputType type_, InputAction mask_, int code_,
-            const InputCallback& cb)
+        InputListener(CallbackHandle handle_, InputType type_, InputAction mask_, int code_, const InputCallback& cb)
             : handle(handle_), type(type_), mask(mask_), code(code_), keyCallback(cb) {
         }
 
         InputListener(CallbackHandle handle_, const CursorCallback& cb)
-            : handle(handle_), type(InputType::Cursor), mask(InputAction::Undefined), code(-1),
-              cursorCallback(cb) {
+            : handle(handle_), type(InputType::Cursor), mask(InputAction::Undefined), code(-1), cursorCallback(cb) {
         }
     };
 
-    struct InputManager {
-      private:
+    class InputManager {
         double mouseX = 0.0, mouseY = 0.0;
         double deltaX = 0.0, deltaY = 0.0;
 
@@ -96,25 +93,18 @@ namespace glint::engine::core {
         void dispatch(const InputEvent& e);
 
         CallbackHandle subscribe(const CursorCallback& callback);
-        CallbackHandle subscribe(InputType type, int code, InputAction action,
-            const InputCallback& callback);
+        CallbackHandle subscribe(InputType type, int code, InputAction action, const InputCallback& callback);
 
         void unsubscribe(CallbackHandle handle);
 
         inline bool isKeyDown(int code) const noexcept {
             if (code < 0 || code >= static_cast<int>(keysCurrent.size())) return false;
-            return (keysCurrent[code]
-                       & (static_cast<uint8_t>(InputAction::Held)
-                           | static_cast<uint8_t>(InputAction::Pressed)))
-                   != 0;
+            return (keysCurrent[code] & (static_cast<uint8_t>(InputAction::Held) | static_cast<uint8_t>(InputAction::Pressed))) != 0;
         }
 
         inline bool isButtonDown(int code) const noexcept {
             if (code < 0 || code >= static_cast<int>(buttonsCurrent.size())) return false;
-            return (buttonsCurrent[code]
-                       & (static_cast<uint8_t>(InputAction::Held)
-                           | static_cast<uint8_t>(InputAction::Pressed)))
-                   != 0;
+            return (buttonsCurrent[code] & (static_cast<uint8_t>(InputAction::Held) | static_cast<uint8_t>(InputAction::Pressed))) != 0;
         }
     };
 

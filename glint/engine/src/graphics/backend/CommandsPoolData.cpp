@@ -4,7 +4,7 @@
 #include "glint/graphics/backend/CommandsPoolData.h"
 #include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
     CommandsPoolData::CommandsPoolData(const VkDevice& device, const QueueFamilySupportDetails& family, size_t size) : device(device) {
 

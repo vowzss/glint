@@ -2,12 +2,11 @@
 
 #include <vulkan/vulkan_core.h>
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
     struct RenderpassAttachmentInfo {
-      public:
-        VkAttachmentDescription description = {};
-        VkAttachmentReference reference = {};
+        VkAttachmentDescription description;
+        VkAttachmentReference reference;
 
       protected:
         RenderpassAttachmentInfo() = default;

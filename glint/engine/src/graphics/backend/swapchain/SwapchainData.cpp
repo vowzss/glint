@@ -2,7 +2,7 @@
 
 #include "glint/graphics/backend/swapchain/SwapchainData.h"
 
-namespace glint::engine::graphics::backend {
+namespace glint::engine::graphics {
 
     SwapchainData::SwapchainData(VkDevice& dev, VkSwapchainCreateInfoKHR info) : device(dev), format(info.imageFormat), extent(info.imageExtent) {
         if (vkCreateSwapchainKHR(device, &info, nullptr, &value) != VK_SUCCESS) {

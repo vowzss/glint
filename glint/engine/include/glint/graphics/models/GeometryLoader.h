@@ -3,7 +3,8 @@
 #include <optional>
 #include <string>
 
-namespace glint::engine::graphics::models {
+namespace glint::engine::graphics {
+
     struct GeometryData;
 
     struct GeometryLoader {
@@ -14,4 +15,5 @@ namespace glint::engine::graphics::models {
       public:
         static std::optional<GeometryData> load(const std::string& filename);
     };
+
 }
