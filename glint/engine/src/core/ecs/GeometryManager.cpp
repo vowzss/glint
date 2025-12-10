@@ -3,8 +3,9 @@
 #include "glint/graphics/backend/buffer/GeometryBuffer.h"
 #include "glint/graphics/models/GeometryData.h"
 
+using namespace glint::engine::graphics;
+
 namespace glint::engine::core {
-    using namespace graphics;
 
     GeometryHandle GeometryManager::create(const Devices& devices, const std::string& path) {
         AssetHandle<GeometryData> asset = assets->load<GeometryData>(path);

@@ -11,7 +11,7 @@ namespace glint::engine::graphics {
 
     struct QueueData {
       private:
-        std::vector<VkQueue> values;
+        std::vector<VkQueue> handles;
 
       public:
         QueueData() = delete;
@@ -21,10 +21,10 @@ namespace glint::engine::graphics {
 
         // --- operators ---
         VkQueue& operator[](size_t i) noexcept {
-            return values[i];
+            return handles[i];
         }
         const VkQueue& operator[](size_t i) const noexcept {
-            return values[i];
+            return handles[i];
         }
     };
 

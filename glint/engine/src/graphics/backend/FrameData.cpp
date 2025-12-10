@@ -5,19 +5,20 @@
 #include "glint/graphics/backend/device/Devices.h"
 #include "glint/graphics/layers/RenderLayer.h"
 
+using namespace glint::engine::core;
+
 namespace glint::engine::graphics {
-    using namespace core;
 
     FrameData::FrameData(const Devices& devices, const FrameCreateInfo& info) : m_device(devices.logical) {
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &imageAvailable);
-        vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &renderFinished);
+        vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_ready);
+        vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_done);
 
         VkFenceCreateInfo fenceInfo{};
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-        vkCreateFence(m_device, &fenceInfo, nullptr, &inFlight);
+        vkCreateFence(m_device, &fenceInfo, nullptr, &m_guard);
 
         // camera uniform buffer
         {
@@ -84,16 +85,16 @@ namespace glint::engine::graphics {
         m_cameraBuffer.reset();
         m_entityBuffer.reset();
 
-        if (inFlight != VK_NULL_HANDLE) {
-            vkDestroyFence(m_device, inFlight, nullptr);
+        if (m_guard != VK_NULL_HANDLE) {
+            vkDestroyFence(m_device, m_guard, nullptr);
         }
 
-        if (imageAvailable != VK_NULL_HANDLE) {
-            vkDestroySemaphore(m_device, imageAvailable, nullptr);
+        if (m_ready != VK_NULL_HANDLE) {
+            vkDestroySemaphore(m_device, m_ready, nullptr);
         }
 
-        if (renderFinished != VK_NULL_HANDLE) {
-            vkDestroySemaphore(m_device, renderFinished, nullptr);
+        if (m_done != VK_NULL_HANDLE) {
+            vkDestroySemaphore(m_device, m_done, nullptr);
         }
     }
 
@@ -102,13 +103,18 @@ namespace glint::engine::graphics {
     }
 
     void FrameData::render(float deltaTime, const FrameRenderInfo& info) const {
-        tick(deltaTime);
-
+        m_deltaTime = deltaTime;
         m_cameraBuffer->update(info.camera.size(), info.camera.data());
 
-        LayerRenderInfo layerInfo = {info.commands, info.pipeline, info.pipelineLayout, m_cameraSet, m_entitySet};
+        LayerRenderInfo renderInfo;
+        renderInfo.commands = info.commands;
+        renderInfo.pipeline = info.pipeline;
+        renderInfo.pipelineLayout = info.pipelineLayout;
+        renderInfo.camera = {m_cameraSet, m_cameraBuffer.get()};
+        renderInfo.entity = {m_entitySet, m_entityBuffer.get()};
+
         for (int i = 0; i < m_layers.size(); ++i) {
-            m_layers[i]->render(this->m_deltaTime, layerInfo);
+            m_layers[i]->render(this->m_deltaTime, renderInfo);
         }
     }
 

@@ -6,9 +6,9 @@
 namespace glint::engine::graphics {
 
     struct SwapchainSupportDetails {
-        VkSurfaceCapabilitiesKHR capabilities = {};
-        std::vector<VkSurfaceFormatKHR> formats = {};
-        std::vector<VkPresentModeKHR> modes = {};
+        VkSurfaceCapabilitiesKHR capabilities;
+        std::vector<VkSurfaceFormatKHR> formats;
+        std::vector<VkPresentModeKHR> modes;
 
       public:
         SwapchainSupportDetails() = default;

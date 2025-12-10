@@ -13,7 +13,7 @@ namespace glint::engine::graphics {
         poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         poolInfo.queueFamilyIndex = family.index;
 
-        if (vkCreateCommandPool(device, &poolInfo, nullptr, &value) != VK_SUCCESS) {
+        if (vkCreateCommandPool(device, &poolInfo, nullptr, &handle) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create command pool!");
         }
 
@@ -21,7 +21,7 @@ namespace glint::engine::graphics {
 
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.commandPool = value;
+        allocInfo.commandPool = handle;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocInfo.commandBufferCount = static_cast<uint32_t>(buffers.size());
 
@@ -32,13 +32,13 @@ namespace glint::engine::graphics {
 
     CommandsPoolData::~CommandsPoolData() {
         if (!buffers.empty()) {
-            vkFreeCommandBuffers(device, value, buffers.size(), buffers.data());
+            vkFreeCommandBuffers(device, handle, buffers.size(), buffers.data());
             buffers.clear();
         }
 
-        if (value != VK_NULL_HANDLE) {
-            vkDestroyCommandPool(device, value, nullptr);
-            value = VK_NULL_HANDLE;
+        if (handle != VK_NULL_HANDLE) {
+            vkDestroyCommandPool(device, handle, nullptr);
+            handle = VK_NULL_HANDLE;
         }
     }
 

@@ -20,27 +20,26 @@ namespace glint::engine {
 
 namespace glint {
 
-    struct Engine {
-      private:
+    class Engine {
         // --- core systems ---
-        std::unique_ptr<engine::core::TimeManager> time = nullptr;
-        std::unique_ptr<engine::core::InputManager> inputs = nullptr;
-        std::unique_ptr<engine::core::AssetManager> assets = nullptr;
+        std::unique_ptr<engine::core::TimeManager> time;
+        std::unique_ptr<engine::core::InputManager> inputs;
+        std::unique_ptr<engine::core::AssetManager> assets;
 
         // --- graphics systems ---
-        std::unique_ptr<engine::graphics::Window> window = nullptr;
-        std::unique_ptr<engine::graphics::Renderer> renderer = nullptr;
+        std::unique_ptr<engine::graphics::Window> window;
+        std::unique_ptr<engine::graphics::Renderer> renderer;
 
         // --- scene ---
-        std::unique_ptr<engine::scene::World> world = nullptr;
-        std::unique_ptr<engine::core::CameraSystem> cameras = nullptr;
+        std::unique_ptr<engine::scene::World> world;
+        std::unique_ptr<engine::core::CameraSystem> cameras;
 
       public:
         Engine() = delete;
         Engine(int width, int height);
+
         ~Engine();
 
-      public:
         void run();
     };
 }

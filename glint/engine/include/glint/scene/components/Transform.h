@@ -6,8 +6,7 @@
 
 namespace glint::engine::scene {
 
-    struct Transform {
-      private:
+    class Transform {
         JPH::Vec3 pos = JPH::Vec3::sZero();
         JPH::Quat rot = JPH::Quat::sIdentity();
         JPH::Vec3 scl = JPH::Vec3::sOne();

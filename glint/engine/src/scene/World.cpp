@@ -8,34 +8,35 @@
 #include "glint/scene/components/GeometryComponent.h"
 
 using namespace glint::engine::core;
+using namespace glint::engine::graphics;
 
 namespace glint::engine::scene {
 
-    World::World(AssetManager* assetManager) {
-        entityManager = std::make_unique<EntityManager>();
-        geometryManager = std::make_unique<GeometryManager>(assetManager);
-        componentManager = std::make_unique<ComponentManager>();
+    World::World(AssetManager* assets) {
+        m_entities = std::make_unique<EntityManager>();
+        m_geometries = std::make_unique<GeometryManager>(assets);
+        m_components = std::make_unique<ComponentManager>();
     }
 
     World::~World() = default;
 
     // --- entities ---
     EntityHandle World::createEntity() noexcept {
-        return entityManager->create();
+        return m_entities->create();
     }
 
     void World::destroyEntity(EntityHandle handle) noexcept {
-        componentManager->removeAll(handle);
-        entityManager->destroy(handle);
+        m_components->removeAll(handle);
+        m_entities->destroy(handle);
     }
 
     // --- geometry ---
     GeometryHandle World::createGeometry(const Devices& devices, const std::string& path) {
-        return geometryManager->create(devices, path);
+        return m_geometries->create(devices, path);
     }
 
     void World::destroyGeometry(GeometryHandle handle) noexcept {
-        geometryManager->destroy(handle);
+        m_geometries->destroy(handle);
 
         auto& storage = getStorage<GeometryComponent>();
         storage.each([&](GeometryComponent& component) {

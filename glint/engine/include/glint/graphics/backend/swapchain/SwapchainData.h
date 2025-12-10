@@ -7,14 +7,14 @@
 namespace glint::engine::graphics {
 
     struct SwapchainData {
-        VkDevice device = {};
+        VkDevice device;
 
-        VkSwapchainKHR value = {};
+        VkSwapchainKHR handle;
         const VkFormat format;
         const VkExtent2D extent;
 
-        std::vector<VkImage> images = {};
-        std::vector<VkImageView> views = {};
+        std::vector<VkImage> images;
+        std::vector<VkImageView> views;
 
       public:
         SwapchainData() = delete;

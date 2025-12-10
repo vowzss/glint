@@ -31,25 +31,20 @@ namespace glint::engine {
 namespace glint::engine::scene {
 
     class World {
-      private:
-        using Devices = graphics::Devices;
-
-      private:
-        std::unique_ptr<core::EntityManager> entityManager;
-        std::unique_ptr<core::GeometryManager> geometryManager;
-        std::unique_ptr<core::ComponentManager> componentManager;
+        std::unique_ptr<core::EntityManager> m_entities;
+        std::unique_ptr<core::GeometryManager> m_geometries;
+        std::unique_ptr<core::ComponentManager> m_components;
 
       public:
-        World(core::AssetManager* assetManager);
+        World(core::AssetManager* assets);
         ~World();
 
-      public:
         // --- entities ---
         core::EntityHandle createEntity() noexcept;
         void destroyEntity(core::EntityHandle handle) noexcept;
 
         // --- geometry ---
-        core::GeometryHandle createGeometry(const Devices& devices, const std::string& path);
+        core::GeometryHandle createGeometry(const graphics::Devices& devices, const std::string& path);
         void destroyGeometry(core::GeometryHandle handle) noexcept;
 
         // --- components ---

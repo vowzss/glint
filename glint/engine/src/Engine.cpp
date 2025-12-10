@@ -25,8 +25,6 @@ using namespace utils;
 namespace glint {
     namespace {
         const std::vector<const char*> getRequiredExtensions() {
-            using namespace engine::utils;
-
             uint32_t count;
             const char** ext = glfwGetRequiredInstanceExtensions(&count);
 
@@ -84,8 +82,6 @@ namespace glint {
     Engine::~Engine() = default;
 
     void Engine::run() {
-        using namespace engine::core;
-
         LOG_INFO("Starting main loop");
 
         using clock = std::chrono::high_resolution_clock;

@@ -23,7 +23,6 @@ namespace glint::engine {
 namespace glint::engine::graphics {
 
     class Renderer {
-      private:
         // --- window / viewport ---
         int width;
         int height;
@@ -64,11 +63,10 @@ namespace glint::engine::graphics {
 
       public:
         Renderer() = delete;
-        ~Renderer();
-
         Renderer(int width_, int height_, const std::vector<const char*>& extensions);
 
-      public:
+        ~Renderer();
+
         void init(const VkSurfaceKHR& surface_);
 
         inline void append(std::unique_ptr<RenderLayer> layer) noexcept {

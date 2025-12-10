@@ -9,10 +9,10 @@ namespace glint::engine::graphics {
     struct QueueFamilySupportDetails;
 
     struct CommandsPoolData {
-        VkDevice device = {};
+        VkDevice device;
 
-        VkCommandPool value = {};
-        std::vector<VkCommandBuffer> buffers = {};
+        VkCommandPool handle;
+        std::vector<VkCommandBuffer> buffers;
 
       public:
         CommandsPoolData() = delete;

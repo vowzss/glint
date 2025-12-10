@@ -21,10 +21,8 @@ namespace glint::engine {
 
 namespace glint::engine::graphics {
 
-    struct SceneLayer : public RenderLayer {
-      private:
+    class SceneLayer : public RenderLayer {
         const scene::World& world;
-        std::unique_ptr<StorageBuffer> entityBuffer;
 
       public:
         SceneLayer(const scene::World& world);

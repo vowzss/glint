@@ -29,9 +29,10 @@
 const int MAX_FRAMES_IN_FLIGHT = 2;
 const int MAX_ENTITIES = 2000;
 
+using namespace glint::engine::core;
+using namespace glint::engine::utils;
+
 namespace glint::engine::graphics {
-    using namespace core;
-    using namespace utils;
 
     Renderer::Renderer(int width_, int height_, const std::vector<const char*>& extensions) : width(width_), height(height_) {
         createInstance(extensions);
@@ -50,20 +51,21 @@ namespace glint::engine::graphics {
         for (VkImageView view : swapchain->views)
             vkDestroyImageView(devices.logical, view, nullptr);
 
-        vkDestroySwapchainKHR(devices.logical, swapchain->value, nullptr);
+        vkDestroySwapchainKHR(devices.logical, swapchain->handle, nullptr);
 
         vkDestroyImage(devices.logical, depthBuffer->image, nullptr);
         vkFreeMemory(devices.logical, depthBuffer->memory, nullptr);
 
         vkDestroyPipeline(devices.logical, pipeline, nullptr);
         vkDestroyPipelineLayout(devices.logical, pipelineLayout, nullptr);
-        vkDestroyRenderPass(devices.logical, renderpass->value, nullptr);
+        vkDestroyRenderPass(devices.logical, renderpass->handle, nullptr);
 
         vkDestroyDescriptorSetLayout(devices.logical, cameraLayout, nullptr);
+        vkDestroyDescriptorSetLayout(devices.logical, entityLayout, nullptr);
         vkDestroyDescriptorPool(devices.logical, descriptorPool, nullptr);
 
-        vkFreeCommandBuffers(devices.logical, commands->value, commands->buffers.size(), commands->buffers.data());
-        vkDestroyCommandPool(devices.logical, commands->value, nullptr);
+        vkFreeCommandBuffers(devices.logical, commands->handle, commands->buffers.size(), commands->buffers.data());
+        vkDestroyCommandPool(devices.logical, commands->handle, nullptr);
 
         vkDestroySurfaceKHR(instance, surface, nullptr);
         vkDestroyDevice(devices.logical, nullptr);
@@ -106,10 +108,10 @@ namespace glint::engine::graphics {
     void Renderer::begin() noexcept {
         const auto& frame = frames[frameIndex];
 
-        vkWaitForFences(devices.logical, 1, &frames[frameIndex]->inFlight, VK_TRUE, UINT64_MAX);
-        vkResetFences(devices.logical, 1, &frames[frameIndex]->inFlight);
+        vkWaitForFences(devices.logical, 1, &frames[frameIndex]->m_guard, VK_TRUE, UINT64_MAX);
+        vkResetFences(devices.logical, 1, &frames[frameIndex]->m_guard);
 
-        vkAcquireNextImageKHR(devices.logical, swapchain->value, UINT64_MAX, frames[frameIndex]->imageAvailable, VK_NULL_HANDLE, &imageIndex);
+        vkAcquireNextImageKHR(devices.logical, swapchain->handle, UINT64_MAX, frames[frameIndex]->m_ready, VK_NULL_HANDLE, &imageIndex);
 
         frame->begin();
     }
@@ -125,7 +127,7 @@ namespace glint::engine::graphics {
 
         VkRenderPassBeginInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = renderpass->value;
+        renderPassInfo.renderPass = renderpass->handle;
         renderPassInfo.framebuffer = renderpass->framebuffers[frameIndex];
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = swapchain->extent;
@@ -148,8 +150,8 @@ namespace glint::engine::graphics {
         const auto& frame = frames[frameIndex];
 
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        std::vector<VkSemaphore> waitSemaphores = {frame->imageAvailable};
-        std::vector<VkSemaphore> signalSemaphores = {frame->renderFinished};
+        std::vector<VkSemaphore> waitSemaphores = {frame->m_ready};
+        std::vector<VkSemaphore> signalSemaphores = {frame->m_done};
 
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -160,14 +162,14 @@ namespace glint::engine::graphics {
         submitInfo.pCommandBuffers = &commands->buffers[frameIndex];
         submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
         submitInfo.pSignalSemaphores = signalSemaphores.data();
-        vkQueueSubmit(queues->graphics[0], 1, &submitInfo, frame->inFlight);
+        vkQueueSubmit(queues->graphics[0], 1, &submitInfo, frame->m_guard);
 
         VkPresentInfoKHR presentInfo = {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         presentInfo.waitSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
         presentInfo.pWaitSemaphores = signalSemaphores.data();
         presentInfo.swapchainCount = 1;
-        presentInfo.pSwapchains = &swapchain->value;
+        presentInfo.pSwapchains = &swapchain->handle;
         presentInfo.pImageIndices = &imageIndex;
         vkQueuePresentKHR(queues->present[0], &presentInfo);
 
@@ -284,8 +286,8 @@ namespace glint::engine::graphics {
         VkSubpassDescription subpass = {};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
-        subpass.pColorAttachments = &color.reference;
-        subpass.pDepthStencilAttachment = &depth.reference;
+        subpass.pColorAttachments = &color.m_reference;
+        subpass.pDepthStencilAttachment = &depth.m_reference;
 
         // subpass dependencies (layout transitions)
         VkSubpassDependency subpassDependency = {};
@@ -297,7 +299,7 @@ namespace glint::engine::graphics {
         subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
         // create render pass
-        std::array<VkAttachmentDescription, 2> attachments = {color.description, depth.description};
+        std::array<VkAttachmentDescription, 2> attachments = {color.m_description, depth.m_description};
 
         VkRenderPassCreateInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -464,7 +466,7 @@ namespace glint::engine::graphics {
         pipelineInfo.pDepthStencilState = &depthStencilStateInfo;
         pipelineInfo.pColorBlendState = &colorBlendingStateInfo;
         pipelineInfo.layout = pipelineLayout;
-        pipelineInfo.renderPass = renderpass->value;
+        pipelineInfo.renderPass = renderpass->handle;
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 

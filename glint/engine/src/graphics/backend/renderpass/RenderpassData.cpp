@@ -8,7 +8,7 @@ namespace glint::engine::graphics {
 
     RenderpassData::RenderpassData(const SwapchainData& swapchain, VkRenderPassCreateInfo info, const VkImageView& depthImageView)
         : device(swapchain.device) {
-        if (vkCreateRenderPass(device, &info, nullptr, &value) != VK_SUCCESS) {
+        if (vkCreateRenderPass(device, &info, nullptr, &handle) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create render pass!");
         }
 
@@ -23,9 +23,9 @@ namespace glint::engine::graphics {
             framebuffers.clear();
         }
 
-        if (value != VK_NULL_HANDLE) {
-            vkDestroyRenderPass(device, value, nullptr);
-            value = VK_NULL_HANDLE;
+        if (handle != VK_NULL_HANDLE) {
+            vkDestroyRenderPass(device, handle, nullptr);
+            handle = VK_NULL_HANDLE;
         }
     }
 
@@ -37,7 +37,7 @@ namespace glint::engine::graphics {
 
             VkFramebufferCreateInfo framebufferInfo = {};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            framebufferInfo.renderPass = value;
+            framebufferInfo.renderPass = handle;
             framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
             framebufferInfo.pAttachments = attachments.data();
             framebufferInfo.width = swapchain.extent.width;

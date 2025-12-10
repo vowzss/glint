@@ -25,8 +25,7 @@ namespace glint::engine::graphics {
         }
     }
 
-    Window::Window(int width_, int height_, const char* title_, InputManager* inputManager_)
-        : width(width_), height(height_), inputManager(inputManager_) {
+    Window::Window(int width, int height, const char* title, InputManager* inputs) : m_width(width), m_height(height), m_inputs(inputs) {
 
         if (!glfwInit()) {
             throw std::runtime_error("GLFW | failed to initialize!");
@@ -34,71 +33,71 @@ namespace glint::engine::graphics {
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-        handle = glfwCreateWindow(width, height, title_, nullptr, nullptr);
+        m_handle = glfwCreateWindow(width, height, title, nullptr, nullptr);
 
-        if (!handle) {
+        if (m_handle == nullptr) {
             throw std::runtime_error("GLFW | failed to create window!");
         }
 
-        glfwSetWindowUserPointer(handle, this);
-        glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetWindowUserPointer(m_handle, this);
+        glfwSetInputMode(m_handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        glfwSetInputMode(m_handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-        glfwSetFramebufferSizeCallback(handle, [](GLFWwindow* w, int width, int height) {
+        glfwSetFramebufferSizeCallback(m_handle, [](GLFWwindow* w, int width, int height) {
 
         });
 
-        glfwSetKeyCallback(handle, [](GLFWwindow* w, int key, int scancode, int action, int mods) {
+        glfwSetKeyCallback(m_handle, [](GLFWwindow* w, int key, int scancode, int action, int mods) {
             Window* self = static_cast<Window*>(glfwGetWindowUserPointer(w));
-            self->inputManager->dispatch(InputEvent::key(key, translateKeyAction(action)));
+            self->m_inputs->dispatch(InputEvent::key(key, translateKeyAction(action)));
         });
 
-        glfwSetMouseButtonCallback(handle, [](GLFWwindow* w, int button, int action, int mods) {
+        glfwSetMouseButtonCallback(m_handle, [](GLFWwindow* w, int button, int action, int mods) {
             Window* self = static_cast<Window*>(glfwGetWindowUserPointer(w));
-            self->inputManager->dispatch(InputEvent::button(button, translateKeyAction(action)));
+            self->m_inputs->dispatch(InputEvent::button(button, translateKeyAction(action)));
         });
 
-        glfwSetCursorPosCallback(handle, [](GLFWwindow* w, double x, double y) {
+        glfwSetCursorPosCallback(m_handle, [](GLFWwindow* w, double x, double y) {
             Window* self = static_cast<Window*>(glfwGetWindowUserPointer(w));
-            self->inputManager->dispatch(InputEvent::cursor(x, y));
+            self->m_inputs->dispatch(InputEvent::cursor(x, y));
         });
 
-        inputManager->subscribe(InputType::Key, GLFW_KEY_ESCAPE, InputAction::Pressed,
-            [&](int code, InputAction action) { glfwSetWindowShouldClose(handle, GLFW_TRUE); });
+        inputs->subscribe(InputType::Key, GLFW_KEY_ESCAPE, InputAction::Pressed,
+            [&](int code, InputAction action) { glfwSetWindowShouldClose(m_handle, GLFW_TRUE); });
     }
 
     Window::~Window() {
-        if (handle) {
-            glfwDestroyWindow(handle);
+        if (m_handle != nullptr) {
+            glfwDestroyWindow(m_handle);
         }
 
         glfwTerminate();
     }
 
     void Window::present() const {
-        glfwSwapBuffers(handle);
+        glfwSwapBuffers(m_handle);
     }
 
     void Window::poll() const {
         glfwPollEvents();
 
-        inputManager->poll();
+        m_inputs->poll();
     }
 
     int Window::getWidth() const {
         int w, h;
-        glfwGetFramebufferSize(handle, &w, &h);
+        glfwGetFramebufferSize(m_handle, &w, &h);
         return w;
     }
 
     int Window::getHeight() const {
         int w, h;
-        glfwGetFramebufferSize(handle, &w, &h);
+        glfwGetFramebufferSize(m_handle, &w, &h);
         return h;
     }
 
     bool Window::isRunning() const {
-        return !glfwWindowShouldClose(handle);
+        return !glfwWindowShouldClose(m_handle);
     }
 
 }

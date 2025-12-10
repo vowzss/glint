@@ -31,22 +31,22 @@ namespace glint::engine::graphics {
     };
 
     struct FrameRenderInfo {
-        VkCommandBuffer commands = nullptr;
+        VkCommandBuffer commands;
 
-        VkPipeline pipeline = nullptr;
-        VkPipelineLayout pipelineLayout = nullptr;
+        VkPipeline pipeline;
+        VkPipelineLayout pipelineLayout;
 
-        VkDescriptorSetLayout cameraLayout = nullptr;
-        VkDescriptorSetLayout entityLayout = nullptr;
+        VkDescriptorSetLayout cameraLayout;
+        VkDescriptorSetLayout entityLayout;
 
         const core::CameraSnapshot& camera;
     };
 
     struct FrameData {
-        const VkDevice m_device = nullptr;
+        const VkDevice m_device;
 
-        VkDescriptorSet m_cameraSet = nullptr;
-        VkDescriptorSet m_entitySet = nullptr;
+        VkDescriptorSet m_cameraSet;
+        VkDescriptorSet m_entitySet;
 
         std::unique_ptr<UniformBuffer> m_cameraBuffer;
         std::unique_ptr<StorageBuffer> m_entityBuffer;
@@ -54,9 +54,9 @@ namespace glint::engine::graphics {
         std::vector<RenderLayer*> m_layers;
 
         // --- synchronisation ---
-        VkSemaphore imageAvailable = nullptr;
-        VkSemaphore renderFinished = nullptr;
-        VkFence inFlight = nullptr;
+        VkSemaphore m_ready;
+        VkSemaphore m_done;
+        VkFence m_guard;
 
         // --- timing ---
         mutable float m_deltaTime;
@@ -70,10 +70,6 @@ namespace glint::engine::graphics {
         void begin() const;
         void render(float deltaTime, const FrameRenderInfo& info) const;
         void end() const;
-
-        inline void tick(float dt) const noexcept {
-            m_deltaTime = dt;
-        }
 
         void attach(RenderLayer* layer) noexcept;
         void detach(RenderLayer* layer) noexcept;

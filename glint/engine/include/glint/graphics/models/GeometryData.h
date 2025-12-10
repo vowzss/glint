@@ -4,11 +4,9 @@
 
 namespace glint::engine::graphics {
     struct GeometryData {
-      private:
         using vertices_t = std::vector<Vertex>;
         using indices_t = std::vector<uint32_t>;
 
-      public:
         vertices_t vertices;
         indices_t indices;
 

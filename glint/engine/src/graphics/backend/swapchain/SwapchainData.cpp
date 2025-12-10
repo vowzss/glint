@@ -5,7 +5,7 @@
 namespace glint::engine::graphics {
 
     SwapchainData::SwapchainData(VkDevice& dev, VkSwapchainCreateInfoKHR info) : device(dev), format(info.imageFormat), extent(info.imageExtent) {
-        if (vkCreateSwapchainKHR(device, &info, nullptr, &value) != VK_SUCCESS) {
+        if (vkCreateSwapchainKHR(device, &info, nullptr, &handle) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create swapchain!");
         }
 
@@ -21,9 +21,9 @@ namespace glint::engine::graphics {
             views.clear();
         }
 
-        if (value != VK_NULL_HANDLE) {
-            vkDestroySwapchainKHR(device, value, nullptr);
-            value = VK_NULL_HANDLE;
+        if (handle != VK_NULL_HANDLE) {
+            vkDestroySwapchainKHR(device, handle, nullptr);
+            handle = VK_NULL_HANDLE;
         }
 
         if (!images.empty()) {
@@ -34,7 +34,7 @@ namespace glint::engine::graphics {
     void SwapchainData::initImages() {
         // query the number of images in the swapchain
         uint32_t count;
-        vkGetSwapchainImagesKHR(device, value, &count, nullptr);
+        vkGetSwapchainImagesKHR(device, handle, &count, nullptr);
 
         if (count == 0) {
             return;
@@ -45,7 +45,7 @@ namespace glint::engine::graphics {
         }
 
         // retrieve the image handles
-        vkGetSwapchainImagesKHR(device, value, &count, images.data());
+        vkGetSwapchainImagesKHR(device, handle, &count, images.data());
     }
 
     void SwapchainData::initViews() {

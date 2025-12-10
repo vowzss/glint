@@ -6,10 +6,8 @@
 #include "glint/scene/components/GeometryComponent.h"
 #include "glint/scene/components/Transform.h"
 
-namespace glint::engine {
-    using namespace core;
-    using namespace scene;
-}
+using namespace glint::engine::core;
+using namespace glint::engine::scene;
 
 namespace glint::engine::graphics {
     SceneLayer::SceneLayer(const scene::World& world_) : world(world_) {};
@@ -30,8 +28,8 @@ namespace glint::engine::graphics {
         }*/
 
         vkCmdBindPipeline(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipeline);
-        vkCmdBindDescriptorSets(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 0, 1, &info.cameraSet, 0, nullptr);
-        vkCmdBindDescriptorSets(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 1, 1, &info.entitySet, 0, nullptr);
+        vkCmdBindDescriptorSets(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 0, 1, &info.camera.set, 0, nullptr);
+        vkCmdBindDescriptorSets(info.commands, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipelineLayout, 1, 1, &info.entity.set, 0, nullptr);
 
         /*VkDeviceSize offsets[] = {0};
         for (size_t i = 0; i < geometries.data.size(); ++i) {

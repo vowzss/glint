@@ -2,19 +2,32 @@
 
 #include "vulkan/vulkan_core.h"
 
+namespace glint::engine {
+    namespace graphics {
+        struct UniformBuffer;
+        struct StorageBuffer;
+    }
+}
+
 namespace glint::engine::graphics {
 
-    struct LayerRenderInfo {
-        VkCommandBuffer commands = nullptr;
-
-        VkPipeline pipeline = nullptr;
-        VkPipelineLayout pipelineLayout = nullptr;
-
-        VkDescriptorSet cameraSet = nullptr;
-        VkDescriptorSet entitySet = nullptr;
+    template <typename T>
+    struct BufferRenderInfo {
+        VkDescriptorSet set;
+        T* data;
     };
 
-    struct RenderLayer {
+    struct LayerRenderInfo {
+        VkCommandBuffer commands;
+
+        VkPipeline pipeline;
+        VkPipelineLayout pipelineLayout;
+
+        BufferRenderInfo<UniformBuffer> camera;
+        BufferRenderInfo<StorageBuffer> entity;
+    };
+
+    class RenderLayer {
       protected:
         RenderLayer() = default;
 

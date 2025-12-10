@@ -24,10 +24,9 @@ namespace glint::engine::graphics {
         uint32_t imageCount;
     };
 
-    struct InterfaceLayer : public RenderLayer {
-      private:
-        VkDevice device = nullptr;
-        VkDescriptorPool descriptorPool = nullptr;
+    class InterfaceLayer : public RenderLayer {
+        const VkDevice m_device = nullptr;
+        VkDescriptorPool m_descriptorPool = nullptr;
 
       public:
         InterfaceLayer(const Devices& devices, const InterfaceLayerInfo& info);

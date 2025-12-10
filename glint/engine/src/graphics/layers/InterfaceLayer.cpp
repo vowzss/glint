@@ -8,7 +8,7 @@
 
 namespace glint::engine::graphics {
 
-    InterfaceLayer::InterfaceLayer(const Devices& devices, const InterfaceLayerInfo& info) : device(devices.logical) {
+    InterfaceLayer::InterfaceLayer(const Devices& devices, const InterfaceLayerInfo& info) : m_device(devices.logical) {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
 
@@ -35,17 +35,17 @@ namespace glint::engine::graphics {
         poolInfo.poolSizeCount = (uint32_t)IM_ARRAYSIZE(poolSizes);
         poolInfo.pPoolSizes = poolSizes;
 
-        if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+        if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | Failed to create ImGui descriptor pool!");
         }
 
         ImGui_ImplVulkan_InitInfo initInfo{};
         initInfo.Instance = info.instance;
         initInfo.PhysicalDevice = devices.physical;
-        initInfo.Device = device;
+        initInfo.Device = m_device;
         initInfo.QueueFamily = info.queueFamily;
         initInfo.Queue = info.queue;
-        initInfo.DescriptorPool = descriptorPool;
+        initInfo.DescriptorPool = m_descriptorPool;
         initInfo.MinImageCount = 2;
         initInfo.ImageCount = info.imageCount;
         initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
@@ -86,14 +86,14 @@ namespace glint::engine::graphics {
     }
 
     InterfaceLayer::~InterfaceLayer() {
-        vkDeviceWaitIdle(device);
+        vkDeviceWaitIdle(m_device);
 
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
 
-        if (descriptorPool != VK_NULL_HANDLE) {
-            vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+        if (m_descriptorPool != VK_NULL_HANDLE) {
+            vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
         }
     }
 

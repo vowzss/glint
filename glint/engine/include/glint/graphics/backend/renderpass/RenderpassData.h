@@ -17,7 +17,7 @@ namespace glint::engine::graphics {
     struct RenderpassData {
         const VkDevice device;
 
-        VkRenderPass value;
+        VkRenderPass handle;
         std::vector<VkFramebuffer> framebuffers;
 
       public:

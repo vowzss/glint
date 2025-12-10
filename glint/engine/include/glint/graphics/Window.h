@@ -10,15 +10,14 @@ namespace glint::engine {
 
 namespace glint::engine::graphics {
 
-    struct Window {
-      private:
-        int width, height;
+    class Window {
+        int m_width, m_height;
 
-        GLFWwindow* handle = nullptr;
-        core::InputManager* inputManager;
+        GLFWwindow* m_handle;
+        core::InputManager* m_inputs;
 
       public:
-        Window(int width_, int height_, const char* title_, core::InputManager* inputManager_);
+        Window(int width, int height, const char* title, core::InputManager* inputs);
         ~Window();
 
         void present() const;
@@ -28,8 +27,8 @@ namespace glint::engine::graphics {
         int getHeight() const;
         bool isRunning() const;
 
-        inline GLFWwindow* raw() const {
-            return handle;
+        inline GLFWwindow* raw() const noexcept {
+            return m_handle;
         }
     };
 

@@ -12,7 +12,6 @@ namespace glint::engine::graphics {
         GeometryLoader() = default;
         ~GeometryLoader() = default;
 
-      public:
         static std::optional<GeometryData> load(const std::string& filename);
     };
 

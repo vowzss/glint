@@ -3,11 +3,11 @@
 
 namespace glint::engine::graphics {
 
-    QueueData::QueueData(const VkDevice& device, const QueueFamilySupportDetails& family) : values({}) {
-        values.resize(family.count);
+    QueueData::QueueData(const VkDevice& device, const QueueFamilySupportDetails& family) {
+        handles.resize(family.count);
 
         for (uint32_t i = 0; i < family.count; i++) {
-            vkGetDeviceQueue(device, family.index, i, &values[i]);
+            vkGetDeviceQueue(device, family.index, i, &handles[i]);
         }
     }
 

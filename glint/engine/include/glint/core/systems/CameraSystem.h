@@ -14,6 +14,8 @@ namespace glint::engine::core {
         JPH::Mat44 proj;
         JPH::Mat44 viewProj;
 
+      public:
+        // --- getters ---
         inline const void* data() const noexcept {
             return static_cast<const void*>(&view);
         }

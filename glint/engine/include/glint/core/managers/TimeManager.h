@@ -11,7 +11,6 @@ namespace glint::engine::core {
         TimeManager(float fixedStep = 1.0f / 60.0f) : m_delta(0), m_scale(1.0f), m_total(0) {
         }
 
-      public:
         inline void tick(float delta) {
             m_delta = delta * m_scale;
             m_total += m_delta;

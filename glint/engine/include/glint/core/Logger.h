@@ -8,8 +8,7 @@
 
 namespace glint::engine {
 
-    struct Logger {
-      private:
+    class Logger {
         static std::shared_ptr<spdlog::logger> m_logger;
 
       public:

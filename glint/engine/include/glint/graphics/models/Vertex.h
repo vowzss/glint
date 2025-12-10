@@ -7,7 +7,6 @@
 namespace glint::engine::graphics {
 
     struct alignas(16) Vertex {
-      public:
         JPH::Float3 position;
         JPH::Float3 normal;
         JPH::Float3 color;
@@ -15,11 +14,9 @@ namespace glint::engine::graphics {
 
       public:
         Vertex() = delete;
-
         constexpr Vertex(JPH::Float3 p, JPH::Float3 c, JPH::Float3 n, JPH::Float2 t) : position(p), color(c), normal(n), uv(t) {
         }
 
-      public:
         bool operator==(const Vertex& other) const noexcept {
             return position == other.position && color == other.color && normal == other.normal && uv == other.uv;
         }
