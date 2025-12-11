@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include <vulkan/vulkan_core.h>
 
 #include "glint/graphics/layers/RenderLayer.h"
@@ -11,11 +9,10 @@ namespace glint::engine {
         struct CameraSnapshot;
     }
     namespace graphics {
-        struct Mesh;
         struct StorageBuffer;
     }
     namespace scene {
-        struct World;
+        class World;
     }
 }
 

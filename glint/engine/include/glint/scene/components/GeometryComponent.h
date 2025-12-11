@@ -6,6 +6,8 @@
 
 namespace glint::engine::scene {
 
-    struct GeometryComponent : Component<core::GeometryHandle> {};
+    struct GeometryComponent : Component<core::GeometryHandle> {
+        using Component::Component;
+    };
 
 }

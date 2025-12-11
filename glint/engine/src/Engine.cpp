@@ -10,6 +10,7 @@
 #include "glint/graphics/Window.h"
 #include "glint/graphics/layers/SceneLayer.h"
 #include "glint/scene/World.h"
+#include "glint/scene/components/GeometryComponent.h"
 #include "glint/utils/FileUtils.h"
 #include "glint/utils/StringUtils.h"
 
@@ -56,8 +57,6 @@ namespace glint {
         renderer->init(surface);
         renderer->append(std::make_unique<SceneLayer>(*world));
 
-        world->createGeometry(renderer->getDevices(), files::getModelPath("cube.obj"));
-
         // clang-format off
         inputs->subscribe(InputType::Key, GLFW_KEY_W, InputAction::Held, [&](int code, InputAction action) {
             cameras->forward(cameras->active(), action == InputAction::Held ? -1.0f : 0.0f);
@@ -79,6 +78,15 @@ namespace glint {
             cameras->rotate(cameras->active(), static_cast<float>(deltaX), static_cast<float>(deltaY));
         });
         // clang-format on
+
+        // todo: remove (debug only)
+        EntityHandle entity = world->createEntity();
+        if (!entity.valid()) return;
+
+        GeometryHandle geometry = world->createGeometry(renderer->getDevices(), files::getModelPath("cube.obj"));
+        if (!geometry.valid()) return;
+
+        world->attach(entity, GeometryComponent{geometry});
     }
 
     Engine::~Engine() = default;

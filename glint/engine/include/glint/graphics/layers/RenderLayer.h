@@ -1,23 +1,26 @@
 #pragma once
 
+#include <vector>
+
 #include "vulkan/vulkan_core.h"
 
 namespace glint::engine {
-    namespace graphics {
-        struct UniformBuffer;
-        struct StorageBuffer;
+    namespace scene {
+        struct EntityView;
     }
 }
 
 namespace glint::engine::graphics {
     struct LayerRenderInfo {
-        VkCommandBuffer commands;
+        VkCommandBuffer commands = nullptr;
 
-        VkPipeline pipeline;
-        VkPipelineLayout pipelineLayout;
+        VkPipeline pipeline = nullptr;
+        VkPipelineLayout pipelineLayout = nullptr;
 
-        VkDescriptorSet cameraSet;
-        VkDescriptorSet entitySet;
+        VkDescriptorSet cameraSet = nullptr;
+        VkDescriptorSet entitySet = nullptr;
+
+        const std::vector<scene::EntityView>* entities;
     };
 
     class RenderLayer {

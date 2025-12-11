@@ -18,6 +18,9 @@ namespace glint::engine {
         struct UniformBuffer;
         struct StorageBuffer;
     }
+    namespace scene {
+        class World;
+    }
 }
 
 namespace glint::engine::graphics {
@@ -29,6 +32,8 @@ namespace glint::engine::graphics {
         VkDescriptorPool descriptorPool;
         VkDescriptorSetLayout cameraLayout;
         VkDescriptorSetLayout entityLayout;
+
+        const scene::World& world;
     };
 
     struct FrameRenderInfo {
@@ -47,7 +52,8 @@ namespace glint::engine::graphics {
     };
 
     struct FrameData {
-        const VkDevice m_device;
+        const VkDevice m_device = nullptr;
+        const scene::World& m_world;
 
         FrameBufferBinding<UniformBuffer> m_camera;
         FrameBufferBinding<StorageBuffer> m_entity;
@@ -55,9 +61,9 @@ namespace glint::engine::graphics {
         std::vector<RenderLayer*> m_layers;
 
         // --- synchronisation ---
-        VkSemaphore m_ready;
-        VkSemaphore m_done;
-        VkFence m_guard;
+        VkSemaphore m_ready = nullptr;
+        VkSemaphore m_done = nullptr;
+        VkFence m_guard = nullptr;
 
         // --- timing ---
         mutable float m_deltaTime;

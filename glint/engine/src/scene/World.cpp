@@ -86,11 +86,6 @@ namespace glint::engine::scene {
         return m_geometries ? m_geometries->get(handle) : nullptr;
     }
 
-    /*template <>
-    const graphics::GeometryBuffer* World::resolve<graphics::GeometryBuffer, core::GeometryHandle>(core::GeometryHandle handle) const noexcept {
-        return m_geometries ? m_geometries->get(handle) : nullptr;
-    }*/
-
     EntityView World::entity(EntityHandle handle) const noexcept {
         if (!m_entities->isValid(handle)) {
             return EntityView{};

@@ -39,7 +39,6 @@ namespace glint::engine::scene {
     class World {
         std::unique_ptr<core::EntityManager> m_entities;
         std::unique_ptr<core::GeometryManager> m_geometries;
-
         std::unique_ptr<core::ComponentManager> m_components;
 
       public:

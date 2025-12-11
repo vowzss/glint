@@ -12,11 +12,10 @@ namespace glint::engine::graphics {
     std::optional<GeometryData> GeometryLoader::load(const std::string& filename) {
         namespace fs = std::filesystem;
 
-        fs::path path = utils::files::getModelPath(filename);
-        LOG_INFO("Loading OBJ file from: {}", path.string());
+        LOG_INFO("Loading OBJ file from: {}", filename);
 
-        if (!fs::exists(path) || fs::file_size(path) == 0) {
-            LOG_ERROR("OBJ file is missing or empty: {}", path.string());
+        if (!fs::exists(filename) || fs::file_size(filename) == 0) {
+            LOG_ERROR("OBJ file is missing or empty: {}", filename);
             return std::nullopt;
         }
 
@@ -25,7 +24,7 @@ namespace glint::engine::graphics {
         std::vector<tinyobj::material_t> materials;
         std::string warn, err;
 
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.string().c_str())) {
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str())) {
             LOG_ERROR("Failed to load OBJ: {}", err);
             return std::nullopt;
         }

@@ -2,13 +2,15 @@
 #include "glint/graphics/backend/FrameData.h"
 #include "glint/graphics/backend/device/Devices.h"
 #include "glint/graphics/layers/RenderLayer.h"
+#include "glint/scene/World.h"
 
 using namespace glint::engine::core;
+using namespace glint::engine::scene;
 
 namespace glint::engine::graphics {
 
     FrameData::FrameData(const Devices& devices, const FrameCreateInfo& info)
-        : m_device(devices.logical), m_camera{VK_NULL_HANDLE, UniformBuffer(devices, CameraSnapshot::size())},
+        : m_device(devices.logical), m_world(info.world), m_camera{VK_NULL_HANDLE, UniformBuffer(devices, CameraSnapshot::size())},
           m_entity{VK_NULL_HANDLE, StorageBuffer(devices, sizeof(JPH::Mat44) * 100)} {
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -100,6 +102,7 @@ namespace glint::engine::graphics {
 
         m_camera.buffer.update(info.camera.size(), info.camera.data());
 
+        const std::vector<EntityView> entities = m_world.entities();
         const JPH::Mat44* models = reinterpret_cast<const JPH::Mat44*>(m_entity.buffer.data());
         m_entity.buffer.update(m_entity.buffer.size(), models);
 
@@ -109,6 +112,7 @@ namespace glint::engine::graphics {
         renderInfo.pipelineLayout = info.pipelineLayout;
         renderInfo.cameraSet = m_camera.set;
         renderInfo.entitySet = m_entity.set;
+        renderInfo.entities = &entities;
 
         for (int i = 0; i < m_layers.size(); ++i) {
             m_layers[i]->render(this->m_deltaTime, renderInfo);
