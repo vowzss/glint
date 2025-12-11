@@ -14,6 +14,16 @@ namespace glint::engine::core {
         ComponentStorage<scene::GeometryComponent> m_geometries;
 
       public:
+        ComponentManager() noexcept = default;
+        ~ComponentManager() noexcept = default;
+
+        ComponentManager(const ComponentManager&) = delete;
+        ComponentManager& operator=(const ComponentManager&) = delete;
+
+        ComponentManager(ComponentManager&&) = delete;
+        ComponentManager& operator=(ComponentManager&&) = delete;
+
+        // --- methods ---
         template <typename T>
         inline void add(EntityHandle handle, const T& component);
 

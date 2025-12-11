@@ -1,12 +1,12 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
+#include "glint/graphics/backend/device/Devices.h"
+
+#include "vulkan/vulkan_core.h"
 
 namespace glint::engine::graphics {
 
-    struct Devices;
-
-    struct BufferCreateInfo {
+    struct BufferInfo {
         const void* data = nullptr;
         VkDeviceSize size = 0;
 
@@ -14,7 +14,7 @@ namespace glint::engine::graphics {
         VkMemoryPropertyFlags properties;
     };
 
-    struct BufferData {
+    struct BufferObject {
         // --- GPU handles ---
         const VkDevice m_device = nullptr;
         VkBuffer m_handle = nullptr;
@@ -26,17 +26,18 @@ namespace glint::engine::graphics {
         VkDeviceSize m_size = 0;
 
       protected:
-        BufferData(const Devices& devices, const BufferCreateInfo& info);
+        BufferObject(const Devices& devices, const BufferInfo& info);
 
       public:
-        virtual ~BufferData() noexcept;
+        virtual ~BufferObject() noexcept;
 
-        BufferData(const BufferData&) = delete;
-        BufferData& operator=(const BufferData&) = delete;
+        BufferObject(const BufferObject&) = delete;
+        BufferObject& operator=(const BufferObject&) = delete;
 
-        BufferData(BufferData&& other) noexcept;
-        BufferData& operator=(BufferData&& other) noexcept;
+        BufferObject(BufferObject&& other) noexcept;
+        BufferObject& operator=(BufferObject&& other) noexcept;
 
+        // --- methods ---
         bool update(VkDeviceSize size, const void* data = nullptr, VkDeviceSize offset = 0);
 
         // --- getters ---
@@ -46,6 +47,10 @@ namespace glint::engine::graphics {
 
         inline const VkDeviceSize& size() const noexcept {
             return m_size;
+        }
+
+        inline const VkBuffer& handle() const noexcept {
+            return m_handle;
         }
     };
 

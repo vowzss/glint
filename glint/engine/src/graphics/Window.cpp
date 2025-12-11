@@ -84,19 +84,7 @@ namespace glint::engine::graphics {
         m_inputs->poll();
     }
 
-    int Window::getWidth() const {
-        int w, h;
-        glfwGetFramebufferSize(m_handle, &w, &h);
-        return w;
-    }
-
-    int Window::getHeight() const {
-        int w, h;
-        glfwGetFramebufferSize(m_handle, &w, &h);
-        return h;
-    }
-
-    bool Window::isRunning() const {
+    bool Window::isRunning() const noexcept {
         return !glfwWindowShouldClose(m_handle);
     }
 

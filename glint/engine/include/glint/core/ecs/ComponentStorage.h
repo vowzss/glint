@@ -21,9 +21,10 @@ namespace glint::engine::core {
         ComponentStorage(const ComponentStorage&) = delete;
         ComponentStorage& operator=(const ComponentStorage&) = delete;
 
-        ComponentStorage(ComponentStorage&&) noexcept = delete;
+        ComponentStorage(ComponentStorage&&) = delete;
         ComponentStorage& operator=(ComponentStorage&&) = delete;
 
+        // --- methods ---
         inline void add(EntityHandle handle, const Component& component) noexcept;
 
         inline Component* get(EntityHandle handle) noexcept;

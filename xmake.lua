@@ -7,6 +7,7 @@ set_project("glint")
 set_version("1.0.0")
 
 set_languages("c17", "cxx17")
+set_toolset("cxx", "clang++")
 set_rundir("$(projectdir)")
 
 -- global C & C++ flags
@@ -50,8 +51,8 @@ add_requires("stb")
 
 -- engine target (library)
 target("engine")
-    set_kind("static")
-    set_basename("glint_engine")
+    set_kind("shared")
+    set_basename("glint")
 
     -- dependencies
     add_packages("spdlog", "xxhash")
@@ -70,7 +71,7 @@ target_end()
 -- editor target (console)
 target("editor")
     set_kind("binary")
-    set_basename("glint_editor")
+    set_basename("glint")
 
     add_deps("engine")
 

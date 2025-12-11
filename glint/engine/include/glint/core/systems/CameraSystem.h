@@ -26,7 +26,7 @@ namespace glint::engine::core {
     };
 
     class CameraSystem {
-        std::unique_ptr<scene::CameraComponent> m_default;
+        std::unique_ptr<scene::CameraComponent> m_default = nullptr;
         scene::CameraComponent* m_active = nullptr;
 
       public:
@@ -36,6 +36,8 @@ namespace glint::engine::core {
 
             m_active = m_default.get();
         }
+
+        ~CameraSystem() noexcept = default;
 
         void update(scene::CameraComponent& camera, float deltaTime) noexcept;
         void rotate(scene::CameraComponent& camera, float dx, float dy) noexcept;
@@ -98,11 +100,11 @@ namespace glint::engine::core {
         JPH::Mat44 projectionMatrix(const scene::CameraComponent& camera) const;
         JPH::Mat44 viewProjectionMatrix(const scene::CameraComponent& camera) const;
 
-        inline scene::CameraComponent& active() {
+        inline scene::CameraComponent& active() noexcept {
             return *m_active;
         }
 
-        inline const scene::CameraComponent& active() const {
+        inline const scene::CameraComponent& active() const noexcept {
             return *m_active;
         }
 

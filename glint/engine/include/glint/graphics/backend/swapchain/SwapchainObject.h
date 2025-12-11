@@ -6,7 +6,7 @@
 
 namespace glint::engine::graphics {
 
-    struct SwapchainData {
+    struct SwapchainObject {
         VkDevice device;
 
         VkSwapchainKHR handle;
@@ -17,10 +17,10 @@ namespace glint::engine::graphics {
         std::vector<VkImageView> views;
 
       public:
-        SwapchainData() = delete;
-        SwapchainData(VkDevice& device, VkSwapchainCreateInfoKHR info);
+        SwapchainObject() = delete;
+        SwapchainObject(VkDevice& device, VkSwapchainCreateInfoKHR info);
 
-        ~SwapchainData();
+        ~SwapchainObject();
 
       private:
         void initImages();

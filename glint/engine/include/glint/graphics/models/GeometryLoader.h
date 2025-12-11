@@ -3,14 +3,14 @@
 #include <optional>
 #include <string>
 
-#include "glint/graphics/models/GeometryData.h"
+#include "GeometryData.h"
 
 namespace glint::engine::graphics {
 
     struct GeometryLoader {
       public:
-        GeometryLoader() = default;
-        ~GeometryLoader() = default;
+        GeometryLoader() noexcept = default;
+        ~GeometryLoader() noexcept = default;
 
         static std::optional<GeometryData> load(const std::string& filename);
     };

@@ -6,7 +6,7 @@ namespace glint::engine::graphics {
 
     struct Devices;
 
-    struct ImageBufferDataInfo {
+    struct ImageBufferInfo {
         VkFormat format;
         VkExtent2D extent;
 
@@ -14,7 +14,7 @@ namespace glint::engine::graphics {
         VkMemoryPropertyFlagBits properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     };
 
-    struct ImageBufferData {
+    struct ImageBufferObject {
         VkDevice device;
 
         VkImage image;
@@ -27,10 +27,10 @@ namespace glint::engine::graphics {
         VkMemoryPropertyFlagBits properties;
 
       public:
-        ImageBufferData() = delete;
-        ImageBufferData(const Devices& devices, const ImageBufferDataInfo& info);
+        ImageBufferObject() = delete;
+        ImageBufferObject(const Devices& devices, const ImageBufferInfo& info);
 
-        ~ImageBufferData();
+        ~ImageBufferObject();
     };
 
 }

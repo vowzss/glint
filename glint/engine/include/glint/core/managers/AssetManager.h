@@ -1,38 +1,35 @@
 #pragma once
 
-#include <string>
+#include <cstdint>
 #include <vector>
 
-#include "glint/graphics/models/GeometryLoader.h"
-
-#include "AssetHandle.h"
-
+#include "glint/core/ecs/ObjectHandle.h"
 
 namespace glint::engine::core {
 
+    struct AssetEntry {
+        uint32_t version = 0;
+        std::unique_ptr<void, void (*)(void*)> data = {nullptr, nullptr};
+    };
+
     class AssetManager {
-        struct AssetEntry {
-            uint32_t version = 0;
-
-            void* data = nullptr;
-            void (*deleter)(void*) = nullptr;
-        };
-
         std::vector<AssetEntry> m_entries;
 
         std::vector<uint32_t> m_freeIds;
         uint32_t m_nextId = 0;
 
       public:
-        AssetManager() = default;
-        ~AssetManager();
+        AssetManager() noexcept = default;
+        ~AssetManager() noexcept = default;
 
+        // --- methods ---
         template <typename Asset>
         AssetHandle<Asset> load(const std::string& path);
 
         template <typename Asset>
         void unload(AssetHandle<Asset> handle) noexcept;
 
+        // --- getters ---
         template <typename Asset>
         bool exists(AssetHandle<Asset> handle) const noexcept;
 

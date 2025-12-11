@@ -1,4 +1,6 @@
-#include "glint/graphics/backend/buffer/GeometryBuffer.h"
+#include "glint/graphics/backend/buffer/GeometryBufferObject.h"
+#include "glint/graphics/backend/buffer/IndexBufferObject.h"
+#include "glint/graphics/backend/buffer/VertexBufferObject.h"
 #include "glint/graphics/layers/SceneLayer.h"
 #include "glint/scene/World.h"
 #include "glint/scene/components/GeometryComponent.h"
@@ -19,12 +21,12 @@ namespace glint::engine::graphics {
         for (const EntityView& entity : *info.entities) {
             if (entity.geometry == nullptr) continue;
 
-            const GeometryBuffer* geometry = m_world.resolve<GeometryBuffer>(entity.geometry->handle());
+            const GeometryBufferObject* geometry = m_world.resolve<GeometryBufferObject>(entity.geometry->handle());
             if (geometry == nullptr) continue;
 
-            vkCmdBindVertexBuffers(info.commands, 0, 1, &geometry->m_vertices.m_handle, offsets);
-            vkCmdBindIndexBuffer(info.commands, geometry->m_indices.m_handle, 0, VK_INDEX_TYPE_UINT32);
-            vkCmdDrawIndexed(info.commands, geometry->m_indices.size(), 1, 0, 0, 0);
+            vkCmdBindVertexBuffers(info.commands, 0, 1, &geometry->m_vertices->m_handle, offsets);
+            vkCmdBindIndexBuffer(info.commands, geometry->m_indices->m_handle, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdDrawIndexed(info.commands, geometry->m_indices->size(), 1, 0, 0, 0);
         }
     }
 }

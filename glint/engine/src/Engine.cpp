@@ -24,6 +24,7 @@ using namespace scene;
 using namespace utils;
 
 namespace glint {
+
     namespace {
         const std::vector<const char*> getRequiredExtensions() {
             uint32_t count;
@@ -62,6 +63,7 @@ namespace glint {
         renderer->init(surface);
         renderer->append(std::make_unique<SceneLayer>(*world));
 
+        // todo: cleanup
         // clang-format off
         inputs->subscribe(InputType::Key, GLFW_KEY_W, InputAction::Held, [&](int code, InputAction action) {
             cameras->forward(cameras->active(), action == InputAction::Held ? -1.0f : 0.0f);

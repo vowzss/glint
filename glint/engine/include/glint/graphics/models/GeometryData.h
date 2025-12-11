@@ -4,22 +4,30 @@
 
 namespace glint::engine::graphics {
 
-    struct GeometryData {
-        using vertices_t = std::vector<Vertex>;
-        using indices_t = std::vector<uint32_t>;
-
-        vertices_t m_vertices;
-        indices_t m_indices;
+    class GeometryData {
+        std::vector<Vertex> m_vertices;
+        std::vector<uint32_t> m_indices;
 
       public:
-        GeometryData() = default;
+        GeometryData() noexcept = default;
+        ~GeometryData() noexcept = default;
+
         GeometryData(const GeometryData&) = delete;
-        GeometryData(GeometryData&&) noexcept = default;
-
-        GeometryData(vertices_t vertices, indices_t indices) : m_vertices(std::move(vertices)), m_indices(std::move(indices)) {};
-
         GeometryData& operator=(const GeometryData&) = delete;
+
+        GeometryData(GeometryData&&) noexcept = default;
         GeometryData& operator=(GeometryData&&) noexcept = default;
+
+        GeometryData(std::vector<Vertex> vertices, std::vector<uint32_t> indices) : m_vertices(std::move(vertices)), m_indices(std::move(indices)) {};
+
+        // --- getters --
+        const std::vector<Vertex>& vertices() const noexcept {
+            return m_vertices;
+        }
+
+        const std::vector<uint32_t>& indices() const noexcept {
+            return m_indices;
+        }
     };
 
 }

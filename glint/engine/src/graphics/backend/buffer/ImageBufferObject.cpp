@@ -1,7 +1,7 @@
 #include <stdexcept>
 
 #include "glint/graphics/backend/VkHelpers.h"
-#include "glint/graphics/backend/buffer/ImageBufferData.h"
+#include "glint/graphics/backend/buffer/ImageBufferObject.h"
 #include "glint/graphics/backend/device/Devices.h"
 
 namespace glint::engine::graphics {

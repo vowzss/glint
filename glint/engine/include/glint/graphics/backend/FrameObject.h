@@ -51,7 +51,7 @@ namespace glint::engine::graphics {
         T buffer;
     };
 
-    struct FrameData {
+    struct FrameObject {
         const VkDevice m_device = nullptr;
         // const scene::World& m_world;
 
@@ -69,10 +69,10 @@ namespace glint::engine::graphics {
         mutable float m_deltaTime;
 
       public:
-        FrameData() = delete;
-        FrameData(const Devices& devices, const FrameCreateInfo& info);
+        FrameObject() = delete;
+        FrameObject(const Devices& devices, const FrameCreateInfo& info);
 
-        ~FrameData();
+        ~FrameObject();
 
         void begin();
         void render(float deltaTime, const FrameRenderInfo& info);

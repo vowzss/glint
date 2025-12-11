@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 #include "glint/graphics/backend/VkHelpers.h"
-#include "glint/graphics/backend/buffer/BufferData.h"
+#include "glint/graphics/backend/buffer/BufferObject.h"
 #include "glint/graphics/backend/device/Devices.h"
 
 namespace glint::engine::graphics {

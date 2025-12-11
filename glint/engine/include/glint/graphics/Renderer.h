@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "glint/graphics/backend/CommandsPoolData.h"
-#include "glint/graphics/backend/buffer/ImageBufferData.h"
+#include "glint/graphics/backend/buffer/ImageBufferObject.h"
 #include "glint/graphics/backend/device/Devices.h"
 #include "glint/graphics/backend/device/QueueData.h"
 #include "glint/graphics/backend/renderpass/RenderpassData.h"

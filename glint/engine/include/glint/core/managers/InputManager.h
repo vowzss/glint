@@ -60,12 +60,10 @@ namespace glint::engine::core {
 
       public:
         InputListener(CallbackHandle handle_, InputType type_, InputAction mask_, int code_, const InputCallback& cb)
-            : handle(handle_), type(type_), mask(mask_), code(code_), keyCallback(cb) {
-        }
+            : handle(handle_), type(type_), mask(mask_), code(code_), keyCallback(cb) {};
 
         InputListener(CallbackHandle handle_, const CursorCallback& cb)
-            : handle(handle_), type(InputType::Cursor), mask(InputAction::Undefined), code(-1), cursorCallback(cb) {
-        }
+            : handle(handle_), type(InputType::Cursor), mask(InputAction::Undefined), code(-1), cursorCallback(cb) {};
     };
 
     class InputManager {
@@ -85,9 +83,10 @@ namespace glint::engine::core {
         CallbackHandle nextHandle = 1;
 
       public:
-        InputManager() = default;
-        ~InputManager() = default;
+        InputManager() noexcept = default;
+        ~InputManager() noexcept = default;
 
+        // --- methods ---
         void poll();
         void dispatch(const InputEvent& e);
 
@@ -96,6 +95,7 @@ namespace glint::engine::core {
 
         void unsubscribe(CallbackHandle handle);
 
+        // --- getters ---
         inline bool isKeyDown(int code) const noexcept {
             if (code < 0 || code >= static_cast<int>(keysCurrent.size())) return false;
             return (keysCurrent[code] & (static_cast<uint8_t>(InputAction::Held) | static_cast<uint8_t>(InputAction::Pressed))) != 0;

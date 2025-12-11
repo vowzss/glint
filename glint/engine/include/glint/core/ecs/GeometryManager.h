@@ -37,7 +37,7 @@ namespace glint::engine::core {
     };
 
     class GeometryManager {
-        AssetManager* m_assets;
+        AssetManager& m_assets;
 
         std::vector<GeometryEntry> m_entries;
 
@@ -45,9 +45,16 @@ namespace glint::engine::core {
         uint32_t m_nextId = 0;
 
       public:
-        GeometryManager(AssetManager* assets) : m_assets(assets){};
-        ~GeometryManager() = default;
+        GeometryManager(AssetManager& assets) noexcept : m_assets(assets) {};
+        ~GeometryManager() noexcept = default;
 
+        GeometryManager(const GeometryManager&) = delete;
+        GeometryManager& operator=(const GeometryManager&) = delete;
+
+        GeometryManager(GeometryManager&&) = delete;
+        GeometryManager& operator=(GeometryManager&&) = delete;
+
+        // --- methods ---
         GeometryHandle create(const graphics::Devices& devices, const std::string& path);
         void destroy(GeometryHandle handle);
 

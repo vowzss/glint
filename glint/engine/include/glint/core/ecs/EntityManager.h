@@ -42,9 +42,16 @@ namespace glint::engine::core {
         uint32_t m_nextId = 0;
 
       public:
-        EntityManager() = default;
-        ~EntityManager() = default;
+        EntityManager() noexcept = default;
+        ~EntityManager() noexcept = default;
 
+        EntityManager(const EntityManager&) = delete;
+        EntityManager& operator=(const EntityManager&) = delete;
+
+        EntityManager(EntityManager&&) = delete;
+        EntityManager& operator=(EntityManager&&) = delete;
+
+        // --- methods ---
         EntityHandle create();
         void destroy(EntityHandle handle);
 

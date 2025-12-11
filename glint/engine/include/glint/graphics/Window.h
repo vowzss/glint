@@ -17,15 +17,25 @@ namespace glint::engine::graphics {
         core::InputManager* m_inputs;
 
       public:
+        Window() = delete;
         Window(int width, int height, const char* title, core::InputManager* inputs);
+
         ~Window();
 
+        // --- methods ---
         void present() const;
         void poll() const;
 
-        int getWidth() const;
-        int getHeight() const;
-        bool isRunning() const;
+        // --- getters ---
+        inline const int& width() const noexcept {
+            return m_width;
+        }
+
+        inline const int& height() const noexcept {
+            return m_height;
+        }
+
+        bool isRunning() const noexcept;
 
         inline GLFWwindow* raw() const noexcept {
             return m_handle;
