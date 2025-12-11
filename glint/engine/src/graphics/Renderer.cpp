@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 
@@ -22,14 +23,7 @@
 #include "glint/utils/FileUtils.h"
 #include "glint/utils/VkUtils.h"
 
-#ifdef NDEBUG
-    #define BUILD_DEBUG 0
-#else
-    #define BUILD_DEBUG 1
-#endif
-
 const int MAX_FRAMES_IN_FLIGHT = 2;
-const int MAX_ENTITIES = 2000;
 
 using namespace glint::engine::core;
 using namespace glint::engine::utils;
@@ -127,8 +121,8 @@ namespace glint::engine::graphics {
         const auto& frame = m_frames[m_frame];
 
         std::array<VkClearValue, 2> clearValues;
-        clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
-        clearValues[1].depthStencil = {1.0f, 0};
+        clearValues[0].color = VkClearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
+        clearValues[1].depthStencil = VkClearDepthStencilValue{1.0f, 0};
 
         commands->begin(m_frame);
 
@@ -190,19 +184,24 @@ namespace glint::engine::graphics {
         instanceInfo.enabledExtensionCount = extensions.size();
         instanceInfo.ppEnabledExtensionNames = extensions.data();
 
+#if defined(PLATFORM_MACOS)
+        instanceInfo.flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
+
         if (BUILD_DEBUG) {
             // LOG_DEBUG("Vulkan validation layers requested!");
 
             if (!utils::isValidationLayersSupported()) {
-                throw std::runtime_error("Vulkan | validation layers requested, but not available!");
+                throw std::runtime_error("Vulkan | Validation layers requested, but not available!");
             }
 
-            instanceInfo.enabledLayerCount = utils::validationLayers.size();
+            instanceInfo.enabledLayerCount = static_cast<uint32_t>(utils::validationLayers.size());
             instanceInfo.ppEnabledLayerNames = utils::validationLayers.data();
         }
 
-        if (vkCreateInstance(&instanceInfo, nullptr, &m_instance) != VK_SUCCESS) {
-            throw std::runtime_error("Vulkan | failed to create instance!");
+        auto t = vkCreateInstance(&instanceInfo, nullptr, &m_instance);
+        if (t != VK_SUCCESS) {
+            throw std::runtime_error("Vulkan | Failed to create instance!");
         }
     }
 
@@ -503,7 +502,7 @@ namespace glint::engine::graphics {
         for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
             m_frames[i] = std::make_unique<FrameData>(m_devices, frameInfo);
 
-            for (int j = 0; j < layers.size(); ++j) {
+            for (size_t j = 0; j < layers.size(); ++j) {
                 m_frames[i]->attach(layers[j].get());
             }
         }

@@ -6,7 +6,7 @@ struct GLFWwindow;
 
 namespace glint::engine {
     namespace graphics {
-        struct Renderer;
+        class Renderer;
         struct Devices;
     }
 }

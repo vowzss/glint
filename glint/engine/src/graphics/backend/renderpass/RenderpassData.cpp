@@ -1,4 +1,5 @@
 #include <array>
+#include <cstddef>
 #include <stdexcept>
 
 #include "glint/graphics/backend/renderpass/RenderpassData.h"
@@ -32,7 +33,7 @@ namespace glint::engine::graphics {
     void RenderpassData::initFramebuffers(const SwapchainData& swapchain, VkImageView depthImageView) {
         framebuffers.resize(swapchain.views.size());
 
-        for (int i = 0; i < swapchain.views.size(); i++) {
+        for (size_t i = 0; i < swapchain.views.size(); i++) {
             std::array<VkImageView, 2> attachments = {swapchain.views[i], depthImageView};
 
             VkFramebufferCreateInfo framebufferInfo = {};

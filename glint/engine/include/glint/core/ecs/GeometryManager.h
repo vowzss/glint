@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <iostream>
 #include <optional>
 #include <string>
 #include <vector>
@@ -16,7 +15,7 @@ namespace glint::engine::graphics {
 
 namespace glint::engine::core {
 
-    struct AssetManager;
+    class AssetManager;
 
     struct GeometryEntry {
       private:
@@ -46,7 +45,7 @@ namespace glint::engine::core {
         uint32_t m_nextId = 0;
 
       public:
-        GeometryManager(AssetManager* assets) : m_assets(assets) {};
+        GeometryManager(AssetManager* assets) : m_assets(assets){};
         ~GeometryManager() = default;
 
         GeometryHandle create(const graphics::Devices& devices, const std::string& path);

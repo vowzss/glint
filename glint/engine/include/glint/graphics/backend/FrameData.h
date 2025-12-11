@@ -26,14 +26,14 @@ namespace glint::engine {
 namespace glint::engine::graphics {
 
     struct Devices;
-    struct RenderLayer;
+    class RenderLayer;
 
     struct FrameCreateInfo {
         VkDescriptorPool descriptorPool;
         VkDescriptorSetLayout cameraLayout;
         VkDescriptorSetLayout entityLayout;
 
-        const scene::World& world;
+        // const scene::World& world;
     };
 
     struct FrameRenderInfo {
@@ -53,7 +53,7 @@ namespace glint::engine::graphics {
 
     struct FrameData {
         const VkDevice m_device = nullptr;
-        const scene::World& m_world;
+        // const scene::World& m_world;
 
         FrameBufferBinding<UniformBuffer> m_camera;
         FrameBufferBinding<StorageBuffer> m_entity;

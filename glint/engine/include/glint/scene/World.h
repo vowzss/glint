@@ -8,14 +8,14 @@
 
 namespace glint::engine {
     namespace core {
-        struct EntityManager;
-        struct GeometryManager;
-        struct ComponentManager;
+        class EntityManager;
+        class GeometryManager;
+        class ComponentManager;
 
         template <typename Component>
         class ComponentStorage;
 
-        struct AssetManager;
+        class AssetManager;
     }
 
     namespace graphics {
@@ -24,7 +24,7 @@ namespace glint::engine {
     }
 
     namespace scene {
-        struct Transform;
+        class Transform;
         struct GeometryComponent;
     }
 }

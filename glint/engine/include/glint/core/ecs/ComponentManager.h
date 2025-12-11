@@ -3,7 +3,7 @@
 #include "ComponentStorage.h"
 
 namespace glint::engine::scene {
-    struct Transform;
+    class Transform;
     struct GeometryComponent;
 }
 

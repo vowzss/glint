@@ -48,8 +48,8 @@ namespace glint::engine::graphics {
         initInfo.DescriptorPool = m_descriptorPool;
         initInfo.MinImageCount = 2;
         initInfo.ImageCount = info.imageCount;
-        initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-        initInfo.RenderPass = info.renderPass;
+        // initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+        // initInfo.RenderPass = info.renderPass;
         ImGui_ImplVulkan_Init(&initInfo);
 
         /*VkCommandBufferAllocateInfo allocInfo{};

@@ -4,17 +4,17 @@
 
 namespace glint::engine {
     namespace core {
-        struct TimeManager;
-        struct InputManager;
-        struct AssetManager;
-        struct CameraSystem;
+        class TimeManager;
+        class InputManager;
+        class AssetManager;
+        class CameraSystem;
     }
     namespace graphics {
-        struct Window;
-        struct Renderer;
+        class Window;
+        class Renderer;
     }
     namespace scene {
-        struct World;
+        class World;
     }
 }
 

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
@@ -122,7 +123,7 @@ namespace glint::engine::utils {
         vkGetPhysicalDeviceQueueFamilyProperties(device, &count, props.data());
 
         // find supported queue families
-        for (int i = 0; i < props.size(); i++) {
+        for (size_t i = 0; i < props.size(); i++) {
             const VkQueueFamilyProperties& prop = props[i];
 
             // can execute draw commands

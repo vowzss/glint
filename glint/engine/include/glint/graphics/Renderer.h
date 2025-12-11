@@ -16,7 +16,7 @@ namespace glint::engine {
     }
     namespace graphics {
         struct FrameData;
-        struct RenderLayer;
+        class RenderLayer;
     }
 }
 

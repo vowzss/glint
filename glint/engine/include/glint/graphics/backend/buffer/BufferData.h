@@ -44,7 +44,7 @@ namespace glint::engine::graphics {
             return m_mapped;
         }
 
-        inline const VkDeviceSize size() const noexcept {
+        inline const VkDeviceSize& size() const noexcept {
             return m_size;
         }
     };

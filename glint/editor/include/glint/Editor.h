@@ -6,8 +6,7 @@
 
 namespace glint {
 
-    struct Editor {
-      private:
+    class Editor {
         std::unique_ptr<Engine> engine = nullptr;
 
       public:

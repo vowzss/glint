@@ -4,7 +4,7 @@ struct GLFWwindow;
 
 namespace glint::engine {
     namespace core {
-        struct InputManager;
+        class InputManager;
     }
 }
 

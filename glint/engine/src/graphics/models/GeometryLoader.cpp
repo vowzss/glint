@@ -5,7 +5,6 @@
 #include "glint/graphics/models/GeometryData.h"
 #include "glint/graphics/models/GeometryLoader.h"
 #include "glint/graphics/models/Vertex.h"
-#include "glint/utils/FileUtils.h"
 
 namespace glint::engine::graphics {
 

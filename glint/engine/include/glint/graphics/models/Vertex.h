@@ -14,7 +14,7 @@ namespace glint::engine::graphics {
 
       public:
         Vertex() = delete;
-        constexpr Vertex(JPH::Float3 p, JPH::Float3 c, JPH::Float3 n, JPH::Float2 t) : position(p), color(c), normal(n), uv(t) {
+        constexpr Vertex(JPH::Float3 p, JPH::Float3 c, JPH::Float3 n, JPH::Float2 t) : position(p), normal(n), color(c), uv(t) {
         }
 
         bool operator==(const Vertex& other) const noexcept {

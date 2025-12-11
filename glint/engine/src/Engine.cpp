@@ -30,6 +30,11 @@ namespace glint {
             const char** ext = glfwGetRequiredInstanceExtensions(&count);
 
             std::vector<const char*> extensions(ext, ext + count);
+
+#if defined(PLATFORM_MACOS)
+            extensions.push_back("VK_KHR_portability_enumeration");
+#endif
+
             LOG_TRACE("Found '{}' required instance extensions! {}", extensions.size(), string::join(extensions));
 
             return extensions;

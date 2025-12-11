@@ -3,9 +3,9 @@
 #include <optional>
 #include <string>
 
-namespace glint::engine::graphics {
+#include "glint/graphics/models/GeometryData.h"
 
-    struct GeometryData;
+namespace glint::engine::graphics {
 
     struct GeometryLoader {
       public:
