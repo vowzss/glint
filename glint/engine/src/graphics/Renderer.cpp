@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 #include <vulkan/vulkan.hpp>
 
@@ -9,12 +10,12 @@
 #include "glint/graphics/backend/FrameObject.h"
 #include "glint/graphics/backend/VkHelpers.h"
 #include "glint/graphics/backend/buffer/ImageBufferObject.h"
-#include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
+#include "glint/graphics/backend/device/QueueFamilyDetails.h"
 #include "glint/graphics/backend/device/QueueRegistry.h"
 #include "glint/graphics/backend/renderpass/RenderPassAttachmentDetails.h"
 #include "glint/graphics/backend/renderpass/RenderPassObject.h"
+#include "glint/graphics/backend/swapchain/SwapchainDetails.h"
 #include "glint/graphics/backend/swapchain/SwapchainObject.h"
-#include "glint/graphics/backend/swapchain/SwapchainSupportDetails.h"
 #include "glint/graphics/layers/InterfaceLayer.h"
 #include "glint/graphics/layers/SceneLayer.h"
 #include "glint/utils/FileUtils.h"
@@ -118,6 +119,8 @@ namespace glint::engine::graphics {
 
         QueueObject& graphicsQueue = queues->graphics;
         CommandsPoolObject& graphicsPool = graphicsQueue.pool();
+
+        graphicsPool.begin(m_frame);
         VkCommandBuffer& graphicsCommandBuffer = graphicsPool.m_buffers[m_frame];
 
         std::array<VkClearValue, 2> clearValues;
@@ -150,6 +153,7 @@ namespace glint::engine::graphics {
 
         QueueObject& graphicsQueue = queues->graphics;
         QueueObject& presentQueue = queues->present;
+
         VkCommandBuffer& graphicsCommandBuffer = graphicsQueue.pool().m_buffers[m_frame];
 
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -190,16 +194,13 @@ namespace glint::engine::graphics {
         instanceInfo.flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 #endif
 
-        if (BUILD_DEBUG) {
-            // LOG_DEBUG("Vulkan validation layers requested!");
-
-            if (!utils::isValidationLayersSupported()) {
-                throw std::runtime_error("Vulkan | Validation layers requested, but not available!");
-            }
-
-            instanceInfo.enabledLayerCount = static_cast<uint32_t>(utils::validationLayers.size());
-            instanceInfo.ppEnabledLayerNames = utils::validationLayers.data();
+        const auto& layers = utils::getValidationLayers();
+        if (!utils::isValidationLayersSupported(layers)) {
+            throw std::runtime_error("Vulkan | Validation layers requested, but not available!");
         }
+
+        instanceInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+        instanceInfo.ppEnabledLayerNames = layers.data();
 
         auto t = vkCreateInstance(&instanceInfo, nullptr, &m_instance);
         if (t != VK_SUCCESS) {
@@ -208,17 +209,22 @@ namespace glint::engine::graphics {
     }
 
     void Renderer::createDevices() {
-        m_devices.physical = utils::selectPhysicalDevice(m_instance, m_surface);
+        const auto& extensions = utils::getDeviceExtensions();
+        m_devices.physical = utils::selectPhysicalDevice(m_instance, m_surface, extensions);
 
-        QueueFamiliesSupportDetails families = utils::queryQueueFamiliesSupport(m_devices.physical, m_surface);
+        QueueFamiliesDetails families = utils::queryQueueFamiliesDetails(m_devices.physical, m_surface);
 
-        // prepare queue creation info for each unique family
         std::vector<VkDeviceQueueCreateInfo> queueInfos;
-        for (const auto& family : families.collect()) {
-            if (!family->available()) {
-                continue;
-            }
+#ifdef PLATFORM_MACOS
+        VkDeviceQueueCreateInfo queueInfo = {};
+        queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueInfo.queueFamilyIndex = families.graphics.index;
+        queueInfo.queueCount = families.graphics.count;
+        queueInfo.pQueuePriorities = families.graphics.priorities.data();
 
+        queueInfos.push_back(queueInfo);
+#else
+        for (const QueueFamilyDetails* family : families) {
             VkDeviceQueueCreateInfo queueInfo = {};
             queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
             queueInfo.queueFamilyIndex = family->index;
@@ -227,47 +233,41 @@ namespace glint::engine::graphics {
 
             queueInfos.push_back(queueInfo);
         }
+#endif
 
-        // todo: specify device features (enable compute, tessellation, etc.)
-        VkPhysicalDeviceFeatures deviceFeatures{};
+        VkPhysicalDeviceFeatures deviceFeatures = {};
 
-        // create logical device
         VkDeviceCreateInfo deviceInfo = {};
         deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         deviceInfo.queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size());
         deviceInfo.pQueueCreateInfos = queueInfos.data();
-        deviceInfo.enabledExtensionCount = static_cast<uint32_t>(utils::deviceExtensions.size());
-        deviceInfo.ppEnabledExtensionNames = utils::deviceExtensions.data();
+        deviceInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+        deviceInfo.ppEnabledExtensionNames = extensions.data();
         deviceInfo.pEnabledFeatures = &deviceFeatures;
 
         if (vkCreateDevice(m_devices.physical, &deviceInfo, nullptr, &m_devices.logical) != VK_SUCCESS) {
-            throw std::runtime_error("Vulkan | failed to create logical device!");
+            throw std::runtime_error("Vulkan | Failed to create logical device!");
         }
 
-        queues = std::make_unique<QueueRegistry>(m_devices.logical, families);
+        queues = std::make_unique<QueueRegistry>(m_devices.logical, families, MAX_FRAMES_IN_FLIGHT);
     }
 
     void Renderer::createSwapchain() {
-        SwapchainSupportDetails details = utils::querySwapchainSupport(m_devices.physical, m_surface);
-        if (details.formats.empty() || details.modes.empty()) {
-            throw std::runtime_error("Vulkan | swapchain not supported!");
-        }
-
-        // select best options
-        VkSurfaceFormatKHR surfaceFormat = utils::selectSurfaceFormat(details.formats);
+        SwapchainDetails swapchainDetails = utils::querySwapchainDetails(m_devices.physical, m_surface);
+        VkSurfaceFormatKHR surfaceFormat = utils::selectSurfaceFormat(swapchainDetails.formats);
 
         VkSwapchainCreateInfoKHR swapchainInfo = {};
         swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         swapchainInfo.surface = m_surface;
-        swapchainInfo.minImageCount = utils::selectSurfaceImageCount(details.capabilities);
+        swapchainInfo.minImageCount = utils::selectSurfaceImageCount(swapchainDetails.capabilities);
         swapchainInfo.imageFormat = surfaceFormat.format;
         swapchainInfo.imageColorSpace = surfaceFormat.colorSpace;
-        swapchainInfo.imageExtent = utils::selectSurfaceExtent(m_width, m_height, details.capabilities);
+        swapchainInfo.imageExtent = utils::selectSurfaceExtent(m_width, m_height, swapchainDetails.capabilities);
         swapchainInfo.imageArrayLayers = 1;
         swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        swapchainInfo.preTransform = details.capabilities.currentTransform;
+        swapchainInfo.preTransform = swapchainDetails.capabilities.currentTransform;
         swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        swapchainInfo.presentMode = utils::selectSurfacePresentMode(details.modes);
+        swapchainInfo.presentMode = utils::selectSurfacePresentMode(swapchainDetails.modes);
         swapchainInfo.clipped = VK_TRUE;
         swapchainInfo.oldSwapchain = VK_NULL_HANDLE;
 

@@ -1,17 +1,17 @@
+#include <cstddef>
 #include <cstdint>
 #include <stdexcept>
 
 #include "glint/graphics/backend/CommandsPoolData.h"
-#include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
 
 namespace glint::engine::graphics {
 
-    CommandsPoolObject::CommandsPoolObject(const VkDevice& device, const QueueFamilySupportDetails& family) : m_device(device) {
+    CommandsPoolObject::CommandsPoolObject(const VkDevice& device, uint32_t family, uint32_t frames) : m_device(device) {
 
         VkCommandPoolCreateInfo poolInfo = {};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        poolInfo.queueFamilyIndex = family.index;
+        poolInfo.queueFamilyIndex = family;
 
         if (vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_handle) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create command pool!");
@@ -21,9 +21,9 @@ namespace glint::engine::graphics {
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocInfo.commandPool = m_handle;
-        allocInfo.commandBufferCount = static_cast<uint32_t>(family.count);
+        allocInfo.commandBufferCount = static_cast<uint32_t>(frames);
 
-        m_buffers.reserve(family.count);
+        m_buffers.resize(frames);
         if (vkAllocateCommandBuffers(m_device, &allocInfo, m_buffers.data()) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | Failed to allocate command buffers!");
         }
@@ -40,7 +40,7 @@ namespace glint::engine::graphics {
     }
 
     void CommandsPoolObject::begin(size_t idx) {
-        const VkCommandBuffer& handle = m_buffers[idx];
+        VkCommandBuffer handle = m_buffers[idx];
         vkResetCommandBuffer(handle, 0);
 
         VkCommandBufferBeginInfo beginInfo{};
@@ -53,7 +53,7 @@ namespace glint::engine::graphics {
     }
 
     void CommandsPoolObject::end(size_t idx) {
-        const VkCommandBuffer& handle = m_buffers[idx];
+        VkCommandBuffer handle = m_buffers[idx];
         if (vkEndCommandBuffer(handle) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | Failed to end command buffer!");
         }

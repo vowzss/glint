@@ -1,16 +1,16 @@
 #pragma once
 
 #include <atomic>
+#include <cstddef>
+#include <cstdint>
 
 #include "glint/graphics/backend/CommandsPoolData.h"
 
 namespace glint::engine::graphics {
 
-    struct QueueFamilySupportDetails;
+    struct QueueFamilyDetails;
 
     class QueueObject {
-        uint32_t m_family = UINT32_MAX;
-
         std::vector<VkQueue> m_handles;
         std::atomic<size_t> m_nextHandle{0};
 
@@ -26,7 +26,7 @@ namespace glint::engine::graphics {
         QueueObject(QueueObject&&) noexcept = delete;
         QueueObject& operator=(QueueObject&&) noexcept = delete;
 
-        QueueObject(const VkDevice& device, const QueueFamilySupportDetails& family);
+        QueueObject(const VkDevice& device, const QueueFamilyDetails& family, uint32_t frames);
 
         // --- getters ---
         inline uint32_t count() const noexcept {

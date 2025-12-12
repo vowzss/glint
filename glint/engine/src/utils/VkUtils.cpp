@@ -3,9 +3,10 @@
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
-#include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
-#include "glint/graphics/backend/swapchain/SwapchainSupportDetails.h"
+#include "glint/graphics/backend/device/QueueFamilyDetails.h"
+#include "glint/graphics/backend/swapchain/SwapchainDetails.h"
 #include "glint/utils/VkUtils.h"
 
 using namespace glint::engine::graphics;
@@ -49,26 +50,23 @@ namespace glint::engine::utils {
         return version;
     }
 
-    VkPhysicalDevice selectPhysicalDevice(const VkInstance& instance, const VkSurfaceKHR& surface) {
-        // get number of GPUs available
+    VkPhysicalDevice selectPhysicalDevice(const VkInstance& instance, const VkSurfaceKHR& surface, const std::vector<const char*>& extensions) {
         uint32_t count = 0;
         vkEnumeratePhysicalDevices(instance, &count, nullptr);
         if (count == 0) {
-            throw std::runtime_error("Vulkan | No supported GPUs!");
+            throw std::runtime_error("Vulkan | Failed to find a supported GPU!");
         }
 
-        // get list of physical devices
         std::vector<VkPhysicalDevice> devices(count);
         vkEnumeratePhysicalDevices(instance, &count, devices.data());
 
-        // pick first suitable device
         for (const VkPhysicalDevice& device : devices) {
-            if (isDeviceSuitable(device, surface)) {
+            if (isDeviceSuitable(device, surface, extensions)) {
                 return device;
             }
         }
 
-        throw std::runtime_error("Vulkan | No suitable GPU!");
+        throw std::runtime_error("Vulkan | Failed to find a suitable GPU!");
     }
 
     VkSurfaceFormatKHR selectSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats) {
@@ -113,8 +111,8 @@ namespace glint::engine::utils {
         return extent;
     }
 
-    QueueFamiliesSupportDetails queryQueueFamiliesSupport(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
-        QueueFamiliesSupportDetails families;
+    QueueFamiliesDetails queryQueueFamiliesDetails(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
+        QueueFamiliesDetails families;
 
         uint32_t count = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
@@ -188,8 +186,8 @@ namespace glint::engine::utils {
         return families;
     }
 
-    SwapchainSupportDetails querySwapchainSupport(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
-        SwapchainSupportDetails details;
+    SwapchainDetails querySwapchainDetails(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
+        SwapchainDetails details;
 
         // surface capabilities
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
@@ -200,6 +198,8 @@ namespace glint::engine::utils {
         if (formatCount != 0) {
             details.formats.resize(formatCount);
             vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+        } else {
+            throw std::runtime_error("Vulkan | No surface formats available!");
         }
 
         // supported present modes
@@ -208,25 +208,27 @@ namespace glint::engine::utils {
         if (modeCount != 0) {
             details.modes.resize(modeCount);
             vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &modeCount, details.modes.data());
+        } else {
+            throw std::runtime_error("Vulkan | No surface modes available!");
         }
 
         return details;
     }
 
-    bool isDeviceSuitable(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
+    bool isDeviceSuitable(const VkPhysicalDevice& device, const VkSurfaceKHR& surface, const std::vector<const char*>& extensions) {
         // check required queues
-        if (!queryQueueFamiliesSupport(device, surface).available()) {
+        if (!queryQueueFamiliesDetails(device, surface).available()) {
             return false;
         }
 
         // check required device extensions
-        if (!isDeviceExtensionsSupported(device)) {
+        if (!isDeviceExtensionsSupported(device, extensions)) {
             return false;
         }
 
         // check swap chain support
-        SwapchainSupportDetails swapchainSupport = querySwapchainSupport(device, surface);
-        if (swapchainSupport.formats.empty() || swapchainSupport.modes.empty()) {
+        SwapchainDetails swapchainDetails = querySwapchainDetails(device, surface);
+        if (swapchainDetails.formats.empty() || swapchainDetails.modes.empty()) {
             return false;
         }
 
@@ -242,7 +244,7 @@ namespace glint::engine::utils {
         return true;
     }
 
-    bool isDeviceExtensionsSupported(const VkPhysicalDevice& device) {
+    bool isDeviceExtensionsSupported(const VkPhysicalDevice& device, const std::vector<const char*>& extensions) {
         uint32_t count;
         vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
         if (count == 0) return false;
@@ -250,10 +252,10 @@ namespace glint::engine::utils {
         std::vector<VkExtensionProperties> props(count);
         vkEnumerateDeviceExtensionProperties(device, nullptr, &count, props.data());
 
-        for (const char* ext : deviceExtensions) {
+        for (const char* extension : extensions) {
             bool found = false;
             for (const auto& prop : props) {
-                if (std::string_view(ext) == prop.extensionName) {
+                if (std::string_view(extension) == prop.extensionName) {
                     found = true;
                     break;
                 }
@@ -266,14 +268,16 @@ namespace glint::engine::utils {
         return true;
     }
 
-    bool isValidationLayersSupported() {
+    bool isValidationLayersSupported(const std::vector<const char*>& layers) {
+        if (layers.size() <= 0) return false;
+
         uint32_t count;
         vkEnumerateInstanceLayerProperties(&count, nullptr);
 
         std::vector<VkLayerProperties> props(count);
         vkEnumerateInstanceLayerProperties(&count, props.data());
 
-        for (const char* layer : validationLayers) {
+        for (const char* layer : layers) {
             bool found = false;
 
             for (const VkLayerProperties& prop : props) {

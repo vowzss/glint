@@ -48,8 +48,9 @@ add_requires("xxhash")
 add_requires("zstd")
 
 add_requires("glfw")
-add_requires("vulkan-loader")
-add_requires("vulkan-headers")
+add_requires("vulkansdk")
+--add_requires("vulkan-loader")
+--add_requires("vulkan-headers")
 add_requires("shaderc")
 add_requires("imgui", { configs = { glfw_vulkan = true }})
 
@@ -62,11 +63,17 @@ add_requires("stb")
 target("engine")
     set_kind("static")
     set_basename("glint")
+    
+    add_links("vulkan")
+
+    add_rpathdirs("@loader_path")
+    add_rpathdirs("$(env VULKAN_SDK)/lib")
 
     -- dependencies
     add_packages("spdlog", "xxhash")
     add_packages("glfw", "joltphysics", "tinyobjloader", "imgui")
-    add_packages("vulkan-loader", "vulkan-headers", "shaderc")
+    --add_packages("vulkan-loader", "vulkan-headers", "shaderc")
+    add_packages("vulkansdk", "shaderc")
 
     -- headers & sources
     --set_pcheader("glint/engine/include/glint/pch.h")

@@ -5,13 +5,13 @@
 
 namespace glint::engine::graphics {
 
-    struct SwapchainSupportDetails {
+    struct SwapchainDetails {
         VkSurfaceCapabilitiesKHR capabilities;
         std::vector<VkSurfaceFormatKHR> formats;
         std::vector<VkPresentModeKHR> modes;
 
       public:
-        SwapchainSupportDetails() = default;
+        SwapchainDetails() = default;
     };
 
 }

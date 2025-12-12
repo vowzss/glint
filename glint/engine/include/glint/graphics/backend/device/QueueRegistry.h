@@ -1,18 +1,22 @@
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+
 #include "QueueObject.h"
 
 namespace glint::engine::graphics {
 
-    struct QueueFamiliesSupportDetails;
+    struct QueueFamiliesDetails;
 
     struct QueueRegistry {
       public:
-        QueueObject graphics; // for submitting drawing/rendering commands
-        QueueObject present;  // for presenting rendered images to the window/surface
-        QueueObject compute;  // for compute shader workloads
-        QueueObject transfer; // for optimized buffer/image copy operations
-        QueueObject sparse;   // for partially resident resources
+        QueueObject graphics;
+        QueueObject present;
+        QueueObject compute;
+        std::optional<QueueObject> transfer = std::nullopt;
+        std::optional<QueueObject> sparse = std::nullopt;
 
       public:
         QueueRegistry() = delete;
@@ -24,7 +28,7 @@ namespace glint::engine::graphics {
         QueueRegistry(QueueRegistry&&) noexcept = delete;
         QueueRegistry& operator=(QueueRegistry&&) noexcept = delete;
 
-        QueueRegistry(const VkDevice& device, const QueueFamiliesSupportDetails& families);
+        QueueRegistry(const VkDevice& device, const QueueFamiliesDetails& families, uint32_t frames);
     };
 
 }
