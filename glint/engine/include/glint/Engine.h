@@ -8,13 +8,11 @@ namespace glint::engine {
         class InputManager;
         class AssetManager;
         class CameraSystem;
+        class World;
     }
     namespace graphics {
         class Window;
         class Renderer;
-    }
-    namespace scene {
-        class World;
     }
 }
 
@@ -31,7 +29,7 @@ namespace glint {
         std::unique_ptr<engine::graphics::Renderer> renderer;
 
         // --- scene ---
-        std::unique_ptr<engine::scene::World> world;
+        std::unique_ptr<engine::core::World> world;
         std::unique_ptr<engine::core::CameraSystem> cameras;
 
       public:

@@ -5,7 +5,7 @@
 #include "vulkan/vulkan_core.h"
 
 namespace glint::engine {
-    namespace scene {
+    namespace core {
         struct EntityView;
     }
 }
@@ -20,7 +20,7 @@ namespace glint::engine::graphics {
         VkDescriptorSet cameraSet = nullptr;
         VkDescriptorSet entitySet = nullptr;
 
-        const std::vector<scene::EntityView>* entities;
+        const std::vector<core::EntityView>* entities;
     };
 
     class RenderLayer {

@@ -7,20 +7,29 @@ set_project("glint")
 set_version("1.0.0")
 
 set_languages("c17", "cxx17")
-set_toolset("cxx", "clang++")
 set_rundir("$(projectdir)")
 
 -- global C & C++ flags
-add_cxxflags("-Wall", "-Wextra")
-add_cxflags("-Wno-unused-function")
-
 if is_plat("macosx") then
     add_defines("PLATFORM_MACOS")
+    add_defines("GLINT_API")
+
+    add_cxflags("-Wall", "-Wextra", "-Wpedantic")
+    add_cxflags("-Wno-unused-parameter")
 elseif is_plat("linux") then
     add_defines("PLATFORM_LINUX")
+    add_defines("GLINT_API")
+
+    add_cxflags("-Wall", "-Wextra", "-Wpedantic")
+    add_cxflags("-Wno-unused-parameter")
 elseif is_plat("windows") then
     add_defines("PLATFORM_WINDOWS")
+    add_defines("GLINT_API")
+
     set_runtimes(is_mode("debug") and "MDd" or "MD")
+    
+    add_cxflags("/W4")
+    add_cxflags("/permissive-")
 end
 
 -- build configuration settings
@@ -49,9 +58,9 @@ add_requires("joltphysics")
 add_requires("tinyobjloader")
 add_requires("stb")
 
--- engine target (library)
+-- library target
 target("engine")
-    set_kind("shared")
+    set_kind("static")
     set_basename("glint")
 
     -- dependencies
@@ -68,7 +77,7 @@ target("engine")
     add_files("glint/engine/src/**/*.cpp")
 target_end()
 
--- editor target (console)
+-- executable target
 target("editor")
     set_kind("binary")
     set_basename("glint")

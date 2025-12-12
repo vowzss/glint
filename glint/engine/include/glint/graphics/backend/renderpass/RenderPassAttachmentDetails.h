@@ -4,16 +4,16 @@
 
 namespace glint::engine::graphics {
 
-    struct RenderPassAttachmentObject {
+    struct RenderPassAttachmentDetails {
         VkAttachmentReference m_reference;
         VkAttachmentDescription m_description;
 
       protected:
-        RenderPassAttachmentObject() = default;
+        RenderPassAttachmentDetails() = default;
     };
 
-    struct ColorAttachmentObject : RenderPassAttachmentObject {
-        ColorAttachmentObject(VkFormat format, uint32_t idx) {
+    struct ColorAttachmentDetails : RenderPassAttachmentDetails {
+        ColorAttachmentDetails(VkFormat format, uint32_t idx) {
             m_reference.attachment = idx;
             m_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
@@ -29,8 +29,8 @@ namespace glint::engine::graphics {
         }
     };
 
-    struct DepthAttachmentObject : RenderPassAttachmentObject {
-        DepthAttachmentObject(VkFormat format, uint32_t idx) {
+    struct DepthAttachmentDetails : RenderPassAttachmentDetails {
+        DepthAttachmentDetails(VkFormat format, uint32_t idx) {
             m_reference.attachment = idx;
             m_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 

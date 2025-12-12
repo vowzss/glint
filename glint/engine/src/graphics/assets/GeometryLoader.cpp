@@ -2,13 +2,13 @@
 #include <tiny_obj_loader.h>
 
 #include "glint/core/Logger.h"
-#include "glint/graphics/models/GeometryData.h"
-#include "glint/graphics/models/GeometryLoader.h"
-#include "glint/graphics/models/Vertex.h"
+#include "glint/graphics/assets/Geometry.h"
+#include "glint/graphics/assets/GeometryLoader.h"
+#include "glint/graphics/assets/Vertex.h"
 
 namespace glint::engine::graphics {
 
-    std::optional<GeometryData> GeometryLoader::load(const std::string& filename) {
+    std::optional<Geometry> GeometryLoader::load(const std::string& filename) {
         namespace fs = std::filesystem;
 
         LOG_INFO("Loading OBJ file from: {}", filename);
@@ -40,12 +40,12 @@ namespace glint::engine::graphics {
                             attrib.vertices[3 * index.vertex_index + 1], 
                             attrib.vertices[3 * index.vertex_index + 2]
                         },
-                        {1.0f, 1.0f, 1.0f},
                         {
                             index.normal_index >= 0 ? attrib.normals[3 * index.normal_index + 0] : 0.0f,
                             index.normal_index >= 0 ? attrib.normals[3 * index.normal_index + 1] : 0.0f,
                             index.normal_index >= 0 ? attrib.normals[3 * index.normal_index + 2] : 0.0f
                         },
+                        {1.0f, 1.0f, 1.0f},
                         {
                             index.texcoord_index >= 0 ? attrib.texcoords[2 * index.texcoord_index + 0] : 0.0f,
                             index.texcoord_index >= 0 ? attrib.texcoords[2 * index.texcoord_index + 1] : 0.0f
@@ -57,7 +57,7 @@ namespace glint::engine::graphics {
             }
         }
 
-        return GeometryData{vertices, indices};
+        return Geometry{vertices, indices};
     }
 
 }

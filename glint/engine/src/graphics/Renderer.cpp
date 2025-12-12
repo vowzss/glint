@@ -1,25 +1,22 @@
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
 
 #include <vulkan/vulkan.hpp>
 
 #include "glint/core/Logger.h"
 #include "glint/graphics/Renderer.h"
-#include "glint/graphics/backend/FrameData.h"
+#include "glint/graphics/assets/Vertex.h"
+#include "glint/graphics/backend/FrameObject.h"
 #include "glint/graphics/backend/VkHelpers.h"
-#include "glint/graphics/backend/buffer/BufferObject.h"
 #include "glint/graphics/backend/buffer/ImageBufferObject.h"
-#include "glint/graphics/backend/device/QueueData.h"
 #include "glint/graphics/backend/device/QueueFamilySupportDetails.h"
-#include "glint/graphics/backend/renderpass/RenderpassAttachmentInfo.h"
-#include "glint/graphics/backend/renderpass/RenderpassData.h"
-#include "glint/graphics/backend/swapchain/SwapchainData.h"
+#include "glint/graphics/backend/device/QueueRegistry.h"
+#include "glint/graphics/backend/renderpass/RenderPassAttachmentDetails.h"
+#include "glint/graphics/backend/renderpass/RenderPassObject.h"
+#include "glint/graphics/backend/swapchain/SwapchainObject.h"
 #include "glint/graphics/backend/swapchain/SwapchainSupportDetails.h"
 #include "glint/graphics/layers/InterfaceLayer.h"
 #include "glint/graphics/layers/SceneLayer.h"
-#include "glint/graphics/models/Vertex.h"
-#include "glint/scene/components/CameraComponent.h"
 #include "glint/utils/FileUtils.h"
 #include "glint/utils/VkUtils.h"
 
@@ -63,8 +60,8 @@ namespace glint::engine::graphics {
         vkDestroyDescriptorSetLayout(m_devices.logical, entityLayout, nullptr);
         vkDestroyDescriptorPool(m_devices.logical, descriptorPool, nullptr);
 
-        vkFreeCommandBuffers(m_devices.logical, commands->handle, commands->buffers.size(), commands->buffers.data());
-        vkDestroyCommandPool(m_devices.logical, commands->handle, nullptr);
+        /*vkFreeCommandBuffers(m_devices.logical, commands->handle, commands->buffers.size(), commands->buffers.data());
+        vkDestroyCommandPool(m_devices.logical, commands->handle, nullptr);*/
 
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
         vkDestroyDevice(m_devices.logical, nullptr);
@@ -102,7 +99,6 @@ namespace glint::engine::graphics {
         createEntityLayout();
         createGraphicsPipeline();
 
-        createCommandPool();
         createSyncObjects();
     }
 
@@ -120,11 +116,13 @@ namespace glint::engine::graphics {
     void Renderer::record(float deltaTime, const CameraSnapshot& snapshot) noexcept {
         const auto& frame = m_frames[m_frame];
 
+        QueueObject& graphicsQueue = queues->graphics;
+        CommandsPoolObject& graphicsPool = graphicsQueue.pool();
+        VkCommandBuffer& graphicsCommandBuffer = graphicsPool.m_buffers[m_frame];
+
         std::array<VkClearValue, 2> clearValues;
         clearValues[0].color = VkClearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
         clearValues[1].depthStencil = VkClearDepthStencilValue{1.0f, 0};
-
-        commands->begin(m_frame);
 
         VkRenderPassBeginInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -135,20 +133,24 @@ namespace glint::engine::graphics {
         renderPassInfo.clearValueCount = clearValues.size();
         renderPassInfo.pClearValues = clearValues.data();
 
-        vkCmdBeginRenderPass(commands->buffers[m_frame], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(graphicsCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdSetViewport(commands->buffers[m_frame], 0, 1, &m_viewport);
-        vkCmdSetScissor(commands->buffers[m_frame], 0, 1, &m_scissor);
+        vkCmdSetViewport(graphicsCommandBuffer, 0, 1, &m_viewport);
+        vkCmdSetScissor(graphicsCommandBuffer, 0, 1, &m_scissor);
 
-        FrameRenderInfo frameInfo = {commands->buffers[m_frame], m_pipeline, m_pipelineLayout, snapshot};
+        FrameRenderInfo frameInfo = {graphicsCommandBuffer, m_pipeline, m_pipelineLayout, snapshot};
         frame->render(deltaTime, frameInfo);
 
-        vkCmdEndRenderPass(commands->buffers[m_frame]);
-        commands->end(m_frame);
+        vkCmdEndRenderPass(graphicsCommandBuffer);
+        graphicsPool.end(m_frame);
     }
 
     void Renderer::end() noexcept {
         const auto& frame = m_frames[m_frame];
+
+        QueueObject& graphicsQueue = queues->graphics;
+        QueueObject& presentQueue = queues->present;
+        VkCommandBuffer& graphicsCommandBuffer = graphicsQueue.pool().m_buffers[m_frame];
 
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         std::vector<VkSemaphore> waitSemaphores = {frame->m_ready};
@@ -160,10 +162,10 @@ namespace glint::engine::graphics {
         submitInfo.pWaitSemaphores = waitSemaphores.data();
         submitInfo.pWaitDstStageMask = waitStages;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commands->buffers[m_frame];
+        submitInfo.pCommandBuffers = &graphicsCommandBuffer;
         submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
         submitInfo.pSignalSemaphores = signalSemaphores.data();
-        vkQueueSubmit(queues->graphics[0], 1, &submitInfo, frame->m_guard);
+        vkQueueSubmit(graphicsQueue.handle(0), 1, &submitInfo, frame->m_guard);
 
         VkPresentInfoKHR presentInfo = {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -172,7 +174,7 @@ namespace glint::engine::graphics {
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = &swapchain->handle;
         presentInfo.pImageIndices = &m_image;
-        vkQueuePresentKHR(queues->present[0], &presentInfo);
+        vkQueuePresentKHR(presentQueue.handle(0), &presentInfo);
 
         frame->end();
         m_frame = (m_frame + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -242,7 +244,7 @@ namespace glint::engine::graphics {
             throw std::runtime_error("Vulkan | failed to create logical device!");
         }
 
-        queues = std::make_unique<QueuesData>(m_devices.logical, families);
+        queues = std::make_unique<QueueRegistry>(m_devices.logical, families);
     }
 
     void Renderer::createSwapchain() {
@@ -269,7 +271,7 @@ namespace glint::engine::graphics {
         swapchainInfo.clipped = VK_TRUE;
         swapchainInfo.oldSwapchain = VK_NULL_HANDLE;
 
-        swapchain = std::make_unique<SwapchainData>(m_devices.logical, swapchainInfo);
+        swapchain = std::make_unique<SwapchainObject>(m_devices.logical, swapchainInfo);
 
         m_viewport.x = 0.0f;
         m_viewport.y = 0.0f;
@@ -283,12 +285,12 @@ namespace glint::engine::graphics {
     }
 
     void Renderer::createRenderPass() {
-        ImageBufferDataInfo depthInfo = ImageBufferDataInfo{findDepthFormat(m_devices.physical), swapchain->extent};
+        ImageBufferInfo depthInfo = ImageBufferInfo{findDepthFormat(m_devices.physical), swapchain->extent};
 
-        depthBuffer = std::make_unique<ImageBufferData>(m_devices, depthInfo);
+        depthBuffer = std::make_unique<ImageBufferObject>(m_devices, depthInfo);
 
-        ColorAttachmentInfo color(swapchain->format, 0);
-        DepthAttachmentInfo depth(depthBuffer->format, 1);
+        ColorAttachmentDetails color(swapchain->format, 0);
+        DepthAttachmentDetails depth(depthBuffer->format, 1);
 
         // subpass
         VkSubpassDescription subpass = {};
@@ -318,7 +320,7 @@ namespace glint::engine::graphics {
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies = &subpassDependency;
 
-        renderpass = std::make_unique<RenderpassData>(*swapchain, renderPassInfo, depthBuffer->view);
+        renderpass = std::make_unique<RenderPassObject>(*swapchain, renderPassInfo, depthBuffer->view);
     }
 
     void Renderer::createGraphicsPipeline() {
@@ -487,20 +489,13 @@ namespace glint::engine::graphics {
         vkDestroyShaderModule(m_devices.logical, vertShaderModule, nullptr);
     }
 
-    void Renderer::createCommandPool() {
-        // todo: support other family queues
-        QueueFamiliesSupportDetails families = utils::queryQueueFamiliesSupport(m_devices.physical, m_surface);
-
-        commands = std::make_unique<CommandsPoolData>(m_devices.logical, families.graphics, MAX_FRAMES_IN_FLIGHT);
-    }
-
     void Renderer::createSyncObjects() {
         m_frames.resize(MAX_FRAMES_IN_FLIGHT);
 
-        FrameCreateInfo frameInfo = {descriptorPool, cameraLayout, entityLayout};
+        FrameInfo frameInfo = {descriptorPool, cameraLayout, entityLayout};
 
         for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-            m_frames[i] = std::make_unique<FrameData>(m_devices, frameInfo);
+            m_frames[i] = std::make_unique<FrameObject>(m_devices, frameInfo);
 
             for (size_t j = 0; j < layers.size(); ++j) {
                 m_frames[i]->attach(layers[j].get());

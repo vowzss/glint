@@ -1,8 +1,8 @@
 namespace glint::engine::core {
 
     template <typename Component>
-    inline void ComponentStorage<Component>::add(EntityHandle handle, const Component& component) noexcept {
-        m_data.push_back(component);
+    inline void ComponentStorage<Component>::add(EntityHandle handle, Component&& component) noexcept {
+        m_data.push_back(std::move(component));
         m_owners.push_back(handle.id());
         m_lookup[handle.id()] = m_data.size() - 1;
     }
@@ -39,15 +39,17 @@ namespace glint::engine::core {
     template <typename Component>
     template <typename Func>
     inline void ComponentStorage<Component>::each(Func&& func) noexcept(noexcept(func(std::declval<Component&>()))) {
-        for (Component& component : m_data)
+        for (Component& component : m_data) {
             func(component);
+        }
     }
 
     template <typename Component>
     template <typename Func>
     inline void ComponentStorage<Component>::each(Func&& func) const noexcept(noexcept(func(std::declval<const Component&>()))) {
-        for (const Component& component : m_data)
+        for (const Component& component : m_data) {
             func(component);
+        }
     }
 
     template <typename Component>

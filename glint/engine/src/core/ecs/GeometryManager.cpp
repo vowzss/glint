@@ -1,17 +1,17 @@
 #include "glint/core/ecs/GeometryManager.h"
 #include "glint/core/managers/AssetManager.h"
-#include "glint/graphics/backend/buffer/GeometryBuffer.h"
-#include "glint/graphics/models/GeometryData.h"
+#include "glint/graphics/assets/Geometry.h"
+#include "glint/graphics/backend/buffer/GeometryBufferObject.h"
 
 using namespace glint::engine::graphics;
 
 namespace glint::engine::core {
 
     GeometryHandle GeometryManager::create(const Devices& devices, const std::string& path) {
-        AssetHandle<GeometryData> data = m_assets->load<GeometryData>(path);
-        if (!data.isValid()) return GeometryHandle::invalid();
+        AssetHandle<Geometry> data = m_assets.load<Geometry>(path);
+        if (!data.valid()) return GeometryHandle::invalid();
 
-        const GeometryData* geometry = m_assets->get(data);
+        const Geometry* geometry = m_assets.get(data);
         if (geometry == nullptr) return GeometryHandle::invalid();
 
         const uint32_t id = m_freeIds.empty() ? m_nextId++ : m_freeIds.back();
@@ -19,7 +19,7 @@ namespace glint::engine::core {
         if (id >= m_entries.size()) m_entries.resize(id + 1);
 
         GeometryEntry& entry = m_entries[id];
-        entry.buffer.emplace(devices, *geometry);
+        entry.value = std::make_unique<GeometryBufferObject>(devices, *geometry);
 
         return GeometryHandle{id, entry.version()};
     }
@@ -28,19 +28,19 @@ namespace glint::engine::core {
         if (!isValid(handle)) return;
 
         GeometryEntry& entry = m_entries[handle.id()];
-        entry.buffer.reset();
+        entry.value.reset();
         entry.bump();
 
         m_freeIds.push_back(handle.id());
     }
 
-    graphics::GeometryBuffer* GeometryManager::get(GeometryHandle handle) noexcept {
+    graphics::GeometryBufferObject* GeometryManager::get(GeometryHandle handle) noexcept {
         if (!isValid(handle)) return nullptr;
-        return &m_entries[handle.id()].buffer.value();
+        return m_entries[handle.id()].value.get();
     }
 
-    const graphics::GeometryBuffer* GeometryManager::get(GeometryHandle handle) const noexcept {
+    const graphics::GeometryBufferObject* GeometryManager::get(GeometryHandle handle) const noexcept {
         if (!isValid(handle)) return nullptr;
-        return &m_entries[handle.id()].buffer.value();
+        return m_entries[handle.id()].value.get();
     }
 }

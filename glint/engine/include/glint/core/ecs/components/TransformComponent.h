@@ -4,9 +4,9 @@
 #include <Jolt/Math/Quat.h>
 #include <Jolt/Math/Vec3.h>
 
-namespace glint::engine::scene {
+namespace glint::engine::core {
 
-    class Transform {
+    class TransformComponent {
         JPH::Vec3 pos = JPH::Vec3::sZero();
         JPH::Quat rot = JPH::Quat::sIdentity();
         JPH::Vec3 scl = JPH::Vec3::sOne();
@@ -16,14 +16,14 @@ namespace glint::engine::scene {
         mutable bool isDirty = true;
 
       public:
-        Transform() noexcept = default;
-        ~Transform() noexcept = default;
+        TransformComponent() noexcept = default;
+        ~TransformComponent() noexcept = default;
 
-        Transform(const Transform&) = default;
-        Transform& operator=(const Transform&) = default;
+        TransformComponent(const TransformComponent&) = delete;
+        TransformComponent& operator=(const TransformComponent&) = delete;
 
-        Transform(Transform&&) noexcept = default;
-        Transform& operator=(Transform&&) = default;
+        TransformComponent(TransformComponent&&) noexcept = default;
+        TransformComponent& operator=(TransformComponent&&) = default;
 
         // --- utils ---
         inline void translateBy(const JPH::Vec3& delta) {

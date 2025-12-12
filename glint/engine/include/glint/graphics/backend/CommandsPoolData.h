@@ -8,35 +8,29 @@ namespace glint::engine::graphics {
 
     struct QueueFamilySupportDetails;
 
-    struct CommandsPoolData {
-        VkDevice device;
+    struct CommandsPoolObject {
+        const VkDevice& m_device = nullptr;
 
-        VkCommandPool handle;
-        std::vector<VkCommandBuffer> buffers;
+        VkCommandPool m_handle = nullptr;
+        std::vector<VkCommandBuffer> m_buffers;
 
       public:
-        CommandsPoolData() = delete;
-        CommandsPoolData(const VkDevice& device, const QueueFamilySupportDetails& family, size_t size);
+        CommandsPoolObject() = delete;
+        ~CommandsPoolObject();
 
-        ~CommandsPoolData();
+        CommandsPoolObject(const CommandsPoolObject&) = delete;
+        CommandsPoolObject& operator=(const CommandsPoolObject&) = delete;
 
+        CommandsPoolObject(CommandsPoolObject&&) noexcept = delete;
+        CommandsPoolObject& operator=(CommandsPoolObject&&) noexcept = delete;
+
+        CommandsPoolObject(const VkDevice& device, const QueueFamilySupportDetails& family);
+
+        // --- methods ---
         void begin(size_t idx);
         void end(size_t idx);
+
+        VkCommandBuffer beginSingle() const;
+        void endSingle(VkCommandBuffer commands, VkQueue queue) const;
     };
-
-    /*
-    struct commands_pools_data {
-        commands_pool_data graphics;
-        commands_pool_data present;
-        commands_pool_data compute;
-        commands_pool_data transfer;
-        commands_pool_data sparse;
-
-        commands_pools_data() = delete;
-        commands_pools_data(const VkDevice& device, const queue_families_support_details& families);
-
-        ~commands_pools_data();
-    };
-
-    */
 }

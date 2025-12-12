@@ -18,7 +18,7 @@ namespace glint::engine::graphics {
         throw std::runtime_error("Vulkan | failed to find suitable memory type!");
     }
 
-    VkFormat findSupportedImageFormat(VkPhysicalDevice device, std::vector<VkFormat>& candidates, VkImageTiling tiling,
+    VkFormat findSupportedImageFormat(VkPhysicalDevice device, const std::vector<VkFormat>& candidates, VkImageTiling tiling,
         VkFormatFeatureFlags features) {
         for (VkFormat format : candidates) {
             VkFormatProperties props;
@@ -40,8 +40,8 @@ namespace glint::engine::graphics {
     }
 
     VkFormat findDepthFormat(VkPhysicalDevice device) {
-        return findSupportedImageFormat(device, {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-            VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+        const std::vector<VkFormat> formats{VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT};
+        return findSupportedImageFormat(device, formats, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
     }
 
     ImageBufferObject createDepthImage(const Devices& devices, VkExtent2D extent) {

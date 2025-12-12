@@ -2,16 +2,14 @@
 
 #include "ComponentStorage.h"
 
-namespace glint::engine::scene {
-    class Transform;
-    struct GeometryComponent;
-}
-
 namespace glint::engine::core {
 
+    class TransformComponent;
+    struct GeometryComponent;
+
     class ComponentManager {
-        ComponentStorage<scene::Transform> m_transforms;
-        ComponentStorage<scene::GeometryComponent> m_geometries;
+        ComponentStorage<TransformComponent> m_transforms;
+        ComponentStorage<GeometryComponent> m_geometries;
 
       public:
         ComponentManager() noexcept = default;
@@ -25,7 +23,7 @@ namespace glint::engine::core {
 
         // --- methods ---
         template <typename T>
-        inline void add(EntityHandle handle, const T& component);
+        inline void add(EntityHandle handle, T&& component);
 
         template <typename T>
         inline bool has(EntityHandle handle) const noexcept;

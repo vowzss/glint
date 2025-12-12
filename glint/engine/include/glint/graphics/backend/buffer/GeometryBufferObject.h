@@ -7,7 +7,7 @@
 namespace glint::engine::graphics {
     struct VertexBufferObject;
     struct IndexBufferObject;
-    class GeometryData;
+    class Geometry;
 
     struct GeometryBufferObject {
         std::shared_ptr<VertexBufferObject> m_vertices;
@@ -15,6 +15,6 @@ namespace glint::engine::graphics {
 
       public:
         GeometryBufferObject() = delete;
-        GeometryBufferObject(const Devices& devices, const GeometryData& data);
+        GeometryBufferObject(const Devices& devices, const Geometry& data);
     };
 }

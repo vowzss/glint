@@ -6,7 +6,7 @@
 
 namespace glint::engine::graphics {
 
-    ImageBufferData::ImageBufferData(const Devices& devices, const ImageBufferDataInfo& info)
+    ImageBufferObject::ImageBufferObject(const Devices& devices, const ImageBufferInfo& info)
         : device(devices.logical), format(info.format), extent(info.extent), usage(info.usage) {
         VkImageCreateInfo imageInfo = {};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -57,7 +57,7 @@ namespace glint::engine::graphics {
         }
     }
 
-    ImageBufferData::~ImageBufferData() {
+    ImageBufferObject::~ImageBufferObject() {
         if (view != VK_NULL_HANDLE) {
             vkDestroyImageView(device, view, nullptr);
         }

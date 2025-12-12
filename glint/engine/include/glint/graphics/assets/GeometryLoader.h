@@ -3,7 +3,7 @@
 #include <optional>
 #include <string>
 
-#include "GeometryData.h"
+#include "Geometry.h"
 
 namespace glint::engine::graphics {
 
@@ -12,7 +12,7 @@ namespace glint::engine::graphics {
         GeometryLoader() noexcept = default;
         ~GeometryLoader() noexcept = default;
 
-        static std::optional<GeometryData> load(const std::string& filename);
+        static std::optional<Geometry> load(const std::string& filename);
     };
 
 }

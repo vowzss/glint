@@ -8,7 +8,7 @@
 
 namespace glint::engine::graphics {
 
-    BufferData::BufferData(const Devices& devices, const BufferCreateInfo& info) : m_device(devices.logical) {
+    BufferObject::BufferObject(const Devices& devices, const BufferInfo& info) : m_device(devices.logical) {
         VkBufferCreateInfo bufferInfo = {};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = info.size;
@@ -50,7 +50,7 @@ namespace glint::engine::graphics {
         }
     }
 
-    BufferData::~BufferData() noexcept {
+    BufferObject::~BufferObject() noexcept {
         if (m_mapped != nullptr) {
             vkUnmapMemory(m_device, m_memory);
             m_mapped = nullptr;
@@ -69,7 +69,7 @@ namespace glint::engine::graphics {
         m_size = 0;
     }
 
-    BufferData::BufferData(BufferData&& other) noexcept
+    BufferObject::BufferObject(BufferObject&& other) noexcept
         : m_device(other.m_device), m_handle(other.m_handle), m_memory(other.m_memory), m_mapped(other.m_mapped), m_size(other.m_size) {
         other.m_handle = nullptr;
         other.m_memory = nullptr;
@@ -77,7 +77,7 @@ namespace glint::engine::graphics {
         other.m_size = 0;
     }
 
-    BufferData& BufferData::operator=(BufferData&& other) noexcept {
+    BufferObject& BufferObject::operator=(BufferObject&& other) noexcept {
         if (this != &other) {
             if (m_handle != nullptr) {
                 if (m_mapped) vkUnmapMemory(m_device, m_memory);
@@ -99,7 +99,7 @@ namespace glint::engine::graphics {
         return *this;
     }
 
-    bool BufferData::update(VkDeviceSize size, const void* data, VkDeviceSize offset) {
+    bool BufferObject::update(VkDeviceSize size, const void* data, VkDeviceSize offset) {
         if (m_mapped == nullptr) {
             return false;
         }

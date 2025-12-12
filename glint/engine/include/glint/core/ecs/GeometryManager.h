@@ -1,16 +1,15 @@
 #pragma once
 
 #include <cstdint>
-#include <optional>
+#include <memory>
 #include <string>
 #include <vector>
-
-#include "glint/graphics/backend/buffer/GeometryBuffer.h"
 
 #include "ObjectHandle.h"
 
 namespace glint::engine::graphics {
     struct Devices;
+    struct GeometryBufferObject;
 }
 
 namespace glint::engine::core {
@@ -23,8 +22,7 @@ namespace glint::engine::core {
 
       public:
         uint32_t flags = 0;
-
-        std::optional<graphics::GeometryBuffer> buffer;
+        std::unique_ptr<graphics::GeometryBufferObject> value;
 
       public:
         uint32_t version() const noexcept {
@@ -59,15 +57,15 @@ namespace glint::engine::core {
         void destroy(GeometryHandle handle);
 
         // --- getters ---
-        graphics::GeometryBuffer* get(GeometryHandle handle) noexcept;
-        const graphics::GeometryBuffer* get(GeometryHandle handle) const noexcept;
+        graphics::GeometryBufferObject* get(GeometryHandle handle) noexcept;
+        const graphics::GeometryBufferObject* get(GeometryHandle handle) const noexcept;
 
         inline bool isValid(GeometryHandle handle) const noexcept {
             // clang-format off
             return handle.valid() 
               && handle.id() < m_entries.size() 
               && m_entries[handle.id()].version() == handle.version()
-              && m_entries[handle.id()].buffer.has_value();
+              && m_entries[handle.id()].value != nullptr;
             // clang-format on
         }
     };

@@ -1,15 +1,14 @@
+#include "glint/core/ecs/World.h"
+#include "glint/core/ecs/components/GeometryComponent.h"
 #include "glint/graphics/backend/buffer/GeometryBufferObject.h"
 #include "glint/graphics/backend/buffer/IndexBufferObject.h"
 #include "glint/graphics/backend/buffer/VertexBufferObject.h"
 #include "glint/graphics/layers/SceneLayer.h"
-#include "glint/scene/World.h"
-#include "glint/scene/components/GeometryComponent.h"
 
 using namespace glint::engine::core;
-using namespace glint::engine::scene;
 
 namespace glint::engine::graphics {
-    SceneLayer::SceneLayer(const scene::World& world) : m_world(world) {};
+    SceneLayer::SceneLayer(const World& world) : m_world(world) {};
     SceneLayer::~SceneLayer() = default;
 
     void SceneLayer::render(float deltaTime, const LayerRenderInfo& info) {

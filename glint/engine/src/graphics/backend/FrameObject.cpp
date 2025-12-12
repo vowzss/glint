@@ -1,19 +1,18 @@
 #include <cstddef>
 
+#include "glint/core/ecs/World.h"
 #include "glint/core/systems/CameraSystem.h"
-#include "glint/graphics/backend/FrameData.h"
+#include "glint/graphics/backend/FrameObject.h"
 #include "glint/graphics/backend/device/Devices.h"
 #include "glint/graphics/layers/RenderLayer.h"
-#include "glint/scene/World.h"
 
 using namespace glint::engine::core;
-using namespace glint::engine::scene;
 
 namespace glint::engine::graphics {
 
-    FrameData::FrameData(const Devices& devices, const FrameCreateInfo& info)
-        : m_device(devices.logical), m_camera{VK_NULL_HANDLE, UniformBuffer(devices, CameraSnapshot::size())},
-          m_entity{VK_NULL_HANDLE, StorageBuffer(devices, sizeof(JPH::Mat44) * 100)} {
+    FrameObject::FrameObject(const Devices& devices, const FrameInfo& info)
+        : m_device(devices.logical), m_camera{VK_NULL_HANDLE, UniformBufferObject(devices, CameraSnapshot::size())},
+          m_entity{VK_NULL_HANDLE, StorageBufferObject(devices, sizeof(JPH::Mat44) * 100)} {
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_ready);
@@ -81,7 +80,7 @@ namespace glint::engine::graphics {
         }
     }
 
-    FrameData::~FrameData() {
+    FrameObject::~FrameObject() {
         if (m_guard != VK_NULL_HANDLE) {
             vkDestroyFence(m_device, m_guard, nullptr);
         }
@@ -95,11 +94,11 @@ namespace glint::engine::graphics {
         }
     }
 
-    void FrameData::begin() {
+    void FrameObject::begin() {
         // your Vulkan commands to begin frame
     }
 
-    void FrameData::render(float deltaTime, const FrameRenderInfo& info) {
+    void FrameObject::render(float deltaTime, const FrameRenderInfo& info) {
         m_deltaTime = deltaTime;
 
         m_camera.buffer.update(info.camera.size(), info.camera.data());
@@ -121,15 +120,15 @@ namespace glint::engine::graphics {
         }
     }
 
-    void FrameData::end() {
+    void FrameObject::end() {
     }
 
-    void FrameData::attach(RenderLayer* layer) noexcept {
+    void FrameObject::attach(RenderLayer* layer) noexcept {
         if (std::find(m_layers.begin(), m_layers.end(), layer) != m_layers.end()) return;
         m_layers.push_back(layer);
     }
 
-    void FrameData::detach(RenderLayer* layer) noexcept {
+    void FrameObject::detach(RenderLayer* layer) noexcept {
         m_layers.erase(std::remove(m_layers.begin(), m_layers.end(), layer), m_layers.end());
     }
 

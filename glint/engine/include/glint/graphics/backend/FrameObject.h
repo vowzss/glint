@@ -6,20 +6,18 @@
 #include <Jolt/Math/Mat44.h>
 #include <vulkan/vulkan_core.h>
 
-#include "glint/graphics/backend/buffer/StorageBuffer.h"
-#include "glint/graphics/backend/buffer/UniformBuffer.h"
+#include "glint/graphics/backend/buffer/StorageBufferObject.h"
+#include "glint/graphics/backend/buffer/UniformBufferObject.h"
 #include "glint/graphics/layers/RenderLayer.h"
 
 namespace glint::engine {
     namespace core {
         struct CameraSnapshot;
+        class World;
     }
     namespace graphics {
         struct UniformBuffer;
         struct StorageBuffer;
-    }
-    namespace scene {
-        class World;
     }
 }
 
@@ -28,12 +26,10 @@ namespace glint::engine::graphics {
     struct Devices;
     class RenderLayer;
 
-    struct FrameCreateInfo {
+    struct FrameInfo {
         VkDescriptorPool descriptorPool;
         VkDescriptorSetLayout cameraLayout;
         VkDescriptorSetLayout entityLayout;
-
-        // const scene::World& world;
     };
 
     struct FrameRenderInfo {
@@ -53,10 +49,9 @@ namespace glint::engine::graphics {
 
     struct FrameObject {
         const VkDevice m_device = nullptr;
-        // const scene::World& m_world;
 
-        FrameBufferBinding<UniformBuffer> m_camera;
-        FrameBufferBinding<StorageBuffer> m_entity;
+        FrameBufferBinding<UniformBufferObject> m_camera;
+        FrameBufferBinding<StorageBufferObject> m_entity;
 
         std::vector<RenderLayer*> m_layers;
 
@@ -70,7 +65,7 @@ namespace glint::engine::graphics {
 
       public:
         FrameObject() = delete;
-        FrameObject(const Devices& devices, const FrameCreateInfo& info);
+        FrameObject(const Devices& devices, const FrameInfo& info);
 
         ~FrameObject();
 

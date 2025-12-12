@@ -1,6 +1,6 @@
 #pragma once
 
-namespace glint::engine::scene {
+namespace glint::engine::core {
 
     template <typename Handle>
     struct Component {

@@ -6,58 +6,97 @@
 
 namespace glint::engine::graphics {
 
-    CommandsPoolData::CommandsPoolData(const VkDevice& device, const QueueFamilySupportDetails& family, size_t size) : device(device) {
+    CommandsPoolObject::CommandsPoolObject(const VkDevice& device, const QueueFamilySupportDetails& family) : m_device(device) {
 
         VkCommandPoolCreateInfo poolInfo = {};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         poolInfo.queueFamilyIndex = family.index;
 
-        if (vkCreateCommandPool(device, &poolInfo, nullptr, &handle) != VK_SUCCESS) {
+        if (vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_handle) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | failed to create command pool!");
         }
 
-        buffers.resize(size);
-
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.commandPool = handle;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount = static_cast<uint32_t>(buffers.size());
+        allocInfo.commandPool = m_handle;
+        allocInfo.commandBufferCount = static_cast<uint32_t>(family.count);
 
-        if (vkAllocateCommandBuffers(device, &allocInfo, buffers.data()) != VK_SUCCESS) {
-            throw std::runtime_error("Vulkan | failed to allocate command buffers!");
+        m_buffers.reserve(family.count);
+        if (vkAllocateCommandBuffers(m_device, &allocInfo, m_buffers.data()) != VK_SUCCESS) {
+            throw std::runtime_error("Vulkan | Failed to allocate command buffers!");
         }
     }
 
-    CommandsPoolData::~CommandsPoolData() {
-        if (!buffers.empty()) {
-            vkFreeCommandBuffers(device, handle, buffers.size(), buffers.data());
-            buffers.clear();
-        }
+    CommandsPoolObject::~CommandsPoolObject() {
+        vkFreeCommandBuffers(m_device, m_handle, static_cast<uint32_t>(m_buffers.size()), m_buffers.data());
+        m_buffers.clear();
 
-        if (handle != VK_NULL_HANDLE) {
-            vkDestroyCommandPool(device, handle, nullptr);
-            handle = VK_NULL_HANDLE;
+        if (m_handle != nullptr) {
+            vkDestroyCommandPool(m_device, m_handle, nullptr);
+            m_handle = nullptr;
         }
     }
 
-    void CommandsPoolData::begin(size_t idx) {
-        vkResetCommandBuffer(buffers.at(idx), 0);
+    void CommandsPoolObject::begin(size_t idx) {
+        const VkCommandBuffer& handle = m_buffers[idx];
+        vkResetCommandBuffer(handle, 0);
 
-        VkCommandBufferBeginInfo beginInfo = {};
+        VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = 0;
 
-        if (vkBeginCommandBuffer(buffers.at(idx), &beginInfo) != VK_SUCCESS) {
-            throw std::runtime_error("Vulkan | failed to begin recording command buffer!");
+        if (vkBeginCommandBuffer(handle, &beginInfo) != VK_SUCCESS) {
+            throw std::runtime_error("Vulkan | Failed to begin command buffer!");
         }
     }
 
-    void CommandsPoolData::end(size_t idx) {
-        if (vkEndCommandBuffer(buffers.at(idx)) != VK_SUCCESS) {
-            throw std::runtime_error("Vulkan | failed to end recording command buffer!");
+    void CommandsPoolObject::end(size_t idx) {
+        const VkCommandBuffer& handle = m_buffers[idx];
+        if (vkEndCommandBuffer(handle) != VK_SUCCESS) {
+            throw std::runtime_error("Vulkan | Failed to end command buffer!");
         }
     }
 
+    VkCommandBuffer CommandsPoolObject::beginSingle() const {
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandPool = m_handle;
+        allocInfo.commandBufferCount = 1;
+
+        VkCommandBuffer handle;
+        if (vkAllocateCommandBuffers(m_device, &allocInfo, &handle) != VK_SUCCESS) {
+            throw std::runtime_error("Vulkan | Failed to allocate single command buffer!");
+        }
+
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        if (vkBeginCommandBuffer(handle, &beginInfo) != VK_SUCCESS) {
+            throw std::runtime_error("Vulkan | Failed to begin single command buffer!");
+        }
+
+        return handle;
+    }
+
+    void CommandsPoolObject::endSingle(VkCommandBuffer commands, VkQueue queue) const {
+        if (vkEndCommandBuffer(commands) != VK_SUCCESS) {
+            throw std::runtime_error("Vulkan | Failed to end single command buffer!");
+        }
+
+        VkSubmitInfo submitInfo = {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.pCommandBuffers = &commands;
+        submitInfo.commandBufferCount = 1;
+
+        if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+            throw std::runtime_error("Vulkan | Failed to submit single command buffer!");
+        }
+
+        vkQueueWaitIdle(queue);
+        vkFreeCommandBuffers(m_device, m_handle, 1, &commands);
+    }
 }

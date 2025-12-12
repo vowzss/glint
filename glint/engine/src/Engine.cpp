@@ -2,6 +2,8 @@
 
 #include "glint/Engine.h"
 #include "glint/core/Logger.h"
+#include "glint/core/ecs/World.h"
+#include "glint/core/ecs/components/GeometryComponent.h"
 #include "glint/core/managers/AssetManager.h"
 #include "glint/core/managers/InputManager.h"
 #include "glint/core/managers/TimeManager.h"
@@ -9,8 +11,6 @@
 #include "glint/graphics/Renderer.h"
 #include "glint/graphics/Window.h"
 #include "glint/graphics/layers/SceneLayer.h"
-#include "glint/scene/World.h"
-#include "glint/scene/components/GeometryComponent.h"
 #include "glint/utils/FileUtils.h"
 #include "glint/utils/StringUtils.h"
 
@@ -20,7 +20,6 @@
 using namespace glint::engine;
 using namespace graphics;
 using namespace core;
-using namespace scene;
 using namespace utils;
 
 namespace glint {
@@ -52,7 +51,7 @@ namespace glint {
         window = std::make_unique<Window>(width, height, "Vulkan", inputs.get());
         renderer = std::make_unique<Renderer>(width, height, getRequiredExtensions());
 
-        world = std::make_unique<World>(assets.get());
+        world = std::make_unique<core::World>(*assets.get());
         cameras = std::make_unique<CameraSystem>();
 
         VkSurfaceKHR surface;

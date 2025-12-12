@@ -4,7 +4,7 @@
 
 #include "Component.h"
 
-namespace glint::engine::scene {
+namespace glint::engine::core {
 
     struct GeometryComponent : Component<core::GeometryHandle> {
         using Component::Component;

@@ -3,17 +3,17 @@
 #include "glint/core/ecs/ComponentManager.h"
 #include "glint/core/ecs/EntityManager.h"
 #include "glint/core/ecs/GeometryManager.h"
+#include "glint/core/ecs/World.h"
+#include "glint/core/ecs/components/GeometryComponent.h"
+#include "glint/core/ecs/components/TransformComponent.h"
 #include "glint/core/managers/AssetManager.h"
-#include "glint/scene/World.h"
-#include "glint/scene/components/GeometryComponent.h"
-#include "glint/scene/components/Transform.h"
+#include "glint/graphics/backend/buffer/GeometryBufferObject.h"
 
-using namespace glint::engine::core;
 using namespace glint::engine::graphics;
 
-namespace glint::engine::scene {
+namespace glint::engine::core {
 
-    World::World(AssetManager* assets) {
+    World::World(AssetManager& assets) {
         m_entities = std::make_unique<EntityManager>();
         m_geometries = std::make_unique<GeometryManager>(assets);
         m_components = std::make_unique<ComponentManager>();
@@ -24,8 +24,7 @@ namespace glint::engine::scene {
     // --- entities ---
     EntityHandle World::createEntity() noexcept {
         EntityHandle handle = m_entities->create();
-        m_components->add(handle, Transform{});
-
+        m_components->add(handle, TransformComponent{});
         return handle;
     }
 
@@ -51,13 +50,13 @@ namespace glint::engine::scene {
 
     // --- components ---
     template <typename Component>
-    void World::attach(core::EntityHandle handle, const Component& component) const noexcept {
+    void World::attach(core::EntityHandle handle, Component&& component) const noexcept {
         if (!m_entities->isValid(handle)) return;
-        m_components->add<Component>(handle, component);
+        m_components->add<Component>(handle, std::forward<Component>(component));
     }
 
-    template void World::attach<Transform>(core::EntityHandle, const Transform&) const noexcept;
-    template void World::attach<GeometryComponent>(core::EntityHandle, const GeometryComponent&) const noexcept;
+    template void World::attach<TransformComponent>(core::EntityHandle, TransformComponent&&) const noexcept;
+    template void World::attach<GeometryComponent>(core::EntityHandle, GeometryComponent&&) const noexcept;
 
     template <typename Component>
     void World::detach(core::EntityHandle handle) const noexcept {
@@ -71,7 +70,7 @@ namespace glint::engine::scene {
         return m_components ? m_components->get<Component>(handle) : nullptr;
     }
 
-    template const Transform* World::component<Transform>(core::EntityHandle) const noexcept;
+    template const TransformComponent* World::component<TransformComponent>(core::EntityHandle) const noexcept;
     template const GeometryComponent* World::component<GeometryComponent>(core::EntityHandle) const noexcept;
 
     // --- query ---
@@ -82,7 +81,8 @@ namespace glint::engine::scene {
     }
 
     template <>
-    const graphics::GeometryBuffer* World::resolve<graphics::GeometryBuffer, core::GeometryHandle>(core::GeometryHandle handle) const noexcept {
+    const graphics::GeometryBufferObject* World::resolve<graphics::GeometryBufferObject, core::GeometryHandle>(
+        core::GeometryHandle handle) const noexcept {
         return m_geometries ? m_geometries->get(handle) : nullptr;
     }
 
@@ -92,7 +92,7 @@ namespace glint::engine::scene {
         }
 
         EntityView view;
-        view.transform = m_components->get<Transform>(handle);
+        view.transform = m_components->get<TransformComponent>(handle);
         view.geometry = m_components->get<GeometryComponent>(handle);
 
         return view;
@@ -106,7 +106,7 @@ namespace glint::engine::scene {
 
         for (const EntityHandle& handle : handles) {
             EntityView view;
-            view.transform = m_components->get<Transform>(handle);
+            view.transform = m_components->get<TransformComponent>(handle);
             view.geometry = m_components->get<GeometryComponent>(handle);
 
             entities.emplace_back(view);

@@ -1,13 +1,13 @@
 #include <memory>
 
+#include "glint/graphics/assets/Geometry.h"
 #include "glint/graphics/backend/buffer/GeometryBufferObject.h"
 #include "glint/graphics/backend/buffer/IndexBufferObject.h"
 #include "glint/graphics/backend/buffer/VertexBufferObject.h"
-#include "glint/graphics/models/GeometryData.h"
 
 namespace glint::engine::graphics {
 
-    GeometryBufferObject::GeometryBufferObject(const Devices& devices, const GeometryData& data) {
+    GeometryBufferObject::GeometryBufferObject(const Devices& devices, const Geometry& data) {
         const auto& vertices = data.vertices();
         const auto& indices = data.indices();
 

@@ -1,8 +1,8 @@
 namespace glint::engine::core {
 
     template <typename T>
-    inline void ComponentManager::add(EntityHandle handle, const T& component) {
-        query<T>().add(handle, component);
+    inline void ComponentManager::add(EntityHandle handle, T&& component) {
+        query<T>().add(handle, std::forward<T>(component));
     }
 
     template <typename T>
@@ -34,26 +34,26 @@ namespace glint::engine::core {
 
     // clang-format off
     template <>
-    inline ComponentStorage<scene::Transform>& 
-    ComponentManager::query<scene::Transform>() noexcept {
+    inline ComponentStorage<TransformComponent>& 
+    ComponentManager::query<TransformComponent>() noexcept {
         return m_transforms;
     };
 
     template <>
-    inline const ComponentStorage<scene::Transform>& 
-    ComponentManager::query<scene::Transform>() const noexcept {
+    inline const ComponentStorage<TransformComponent>& 
+    ComponentManager::query<TransformComponent>() const noexcept {
         return m_transforms;
     };
 
     template <>
-    inline ComponentStorage<scene::GeometryComponent>&
-    ComponentManager::query<scene::GeometryComponent>() noexcept {
+    inline ComponentStorage<core::GeometryComponent>&
+    ComponentManager::query<core::GeometryComponent>() noexcept {
         return m_geometries;
     }
 
     template <>
-    inline const ComponentStorage<scene::GeometryComponent>& 
-    ComponentManager::query<scene::GeometryComponent>() const noexcept {
+    inline const ComponentStorage<core::GeometryComponent>& 
+    ComponentManager::query<core::GeometryComponent>() const noexcept {
         return m_geometries;
     }
     // clang-format on

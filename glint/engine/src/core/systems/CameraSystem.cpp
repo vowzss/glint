@@ -2,8 +2,7 @@
 
 namespace glint::engine::core {
 
-    void CameraSystem::update(scene::CameraComponent& camera, float deltaTime) noexcept {
-
+    void CameraSystem::update(CameraComponent& camera, float deltaTime) noexcept {
         JPH::Vec3 local = camera.movement;
         if (local.LengthSq() < 0.0001f) {
             return;
@@ -21,7 +20,7 @@ namespace glint::engine::core {
         camera.isViewDirty = true;
     }
 
-    void CameraSystem::rotate(scene::CameraComponent& camera, float dx, float dy) noexcept {
+    void CameraSystem::rotate(CameraComponent& camera, float dx, float dy) noexcept {
         static constexpr float HALF_PI_RAD = JPH::DegreesToRadians(90.0f);
 
         camera.yaw += dx * camera.sensitivity;
@@ -31,7 +30,7 @@ namespace glint::engine::core {
         camera.isViewDirty = true;
     }
 
-    JPH::Mat44 CameraSystem::viewMatrix(const scene::CameraComponent& camera) const {
+    JPH::Mat44 CameraSystem::viewMatrix(const CameraComponent& camera) const {
         if (camera.isViewDirty) {
             // clang-format off
             JPH::Quat orientation = JPH::Quat::sRotation(JPH::Vec3::sAxisY(), camera.yaw) 
@@ -49,7 +48,7 @@ namespace glint::engine::core {
         return camera.view;
     }
 
-    JPH::Mat44 CameraSystem::projectionMatrix(const scene::CameraComponent& camera) const {
+    JPH::Mat44 CameraSystem::projectionMatrix(const CameraComponent& camera) const {
         if (camera.isProjectionDirty) {
             camera.projection = JPH::Mat44::sPerspective(camera.fov, camera.aspectRatio, camera.nearPlane, camera.farPlane);
             camera.isProjectionDirty = false;
@@ -58,7 +57,7 @@ namespace glint::engine::core {
         return camera.projection;
     }
 
-    JPH::Mat44 CameraSystem::viewProjectionMatrix(const scene::CameraComponent& camera) const {
+    JPH::Mat44 CameraSystem::viewProjectionMatrix(const CameraComponent& camera) const {
         return projectionMatrix(camera) * viewMatrix(camera);
     }
 }

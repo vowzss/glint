@@ -6,16 +6,16 @@
 #include "glint/graphics/backend/CommandsPoolData.h"
 #include "glint/graphics/backend/buffer/ImageBufferObject.h"
 #include "glint/graphics/backend/device/Devices.h"
-#include "glint/graphics/backend/device/QueueData.h"
-#include "glint/graphics/backend/renderpass/RenderpassData.h"
-#include "glint/graphics/backend/swapchain/SwapchainData.h"
+#include "glint/graphics/backend/device/QueueRegistry.h"
+#include "glint/graphics/backend/renderpass/RenderPassObject.h"
+#include "glint/graphics/backend/swapchain/SwapchainObject.h"
 
 namespace glint::engine {
     namespace core {
         struct CameraSnapshot;
     }
     namespace graphics {
-        struct FrameData;
+        struct FrameObject;
         class RenderLayer;
     }
 }
@@ -34,12 +34,11 @@ namespace glint::engine::graphics {
         Devices m_devices;
 
         // --- swapchain + renderpass ---
-        std::unique_ptr<SwapchainData> swapchain;
-        std::unique_ptr<RenderpassData> renderpass;
-        std::unique_ptr<CommandsPoolData> commands;
+        std::unique_ptr<SwapchainObject> swapchain;
+        std::unique_ptr<RenderPassObject> renderpass;
 
         // --- queues ---
-        std::unique_ptr<QueuesData> queues;
+        std::unique_ptr<QueueRegistry> queues;
 
         // --- descriptors ---
         VkDescriptorPool descriptorPool = nullptr;
@@ -49,13 +48,13 @@ namespace glint::engine::graphics {
         // --- frame ---
         int m_frame = 0;
         uint32_t m_image = 0;
-        std::vector<std::unique_ptr<FrameData>> m_frames;
+        std::vector<std::unique_ptr<FrameObject>> m_frames;
 
         // --- pipeline ---
         VkPipeline m_pipeline;
         VkPipelineLayout m_pipelineLayout;
 
-        std::unique_ptr<ImageBufferData> depthBuffer;
+        std::unique_ptr<ImageBufferObject> depthBuffer;
 
         // --- scene ---
         std::vector<std::unique_ptr<RenderLayer>> layers;
@@ -94,7 +93,6 @@ namespace glint::engine::graphics {
         void createRenderPass();
         void createGraphicsPipeline();
 
-        void createCommandPool();
         void createSyncObjects();
 
         void createCameraLayout();
