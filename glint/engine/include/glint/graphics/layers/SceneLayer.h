@@ -1,12 +1,9 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
-
 #include "glint/graphics/layers/RenderLayer.h"
 
 namespace glint::engine {
     namespace core {
-        struct CameraSnapshot;
         class World;
     }
 }
@@ -21,7 +18,7 @@ namespace glint::engine::graphics {
         SceneLayer(const core::World& world);
         ~SceneLayer();
 
-        void render(float deltaTime, const LayerRenderInfo& info) override;
+        void render(float dt, FrameObject& frame) override;
     };
 
 }

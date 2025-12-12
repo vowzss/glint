@@ -48,11 +48,13 @@ namespace glint {
         inputs = std::make_unique<InputManager>();
         assets = std::make_unique<AssetManager>();
 
-        window = std::make_unique<Window>(width, height, "Vulkan", inputs.get());
-        renderer = std::make_unique<Renderer>(width, height, getRequiredExtensions());
-
         world = std::make_unique<core::World>(*assets.get());
         cameras = std::make_unique<CameraSystem>();
+
+        layers.emplace_back(std::make_unique<SceneLayer>(*world));
+
+        window = std::make_unique<Window>(width, height, "Vulkan", inputs.get());
+        renderer = std::make_unique<Renderer>(width, height, getRequiredExtensions());
 
         VkSurfaceKHR surface;
         if (glfwCreateWindowSurface(renderer->getInstance(), window->raw(), nullptr, &surface) != VK_SUCCESS) {
@@ -60,7 +62,7 @@ namespace glint {
         }
 
         renderer->init(surface);
-        renderer->append(std::make_unique<SceneLayer>(*world));
+        renderer->append(*layers[0]);
 
         // todo: cleanup
         // clang-format off

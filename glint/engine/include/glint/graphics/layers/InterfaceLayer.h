@@ -1,7 +1,5 @@
 #include <vulkan/vulkan_core.h>
 
-#include "glint/graphics/layers/RenderLayer.h"
-
 struct GLFWwindow;
 
 namespace glint::engine {
@@ -13,6 +11,7 @@ namespace glint::engine {
 
 namespace glint::engine::graphics {
 
+    /*
     struct InterfaceLayerInfo {
         GLFWwindow* window;
 
@@ -33,7 +32,8 @@ namespace glint::engine::graphics {
         ~InterfaceLayer();
 
         void begin() override;
-        void render(float deltaTime, const LayerRenderInfo& info) override;
+        void render(float dt, const LayerRenderInfo& info) override;
     };
+    */
 
 }

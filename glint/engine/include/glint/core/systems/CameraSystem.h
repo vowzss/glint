@@ -34,7 +34,7 @@ namespace glint::engine::core {
 
         ~CameraSystem() noexcept = default;
 
-        void update(CameraComponent& camera, float deltaTime) noexcept;
+        void update(CameraComponent& camera, float dt) noexcept;
         void rotate(CameraComponent& camera, float dx, float dy) noexcept;
 
         inline void move(CameraComponent& camera, const JPH::Vec3& v) noexcept {

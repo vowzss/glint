@@ -2,22 +2,16 @@
 
 #include <vector>
 
-#include <Jolt/Jolt.h>
-#include <Jolt/Math/Mat44.h>
-#include <vulkan/vulkan_core.h>
-
 #include "glint/graphics/backend/buffer/StorageBufferObject.h"
 #include "glint/graphics/backend/buffer/UniformBufferObject.h"
 #include "glint/graphics/layers/RenderLayer.h"
+
+#include "FrameBufferBinding.h"
 
 namespace glint::engine {
     namespace core {
         struct CameraSnapshot;
         class World;
-    }
-    namespace graphics {
-        struct UniformBuffer;
-        struct StorageBuffer;
     }
 }
 
@@ -32,7 +26,7 @@ namespace glint::engine::graphics {
         VkDescriptorSetLayout entityLayout;
     };
 
-    struct FrameRenderInfo {
+    struct FrameRecordContext {
         VkCommandBuffer commands;
 
         VkPipeline pipeline;
@@ -41,27 +35,22 @@ namespace glint::engine::graphics {
         const core::CameraSnapshot& camera;
     };
 
-    template <typename T>
-    struct FrameBufferBinding {
-        VkDescriptorSet set;
-        T buffer;
-    };
-
-    struct FrameObject {
+    class FrameObject {
         const VkDevice m_device = nullptr;
 
         FrameBufferBinding<UniformBufferObject> m_camera;
         FrameBufferBinding<StorageBufferObject> m_entity;
 
-        std::vector<RenderLayer*> m_layers;
+        std::vector<std::reference_wrapper<RenderLayer>> m_layers;
 
+      public:
         // --- synchronisation ---
         VkSemaphore m_ready = nullptr;
         VkSemaphore m_done = nullptr;
         VkFence m_guard = nullptr;
 
-        // --- timing ---
-        mutable float m_deltaTime;
+      private:
+        const FrameRecordContext* m_context = nullptr;
 
       public:
         FrameObject() = delete;
@@ -70,11 +59,36 @@ namespace glint::engine::graphics {
         ~FrameObject();
 
         void begin();
-        void render(float deltaTime, const FrameRenderInfo& info);
+        void record(float dt, const FrameRecordContext& context);
         void end();
 
-        void attach(RenderLayer* layer) noexcept;
-        void detach(RenderLayer* layer) noexcept;
+        void attach(RenderLayer& layer) noexcept;
+        void detach(RenderLayer& layer) noexcept;
+
+        // --- getters ---
+        inline const FrameRecordContext& context() const {
+            if (m_context == nullptr) {
+                throw std::runtime_error("Frame context is no longer valid!");
+            }
+
+            return *m_context;
+        }
+
+        inline const FrameBufferBinding<UniformBufferObject>& camera() const noexcept {
+            return m_camera;
+        }
+
+        inline FrameBufferBinding<UniformBufferObject>& camera() noexcept {
+            return m_camera;
+        }
+
+        inline const FrameBufferBinding<StorageBufferObject>& entity() const noexcept {
+            return m_entity;
+        }
+
+        inline FrameBufferBinding<StorageBufferObject>& entity() noexcept {
+            return m_entity;
+        }
     };
 
 }

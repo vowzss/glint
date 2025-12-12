@@ -38,16 +38,17 @@ namespace glint::engine::graphics {
             return m_handles[idx];
         }
 
-        inline VkQueue handle(size_t idx) noexcept {
-            return m_handles[idx % m_handles.size()];
-        }
-
         inline CommandsPoolObject& pool() noexcept {
             return m_pool;
         }
 
         inline const CommandsPoolObject& pool() const noexcept {
             return m_pool;
+        }
+
+        // --- operators ---
+        inline const VkQueue& operator[](size_t idx) const noexcept {
+            return m_handles[idx % m_handles.size()];
         }
     };
 

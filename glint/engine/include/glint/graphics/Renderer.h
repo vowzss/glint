@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -15,7 +16,7 @@ namespace glint::engine {
         struct CameraSnapshot;
     }
     namespace graphics {
-        struct FrameObject;
+        class FrameObject;
         class RenderLayer;
     }
 }
@@ -56,8 +57,7 @@ namespace glint::engine::graphics {
 
         std::unique_ptr<ImageBufferObject> depthBuffer;
 
-        // --- scene ---
-        std::vector<std::unique_ptr<RenderLayer>> layers;
+        std::vector<std::reference_wrapper<RenderLayer>> m_layers;
 
       public:
         Renderer() = delete;
@@ -67,12 +67,12 @@ namespace glint::engine::graphics {
 
         void init(const VkSurfaceKHR& surface);
 
-        inline void append(std::unique_ptr<RenderLayer> layer) noexcept {
-            layers.emplace_back(std::move(layer));
+        inline void append(RenderLayer& layer) noexcept {
+            m_layers.emplace_back(std::ref(layer));
         }
 
         void begin() noexcept;
-        void record(float deltaTime, const core::CameraSnapshot& snapshot) noexcept;
+        void record(float dt, const core::CameraSnapshot& camera) noexcept;
         void end() noexcept;
 
         // --- getters ---

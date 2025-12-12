@@ -6,13 +6,15 @@
 #include "glint/graphics/backend/device/Devices.h"
 #include "glint/graphics/layers/RenderLayer.h"
 
+#include "Jolt/Math/Mat44.h"
+
 using namespace glint::engine::core;
 
 namespace glint::engine::graphics {
 
     FrameObject::FrameObject(const Devices& devices, const FrameInfo& info)
         : m_device(devices.logical), m_camera{VK_NULL_HANDLE, UniformBufferObject(devices, CameraSnapshot::size())},
-          m_entity{VK_NULL_HANDLE, StorageBufferObject(devices, sizeof(JPH::Mat44) * 100)} {
+          m_entity{VK_NULL_HANDLE, StorageBufferObject(devices, sizeof(JPH::Mat44) * 10)} {
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_ready);
@@ -53,6 +55,7 @@ namespace glint::engine::graphics {
 
         // entity storage buffer
         {
+
             VkDescriptorSetAllocateInfo allocInfo{};
             allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
             allocInfo.descriptorPool = info.descriptorPool;
@@ -95,41 +98,31 @@ namespace glint::engine::graphics {
     }
 
     void FrameObject::begin() {
-        // your Vulkan commands to begin frame
     }
 
-    void FrameObject::render(float deltaTime, const FrameRenderInfo& info) {
-        m_deltaTime = deltaTime;
+    void FrameObject::record(float dt, const FrameRecordContext& context) {
+        m_context = &context;
 
-        m_camera.buffer.update(info.camera.size(), info.camera.data());
-
-        const std::vector<EntityView> entities = {};
-        const JPH::Mat44* models = reinterpret_cast<const JPH::Mat44*>(m_entity.buffer.data());
-        m_entity.buffer.update(m_entity.buffer.size(), models);
-
-        LayerRenderInfo renderInfo;
-        renderInfo.commands = info.commands;
-        renderInfo.pipeline = info.pipeline;
-        renderInfo.pipelineLayout = info.pipelineLayout;
-        renderInfo.cameraSet = m_camera.set;
-        renderInfo.entitySet = m_entity.set;
-        renderInfo.entities = &entities;
+        m_camera.buffer.update(m_context->camera.size(), m_context->camera.data());
 
         for (size_t i = 0; i < m_layers.size(); ++i) {
-            m_layers[i]->render(this->m_deltaTime, renderInfo);
+            RenderLayer& layer = m_layers[i].get();
+            layer.render(dt, *this);
         }
     }
 
     void FrameObject::end() {
+        m_context = nullptr;
     }
 
-    void FrameObject::attach(RenderLayer* layer) noexcept {
-        if (std::find(m_layers.begin(), m_layers.end(), layer) != m_layers.end()) return;
-        m_layers.push_back(layer);
+    void FrameObject::attach(RenderLayer& layer) noexcept {
+        auto it = std::find_if(m_layers.begin(), m_layers.end(), [&layer](auto& ref) { return &ref.get() == &layer; });
+        if (it != m_layers.end()) return;
+
+        m_layers.push_back(std::ref(layer));
     }
 
-    void FrameObject::detach(RenderLayer* layer) noexcept {
-        m_layers.erase(std::remove(m_layers.begin(), m_layers.end(), layer), m_layers.end());
+    void FrameObject::detach(RenderLayer& layer) noexcept {
+        m_layers.erase(std::remove_if(m_layers.begin(), m_layers.end(), [&layer](auto& ref) { return &ref.get() == &layer; }), m_layers.end());
     }
-
 }

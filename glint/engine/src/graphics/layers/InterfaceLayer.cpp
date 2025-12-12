@@ -1,14 +1,12 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
-#include <stdexcept>
 
-#include "glint/graphics/backend/device/Devices.h"
 #include "glint/graphics/layers/InterfaceLayer.h"
 
 namespace glint::engine::graphics {
-
-    InterfaceLayer::InterfaceLayer(const Devices& devices, const InterfaceLayerInfo& info) : m_device(devices.logical) {
+    /*
+    InterfaceLayer::InterfaceLayer(const Devices& devices) : m_device(devices.logical) {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
 
@@ -52,7 +50,7 @@ namespace glint::engine::graphics {
         // initInfo.RenderPass = info.renderPass;
         ImGui_ImplVulkan_Init(&initInfo);
 
-        /*VkCommandBufferAllocateInfo allocInfo{};
+        VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = info.pool;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -82,7 +80,7 @@ namespace glint::engine::graphics {
         vkQueueSubmit(info.queue, 1, &endInfo, VK_NULL_HANDLE);
 
         vkDeviceWaitIdle(device);
-        //ImGui_ImplVulkan_DestroyFontUploadObjects();*/
+        //ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
 
     InterfaceLayer::~InterfaceLayer() {
@@ -105,9 +103,9 @@ namespace glint::engine::graphics {
         ImGui::ShowDemoWindow();
     }
 
-    void InterfaceLayer::render(float deltaTime, const LayerRenderInfo& info) {
+    void InterfaceLayer::render(float dt, const LayerRenderInfo& info) {
         ImGui::Render();
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), info.commands);
     }
-
+    */
 }

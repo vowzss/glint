@@ -2,7 +2,7 @@
 
 namespace glint::engine::core {
 
-    void CameraSystem::update(CameraComponent& camera, float deltaTime) noexcept {
+    void CameraSystem::update(CameraComponent& camera, float dt) noexcept {
         JPH::Vec3 local = camera.movement;
         if (local.LengthSq() < 0.0001f) {
             return;
@@ -16,7 +16,7 @@ namespace glint::engine::core {
                             * JPH::Quat::sRotation(JPH::Vec3::sAxisZ(), camera.roll);
         // clang-format on
 
-        camera.position += orientation * local * (camera.speed * deltaTime);
+        camera.position += orientation * local * (camera.speed * dt);
         camera.isViewDirty = true;
     }
 

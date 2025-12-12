@@ -114,14 +114,13 @@ namespace glint::engine::graphics {
         frame->begin();
     }
 
-    void Renderer::record(float deltaTime, const CameraSnapshot& snapshot) noexcept {
+    void Renderer::record(float dt, const CameraSnapshot& camera) noexcept {
         const auto& frame = m_frames[m_frame];
 
         QueueObject& graphicsQueue = queues->graphics;
         CommandsPoolObject& graphicsPool = graphicsQueue.pool();
 
-        graphicsPool.begin(m_frame);
-        VkCommandBuffer& graphicsCommandBuffer = graphicsPool.m_buffers[m_frame];
+        VkCommandBuffer graphicsCommands = graphicsPool.begin(m_frame);
 
         std::array<VkClearValue, 2> clearValues;
         clearValues[0].color = VkClearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
@@ -136,15 +135,14 @@ namespace glint::engine::graphics {
         renderPassInfo.clearValueCount = clearValues.size();
         renderPassInfo.pClearValues = clearValues.data();
 
-        vkCmdBeginRenderPass(graphicsCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(graphicsCommands, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdSetViewport(graphicsCommandBuffer, 0, 1, &m_viewport);
-        vkCmdSetScissor(graphicsCommandBuffer, 0, 1, &m_scissor);
+        vkCmdSetViewport(graphicsCommands, 0, 1, &m_viewport);
+        vkCmdSetScissor(graphicsCommands, 0, 1, &m_scissor);
 
-        FrameRenderInfo frameInfo = {graphicsCommandBuffer, m_pipeline, m_pipelineLayout, snapshot};
-        frame->render(deltaTime, frameInfo);
+        frame->record(dt, {graphicsCommands, m_pipeline, m_pipelineLayout, camera});
 
-        vkCmdEndRenderPass(graphicsCommandBuffer);
+        vkCmdEndRenderPass(graphicsCommands);
         graphicsPool.end(m_frame);
     }
 
@@ -154,7 +152,7 @@ namespace glint::engine::graphics {
         QueueObject& graphicsQueue = queues->graphics;
         QueueObject& presentQueue = queues->present;
 
-        VkCommandBuffer& graphicsCommandBuffer = graphicsQueue.pool().m_buffers[m_frame];
+        VkCommandBuffer graphicsCommands = graphicsQueue.pool()[m_frame];
 
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         std::vector<VkSemaphore> waitSemaphores = {frame->m_ready};
@@ -166,10 +164,10 @@ namespace glint::engine::graphics {
         submitInfo.pWaitSemaphores = waitSemaphores.data();
         submitInfo.pWaitDstStageMask = waitStages;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &graphicsCommandBuffer;
+        submitInfo.pCommandBuffers = &graphicsCommands;
         submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
         submitInfo.pSignalSemaphores = signalSemaphores.data();
-        vkQueueSubmit(graphicsQueue.handle(0), 1, &submitInfo, frame->m_guard);
+        vkQueueSubmit(graphicsQueue[0], 1, &submitInfo, frame->m_guard);
 
         VkPresentInfoKHR presentInfo = {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -178,7 +176,7 @@ namespace glint::engine::graphics {
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = &swapchain->handle;
         presentInfo.pImageIndices = &m_image;
-        vkQueuePresentKHR(presentQueue.handle(0), &presentInfo);
+        vkQueuePresentKHR(queues->present[0], &presentInfo);
 
         frame->end();
         m_frame = (m_frame + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -497,8 +495,8 @@ namespace glint::engine::graphics {
         for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
             m_frames[i] = std::make_unique<FrameObject>(m_devices, frameInfo);
 
-            for (size_t j = 0; j < layers.size(); ++j) {
-                m_frames[i]->attach(layers[j].get());
+            for (size_t j = 0; j < m_layers.size(); ++j) {
+                m_frames[i]->attach(m_layers[j]);
             }
         }
     }

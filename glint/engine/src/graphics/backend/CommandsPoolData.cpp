@@ -39,8 +39,8 @@ namespace glint::engine::graphics {
         }
     }
 
-    void CommandsPoolObject::begin(size_t idx) {
-        VkCommandBuffer handle = m_buffers[idx];
+    const VkCommandBuffer& CommandsPoolObject::begin(size_t idx) {
+        VkCommandBuffer& handle = m_buffers[idx];
         vkResetCommandBuffer(handle, 0);
 
         VkCommandBufferBeginInfo beginInfo{};
@@ -50,10 +50,13 @@ namespace glint::engine::graphics {
         if (vkBeginCommandBuffer(handle, &beginInfo) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | Failed to begin command buffer!");
         }
+
+        return handle;
     }
 
     void CommandsPoolObject::end(size_t idx) {
-        VkCommandBuffer handle = m_buffers[idx];
+        VkCommandBuffer& handle = m_buffers[idx];
+
         if (vkEndCommandBuffer(handle) != VK_SUCCESS) {
             throw std::runtime_error("Vulkan | Failed to end command buffer!");
         }
